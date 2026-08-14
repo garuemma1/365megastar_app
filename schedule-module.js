@@ -322,10 +322,10 @@ window.ScheduleModule = (function () {
               <div class="form-group">
                 <label>빠른 기본 조 선택</label>
                 <div class="shift-preset-grid">
-                  <button type="button" class="btn btn-outline btn-sm font-bold" onclick="ScheduleModule.setPresetTime('09:00', '18:00', 'A')">A조 (09:00~18:00, 실8h)</button>
-                  <button type="button" class="btn btn-outline btn-sm font-bold" onclick="ScheduleModule.setPresetTime('10:00', '22:00', 'B')">B조 (10:00~22:00, 실11h)</button>
-                  <button type="button" class="btn btn-outline btn-sm font-bold" onclick="ScheduleModule.setPresetTime('09:00', '13:00', 'C')">C조 (09:00~13:00, 실4h)</button>
-                  <button type="button" class="btn btn-outline btn-sm font-bold" onclick="ScheduleModule.setPresetTime('13:00', '22:00', 'D')">D조 (13:00~22:00, 실8h)</button>
+                  <button type="button" class="btn btn-outline btn-sm font-bold" onclick="ScheduleModule.setPresetTime('09:00', '18:00', 'A')">A조 (09:00~18:00)</button>
+                  <button type="button" class="btn btn-outline btn-sm font-bold" onclick="ScheduleModule.setPresetTime('10:00', '22:00', 'B')">B조 (10:00~22:00)</button>
+                  <button type="button" class="btn btn-outline btn-sm font-bold" onclick="ScheduleModule.setPresetTime('09:00', '13:00', 'C')">C조 (09:00~13:00)</button>
+                  <button type="button" class="btn btn-outline btn-sm font-bold" onclick="ScheduleModule.setPresetTime('13:00', '22:00', 'D')">D조 (13:00~22:00)</button>
                 </div>
               </div>
 
