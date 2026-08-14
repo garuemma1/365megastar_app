@@ -162,21 +162,27 @@ window.ScheduleModule = (function () {
 
       <!-- 📦 1번 통합 박스: 근무스케줄 자율 제출 & 약국장 최종 결재 승인 센터 -->
       <div class="schedule-control-card mb-4" style="background:#ffffff; border:1.5px solid #cbd5e1; border-radius:18px; padding:22px; box-shadow:0 4px 18px rgba(15,23,42,0.05);">
+        <!-- 카드 상단 통합 타이틀 -->
         <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom flex-wrap gap-2">
-          <div>
-            <h3 style="font-size:17px; font-weight:800; color:#0f172a; margin:0; display:flex; align-items:center; gap:8px;">
-              <i class="fas fa-calendar-check text-primary" style="font-size:18px;"></i>
-              <span>📅 ${currentMonth}월 근무스케줄 자율 제출 & 약국장 최종 승인 결재</span>
-            </h3>
-            <p style="font-size:12.5px; color:#64748b; margin:4px 0 0 0;">약사팀/일반직원팀의 자율 스케줄 제출 현황을 확인하고, 1클릭으로 최종 승인하거나 수정 요청(재조율)을 진행하세요.</p>
+          <div class="d-flex align-items-center gap-3">
+            <div style="width:40px; height:40px; border-radius:12px; background:#ecfdf5; border:1px solid #a7f3d0; color:#059669; display:flex; justify-content:center; align-items:center; font-size:18px; flex-shrink:0;">
+              <i class="fas fa-calendar-check"></i>
+            </div>
+            <div>
+              <h3 style="font-size:17px; font-weight:800; color:#0f172a; margin:0;">
+                ${currentMonth}월 팀별 근무스케줄 자율 제출 현황 및 약국장 최종 결재
+              </h3>
+              <p style="font-size:12.5px; color:#64748b; margin:2px 0 0 0;">근무약사팀과 일반직원팀의 제출 현황을 검토하신 후, 1클릭으로 승인하거나 조율을 진행하세요.</p>
+            </div>
           </div>
         </div>
 
+        <!-- 2개 팀 제출 서브 카드 50/50 밸런스 그리드 -->
         <div class="team-schedule-approval-box mb-3">
           <!-- 약사팀 자율 스케줄 서브 카드 -->
           <div class="tsa-card ${statusObj.pharmacistStatus === 'APPROVED' ? 'tsa-approved' : (statusObj.pharmacistStatus === 'SUBMITTED' ? 'tsa-submitted' : 'tsa-draft')}">
             <div class="tsa-header">
-              <span class="tsa-title"><i class="fas fa-user-md text-primary"></i> <strong>👨‍⚕️ 근무약사팀 자율 스케줄</strong></span>
+              <span class="tsa-title"><strong>👨‍⚕️ 근무약사팀 (약사 4인)</strong></span>
               <span class="tsa-badge">${getStatusBadgeHtml(statusObj.pharmacistStatus || 'SUBMITTED')}</span>
             </div>
             <div class="tsa-body">
@@ -187,8 +193,8 @@ window.ScheduleModule = (function () {
                 </div>
               ` : ''}
               ${statusObj.pharmacistStatus !== 'APPROVED' ? `
-                <button type="button" class="btn btn-sm btn-primary mt-2 font-bold" onclick="ScheduleModule.submitTeamSchedule('pharmacist')">
-                  <i class="fas fa-paper-plane"></i> 📤 약사팀 ${currentMonth}월 스케줄 제출하기
+                <button type="button" class="btn btn-sm btn-primary mt-2 font-bold w-100" onclick="ScheduleModule.submitTeamSchedule('pharmacist')" style="border-radius:10px; padding:8px 0; font-size:13.5px;">
+                  📤 약사팀 ${currentMonth}월 스케줄 제출하기
                 </button>
               ` : ''}
             </div>
@@ -197,7 +203,7 @@ window.ScheduleModule = (function () {
           <!-- 직원팀 자율 스케줄 서브 카드 -->
           <div class="tsa-card ${statusObj.staffStatus === 'APPROVED' ? 'tsa-approved' : (statusObj.staffStatus === 'SUBMITTED' ? 'tsa-submitted' : 'tsa-draft')}">
             <div class="tsa-header">
-              <span class="tsa-title"><i class="fas fa-users text-info"></i> <strong>👨‍💼 일반직원팀 자율 스케줄</strong></span>
+              <span class="tsa-title"><strong>👨‍💼 일반직원팀 (직원 4인)</strong></span>
               <span class="tsa-badge">${getStatusBadgeHtml(statusObj.staffStatus || 'SUBMITTED')}</span>
             </div>
             <div class="tsa-body">
@@ -208,26 +214,26 @@ window.ScheduleModule = (function () {
                 </div>
               ` : ''}
               ${statusObj.staffStatus !== 'APPROVED' ? `
-                <button type="button" class="btn btn-sm btn-info mt-2 text-white font-bold" onclick="ScheduleModule.submitTeamSchedule('staff')">
-                  <i class="fas fa-paper-plane"></i> 📤 직원팀 ${currentMonth}월 스케줄 제출하기
+                <button type="button" class="btn btn-sm btn-info mt-2 text-white font-bold w-100" onclick="ScheduleModule.submitTeamSchedule('staff')" style="border-radius:10px; padding:8px 0; font-size:13.5px;">
+                  📤 직원팀 ${currentMonth}월 스케줄 제출하기
                 </button>
               ` : ''}
             </div>
           </div>
         </div>
 
-        <!-- 약국장 계정 접속 시 하단 승인 확정 및 수정 요청(재조율) 컨트롤러 Bar -->
+        <!-- 약국장 접속 시 하단 묵직하고 균형 잡힌 다크 슬레이트 최종 결재 컨트롤러 Bar -->
         ${(currUser && currUser.role === '약국장') ? `
-          <div class="d-flex justify-content-between align-items-center pt-3 border-top flex-wrap gap-2" style="background:#f8fafc; padding:12px 18px; border-radius:12px; border:1px solid #e2e8f0; margin-top:14px;">
+          <div class="d-flex justify-content-between align-items-center flex-wrap gap-3" style="background:#0f172a; padding:16px 20px; border-radius:14px; color:#ffffff; box-shadow:0 4px 14px rgba(15,23,42,0.15); margin-top:14px;">
             <div class="d-flex align-items-center gap-2">
-              <span class="badge bg-dark text-white font-bold" style="padding:6px 12px; font-size:12px; border-radius:8px;">🔐 약국장 최종 결재</span>
-              <span style="font-size:13.5px; font-weight:700; color:#334155;">팀별 스케줄 검토 후 결정:</span>
+              <span class="badge bg-warning text-dark font-bold" style="padding:6px 12px; font-size:12.5px; border-radius:8px;">🔐 약국장 최종 결재</span>
+              <span style="font-size:13.5px; font-weight:700; color:#cbd5e1;">팀별 제출 근무표 최종 결정을 진행하세요:</span>
             </div>
-            <div class="d-flex gap-2 flex-wrap">
-              <button type="button" class="btn btn-sm text-white font-bold" onclick="ScheduleModule.approveTeamSchedule('all')" style="background:linear-gradient(135deg, #10b981 0%, #059669 100%); border:none; box-shadow:0 3px 10px rgba(16,185,129,0.35); font-size:13.5px; padding:8px 20px; border-radius:10px;">
+            <div class="d-flex gap-2 flex-wrap ms-auto">
+              <button type="button" class="btn btn-sm text-white font-bold" onclick="ScheduleModule.approveTeamSchedule('all')" style="background:linear-gradient(135deg, #10b981 0%, #059669 100%); border:none; box-shadow:0 4px 12px rgba(16,185,129,0.3); font-size:13.5px; padding:9px 22px; border-radius:10px;">
                 <i class="fas fa-check-circle me-1"></i> 🏆 ${currentMonth}월 전체 스케줄 최종 승인 확정
               </button>
-              <button type="button" class="btn btn-sm text-white font-bold" onclick="ScheduleModule.rejectTeamSchedule()" style="background:linear-gradient(135deg, #f43f5e 0%, #e11d48 100%); border:none; box-shadow:0 4px 14px rgba(244,63,94,0.35); font-size:13.5px; padding:8px 20px; border-radius:10px;">
+              <button type="button" class="btn btn-sm text-white font-bold" onclick="ScheduleModule.rejectTeamSchedule()" style="background:linear-gradient(135deg, #ea580c 0%, #c2410c 100%); border:none; box-shadow:0 4px 12px rgba(234,88,12,0.3); font-size:13.5px; padding:9px 22px; border-radius:10px;">
                 <i class="fas fa-undo me-1"></i> ↩️ 스케쥴 수정 요청 (재조율)
               </button>
             </div>
@@ -237,23 +243,23 @@ window.ScheduleModule = (function () {
 
       <!-- 📦 2번 통합 박스: 약국장 전용 세무사 제출용 집계표 & 세후 통합명세서 교부 센터 -->
       ${(currUser && currUser.role === '약국장') ? `
-        <div class="tax-control-card mb-4" style="background:linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border:1px solid #334155; border-radius:18px; padding:22px; color:#ffffff; box-shadow:0 8px 24px rgba(15,23,42,0.25);">
+        <div class="tax-control-card mb-4" style="background:linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border:1px solid #334155; border-radius:18px; padding:22px; color:#ffffff; box-shadow:0 8px 24px rgba(15,23,42,0.25);">
           <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
             <div class="d-flex align-items-center gap-3">
-              <div style="width:46px; height:46px; border-radius:14px; background:rgba(37,99,235,0.2); border:1px solid rgba(37,99,235,0.4); color:#60a5fa; display:flex; justify-content:center; align-items:center; font-size:22px; flex-shrink:0;">
+              <div style="width:44px; height:44px; border-radius:14px; background:rgba(37,99,235,0.2); border:1px solid rgba(37,99,235,0.4); color:#60a5fa; display:flex; justify-content:center; align-items:center; font-size:20px; flex-shrink:0;">
                 <i class="fas fa-file-invoice-dollar"></i>
               </div>
               <div>
                 <strong style="font-size:16.5px; font-weight:800; color:#ffffff; letter-spacing:-0.3px;">💼 세무사 제출용 ${currentMonth}월 총근무시수 집계표 & 세후 명세서 교부 센터</strong>
-                <p style="font-size:12.5px; color:#94a3b8; margin:3px 0 0 0;">세무사에 제출할 급여 집계표를 다운로드하거나, 세무사 검토 후 전달받은 세후 명세서를 업로드하여 직원에게 교부합니다.</p>
+                <p style="font-size:12.5px; color:#94a3b8; margin:3px 0 0 0;">세무사 제출용 급여 집계표를 다운로드하거나, 세무사 검토 후 전달받은 세후 명세서를 업로드하여 직원에게 교부합니다.</p>
               </div>
             </div>
 
-            <div class="d-flex gap-2 flex-wrap">
-              <button type="button" class="btn btn-sm text-white font-bold" onclick="ScheduleModule.exportTaxAccountantReport()" style="background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%); border:none; box-shadow:0 3px 10px rgba(2,132,199,0.4); font-size:13.5px; padding:9px 18px; border-radius:10px;">
+            <div class="d-flex gap-2 flex-wrap ms-auto">
+              <button type="button" class="btn btn-sm text-white font-bold" onclick="ScheduleModule.exportTaxAccountantReport()" style="background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%); border:none; box-shadow:0 3px 10px rgba(2,132,199,0.4); font-size:13.5px; padding:9px 20px; border-radius:10px;">
                 <i class="fas fa-file-export me-1"></i> 📤 세무사 제출용 ${currentMonth}월 총근무시수 & 세전급여 집계표
               </button>
-              <button type="button" class="btn btn-sm text-white font-bold" onclick="ScheduleModule.openDirectorTaxPaystubModal()" style="background:linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); border:none; box-shadow:0 3px 10px rgba(37,99,235,0.4); font-size:13.5px; padding:9px 18px; border-radius:10px;">
+              <button type="button" class="btn btn-sm text-white font-bold" onclick="ScheduleModule.openDirectorTaxPaystubModal()" style="background:linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); border:none; box-shadow:0 3px 10px rgba(37,99,235,0.4); font-size:13.5px; padding:9px 20px; border-radius:10px;">
                 <i class="fas fa-file-invoice me-1"></i> 📁 세후 세무사통합명세서 등록 및 교부
               </button>
             </div>
