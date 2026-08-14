@@ -111,8 +111,11 @@ window.BuildingRentalModule = (function () {
           <button type="button" class="btn btn-success font-bold" onclick="BuildingRentalModule.openAddModal()" style="border-radius:10px; padding:7px 16px; font-size:13px; box-shadow:0 4px 12px rgba(22,163,74,0.25);">
             <i class="fas fa-plus-circle me-1"></i> ➕ 신규 상가/호실 등록
           </button>
-          <button type="button" class="btn btn-outline-success font-bold" onclick="App.downloadActiveModuleToGoogleSheets()" style="border-radius:10px; padding:7px 14px; font-size:13px; box-shadow:0 2px 6px rgba(16,185,129,0.15);">
-            <i class="fas fa-file-excel text-success me-1"></i> 📊 구글 시트 엑셀 내보내기
+          <button type="button" class="btn btn-outline-success font-bold" onclick="BuildingRentalModule.openImportModal()" style="border-radius:10px; padding:7px 14px; font-size:13px; box-shadow:0 2px 6px rgba(16,185,129,0.15);">
+            <i class="fas fa-file-import text-success me-1"></i> 📥 구글 시트/엑셀 파일 불러오기
+          </button>
+          <button type="button" class="btn btn-outline-primary font-bold" onclick="App.downloadActiveModuleToGoogleSheets()" style="border-radius:10px; padding:7px 14px; font-size:13px; box-shadow:0 2px 6px rgba(37,99,235,0.15);">
+            <i class="fas fa-file-excel text-primary me-1"></i> 📊 구글 시트 엑셀 내보내기
           </button>
         </div>
       </div>
@@ -736,6 +739,58 @@ window.BuildingRentalModule = (function () {
     render('module-content');
   }
 
+  function openImportModal() {
+    let input = document.getElementById('br-csv-file-input');
+    if (!input) {
+      input = document.createElement('input');
+      input.type = 'file';
+      input.id = 'br-csv-file-input';
+      input.accept = '.csv, .txt';
+      input.style.display = 'none';
+      document.body.appendChild(input);
+      input.addEventListener('change', handleCSVImport);
+    }
+    input.click();
+  }
+
+  function handleCSVImport(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function (evt) {
+      try {
+        const text = evt.target.result;
+        const lines = text.split('\n');
+        const rData = window.SheetsSync.getBuildingRental();
+
+        lines.forEach(line => {
+          const parts = line.split(',').map(s => s.replace(/"/g, '').trim());
+          if (parts.length >= 6) {
+            const unitName = parts[0];
+            const dep = Number(parts[4]);
+            const rent = Number(parts[5]);
+
+            if (unitName && !isNaN(rent) && rent > 0) {
+              const existing = (rData.units || []).find(u => u.unit === unitName || u.buildingName.includes(unitName));
+              if (existing) {
+                existing.rent = rent;
+                if (!isNaN(dep) && dep > 0) existing.deposit = dep;
+              }
+            }
+          }
+        });
+
+        window.SheetsSync.saveBuildingRental(rData);
+        render('module-content');
+        alert(`🎉 구글 시트/엑셀 파일(${file.name}) 데이터가 건물 임대 대장으로 연동 반영되었습니다!`);
+      } catch (err) {
+        alert('❌ 파일 읽기 중 오류가 발생했습니다. CSV 파일 형식을 확인해 주세요.');
+      }
+    };
+    reader.readAsText(file, 'UTF-8');
+  }
+
   return {
     render,
     setSubTab,
@@ -746,6 +801,7 @@ window.BuildingRentalModule = (function () {
     onOwnershipChange,
     copyTaxInfo,
     updateSimRent,
-    updateSimPercent
+    updateSimPercent,
+    openImportModal
   };
 })();

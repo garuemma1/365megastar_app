@@ -113,8 +113,11 @@ window.PharmacySettlementModule = (function () {
           <p class="subtitle" style="font-size:13px; color:#64748b; margin:4px 0 0 0;">약국장 전용: 2026년 8월 일일결산 장부, 처방 조제·일반매출, 카드/현금 수입, 사입비 및 월 P&L 손익계산서</p>
         </div>
         <div class="d-flex align-items-center gap-2">
-          <button type="button" class="btn btn-outline-success font-bold" onclick="App.downloadActiveModuleToGoogleSheets()" style="border-radius:10px; padding:7px 14px; font-size:13px; box-shadow:0 2px 6px rgba(16,185,129,0.15);">
-            <i class="fas fa-file-excel text-success me-1"></i> 📊 구글 시트 엑셀 내보내기
+          <button type="button" class="btn btn-outline-success font-bold" onclick="PharmacySettlementModule.openImportModal()" style="border-radius:10px; padding:7px 14px; font-size:13px; box-shadow:0 2px 6px rgba(16,185,129,0.15);">
+            <i class="fas fa-file-import text-success me-1"></i> 📥 구글 시트/엑셀 파일 불러오기
+          </button>
+          <button type="button" class="btn btn-outline-primary font-bold" onclick="App.downloadActiveModuleToGoogleSheets()" style="border-radius:10px; padding:7px 14px; font-size:13px; box-shadow:0 2px 6px rgba(37,99,235,0.15);">
+            <i class="fas fa-file-excel text-primary me-1"></i> 📊 구글 시트 엑셀 내보내기
           </button>
           <span class="badge bg-danger" style="font-size:12.5px; padding:8px 14px; border-radius:10px;">🔐 약국장 전용 보안 대시보드</span>
         </div>
@@ -598,10 +601,63 @@ window.PharmacySettlementModule = (function () {
     render('module-content');
   }
 
+  function openImportModal() {
+    let input = document.getElementById('ps-csv-file-input');
+    if (!input) {
+      input = document.createElement('input');
+      input.type = 'file';
+      input.id = 'ps-csv-file-input';
+      input.accept = '.csv, .txt';
+      input.style.display = 'none';
+      document.body.appendChild(input);
+      input.addEventListener('change', handleCSVImport);
+    }
+    input.click();
+  }
+
+  function handleCSVImport(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function (evt) {
+      try {
+        const text = evt.target.result;
+        const lines = text.split('\n');
+        const pData = window.SheetsSync.getPharmacySettlement();
+
+        lines.forEach(line => {
+          const parts = line.split(',').map(s => s.replace(/"/g, '').trim());
+          if (parts.length >= 2) {
+            const keyName = parts[0];
+            const numVal = Number(parts[parts.length - 1]);
+            if (!isNaN(numVal) && numVal >= 0) {
+              if (keyName.includes('조제료') || keyName.includes('dispensingFee')) pData.dispensingFee = numVal;
+              else if (keyName.includes('일반매출') || keyName.includes('generalRevenue')) pData.generalRevenue = numVal;
+              else if (keyName.includes('카드 수입') || keyName.includes('cardRevenue')) pData.cardRevenue = numVal;
+              else if (keyName.includes('현금 수입') || keyName.includes('cashRevenue')) pData.cashRevenue = numVal;
+              else if (keyName.includes('본인부담금') || keyName.includes('patientCopay')) pData.patientCopay = numVal;
+              else if (keyName.includes('청구금') || keyName.includes('nhisClaim')) pData.nhisClaim = numVal;
+              else if (keyName.includes('기타수입') || keyName.includes('otherIncome')) pData.otherIncome = numVal;
+            }
+          }
+        });
+
+        window.SheetsSync.savePharmacySettlement(pData);
+        render('module-content');
+        alert(`🎉 구글 시트/엑셀 파일(${file.name}) 데이터가 스마트약국 정산으로 연동 반영되었습니다!`);
+      } catch (err) {
+        alert('❌ 파일 읽기 중 오류가 발생했습니다. 구글 시트에서 다운로드한 CSV 파일 형식을 확인해 주세요.');
+      }
+    };
+    reader.readAsText(file, 'UTF-8');
+  }
+
   return {
     render,
     setSubTab,
     updateField,
-    updateSubField
+    updateSubField,
+    openImportModal
   };
 })();
