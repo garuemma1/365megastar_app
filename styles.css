@@ -45,40 +45,243 @@
 
 body.dark-theme,
 body[data-theme="dark"] {
-  --bg-main: #0f172a;
-  --bg-card: #1e293b;
-  --bg-surface: #1e293b;
+  --bg-main: #0b1329;
+  --bg-card: #151e38;
+  --bg-surface: #1e2942;
   --text-main: #f8fafc;
   --text-muted: #94a3b8;
+  --text-light: #cbd5e1;
   --border-color: #334155;
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
-  background-color: #0f172a !important;
+  background-color: #0b1329 !important;
   color: #f8fafc !important;
 }
 
+/* 1. All Cards, Banners, Sections & Container Elements in Dark Mode */
 body[data-theme="dark"] .app-header,
 body[data-theme="dark"] .module-content,
 body[data-theme="dark"] .card,
+body[data-theme="dark"] .card-section,
 body[data-theme="dark"] .stat-card,
 body[data-theme="dark"] .kpi-card,
 body[data-theme="dark"] .modal-card,
-body[data-theme="dark"] .modal-dialog {
-  background-color: #1e293b !important;
+body[data-theme="dark"] .modal-dialog,
+body[data-theme="dark"] .table-responsive,
+body[data-theme="dark"] .data-table,
+body[data-theme="dark"] .staff-card,
+body[data-theme="dark"] .worklog-card,
+body[data-theme="dark"] .notice-card,
+body[data-theme="dark"] .emergency-card,
+body[data-theme="dark"] .highlight-box,
+body[data-theme="dark"] .rules-toc-sidebar,
+body[data-theme="dark"] .approval-card,
+body[data-theme="dark"] .inline-panel-card,
+body[data-theme="dark"] .rule-section {
+  background-color: #151e38 !important;
   color: #f8fafc !important;
   border-color: #334155 !important;
 }
 
+/* 2. Text & Typography Overrides across all modules in Dark Mode */
 body[data-theme="dark"] h1,
 body[data-theme="dark"] h2,
 body[data-theme="dark"] h3,
 body[data-theme="dark"] h4,
 body[data-theme="dark"] h5,
 body[data-theme="dark"] h6,
+body[data-theme="dark"] label,
+body[data-theme="dark"] dt,
 body[data-theme="dark"] p,
-body[data-theme="dark"] span:not(.badge),
+body[data-theme="dark"] li,
+body[data-theme="dark"] th,
 body[data-theme="dark"] td,
-body[data-theme="dark"] th {
+body[data-theme="dark"] .hl-content h4,
+body[data-theme="dark"] .section-title-bar h3,
+body[data-theme="dark"] .snav-month-title {
   color: #f8fafc !important;
+}
+
+body[data-theme="dark"] .text-muted,
+body[data-theme="dark"] .text-secondary,
+body[data-theme="dark"] small,
+body[data-theme="dark"] .hl-content p,
+body[data-theme="dark"] .tsa-desc {
+  color: #94a3b8 !important;
+}
+
+/* 3. Hardcoded Light Backgrounds to Soft Dark Colors */
+body[data-theme="dark"] div[style*="background:#ffffff"],
+body[data-theme="dark"] div[style*="background: #ffffff"],
+body[data-theme="dark"] div[style*="background:#fff"],
+body[data-theme="dark"] div[style*="background: #fff"],
+body[data-theme="dark"] div[style*="background:#f8fafc"],
+body[data-theme="dark"] div[style*="background: #f8fafc"],
+body[data-theme="dark"] div[style*="background:#f1f5f9"],
+body[data-theme="dark"] div[style*="background: #f1f5f9"] {
+  background-color: #151e38 !important;
+  color: #f8fafc !important;
+  border-color: #334155 !important;
+}
+
+body[data-theme="dark"] div[style*="background:#eff6ff"],
+body[data-theme="dark"] div[style*="background: #eff6ff"],
+body[data-theme="dark"] div[style*="background:#f0f9ff"],
+body[data-theme="dark"] div[style*="background: #f0f9ff"] {
+  background-color: #1e293b !important;
+  color: #93c5fd !important;
+  border-color: #3b82f6 !important;
+}
+
+body[data-theme="dark"] div[style*="background:#f0fdf4"],
+body[data-theme="dark"] div[style*="background: #f0fdf4"],
+body[data-theme="dark"] div[style*="background:#ecfdf5"],
+body[data-theme="dark"] div[style*="background: #ecfdf5"] {
+  background-color: #064e3b !important;
+  color: #a7f3d0 !important;
+  border-color: #059669 !important;
+}
+
+body[data-theme="dark"] div[style*="background:#fff7ed"],
+body[data-theme="dark"] div[style*="background: #fff7ed"],
+body[data-theme="dark"] div[style*="background:#fffbeb"],
+body[data-theme="dark"] div[style*="background: #fffbeb"] {
+  background-color: #451a03 !important;
+  color: #fde68a !important;
+  border-color: #d97706 !important;
+}
+
+/* 4. Dark Text Color Fixes for Inline Styles */
+body[data-theme="dark"] *[style*="color:#0f172a"],
+body[data-theme="dark"] *[style*="color: #0f172a"],
+body[data-theme="dark"] *[style*="color:#1e293b"],
+body[data-theme="dark"] *[style*="color: #1e293b"],
+body[data-theme="dark"] *[style*="color:#334155"],
+body[data-theme="dark"] *[style*="color: #334155"],
+body[data-theme="dark"] *[style*="color:#475569"],
+body[data-theme="dark"] *[style*="color: #475569"] {
+  color: #f8fafc !important;
+}
+
+body[data-theme="dark"] *[style*="color:#1e40af"],
+body[data-theme="dark"] *[style*="color: #1e40af"],
+body[data-theme="dark"] *[style*="color:#1d4ed8"],
+body[data-theme="dark"] *[style*="color: #1d4ed8"] {
+  color: #93c5fd !important;
+}
+
+body[data-theme="dark"] *[style*="color:#15803d"],
+body[data-theme="dark"] *[style*="color: #15803d"],
+body[data-theme="dark"] *[style*="color:#166534"],
+body[data-theme="dark"] *[style*="color: #166534"] {
+  color: #86efac !important;
+}
+
+body[data-theme="dark"] *[style*="color:#c2410c"],
+body[data-theme="dark"] *[style*="color: #c2410c"],
+body[data-theme="dark"] *[style*="color:#92400e"],
+body[data-theme="dark"] *[style*="color: #92400e"],
+body[data-theme="dark"] *[style*="color:#b45309"],
+body[data-theme="dark"] *[style*="color: #b45309"] {
+  color: #fdba74 !important;
+}
+
+/* 5. Tables & Calendar Cells in Dark Mode */
+body[data-theme="dark"] .data-table th,
+body[data-theme="dark"] .img1-cal-header,
+body[data-theme="dark"] .cal-day-header,
+body[data-theme="dark"] .worklog-cal-header-cell {
+  background-color: #1e293b !important;
+  color: #cbd5e1 !important;
+  border-color: #334155 !important;
+}
+
+body[data-theme="dark"] .data-table td,
+body[data-theme="dark"] .img1-cal-cell,
+body[data-theme="dark"] .cal-day-cell,
+body[data-theme="dark"] .worklog-cal-day-cell {
+  background-color: #151e38 !important;
+  color: #f8fafc !important;
+  border-color: #334155 !important;
+}
+
+body[data-theme="dark"] .img1-cal-cell.is-holiday-cell,
+body[data-theme="dark"] .cal-weekend-cell {
+  background-color: #1c2640 !important;
+}
+
+body[data-theme="dark"] .data-table tbody tr:hover {
+  background-color: #1e2942 !important;
+}
+
+/* 6. Form Controls, Inputs, Selects in Dark Mode */
+body[data-theme="dark"] input:not([type="button"]):not([type="submit"]):not([type="checkbox"]):not([type="radio"]),
+body[data-theme="dark"] select,
+body[data-theme="dark"] textarea,
+body[data-theme="dark"] .form-control {
+  background-color: #1e2942 !important;
+  color: #f8fafc !important;
+  border-color: #475569 !important;
+}
+
+body[data-theme="dark"] input::placeholder,
+body[data-theme="dark"] textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+/* 7. Navigation Controls & Buttons in Dark Mode */
+body[data-theme="dark"] .role-filter-toggle {
+  background-color: #1e293b !important;
+}
+body[data-theme="dark"] .filter-btn {
+  color: #94a3b8 !important;
+}
+body[data-theme="dark"] .filter-btn.active {
+  background-color: #334155 !important;
+  color: #ffffff !important;
+}
+
+body[data-theme="dark"] .schedule-nav-bar {
+  background-color: #151e38 !important;
+  border-color: #334155 !important;
+  color: #f8fafc !important;
+}
+
+body[data-theme="dark"] .toc-link {
+  color: #cbd5e1 !important;
+}
+body[data-theme="dark"] .toc-link:hover,
+body[data-theme="dark"] .toc-link.active {
+  background-color: #1e293b !important;
+  color: #10b981 !important;
+}
+
+/* 8. Leave Badges & Status Pills in Dark Mode */
+body[data-theme="dark"] .leave-approved {
+  background-color: #064e3b !important;
+  color: #6ee7b7 !important;
+}
+body[data-theme="dark"] .leave-pending {
+  background-color: #451a03 !important;
+  color: #fde68a !important;
+}
+body[data-theme="dark"] .badge-staff {
+  background-color: #334155 !important;
+  color: #cbd5e1 !important;
+}
+body[data-theme="dark"] .badge-pharmacist {
+  background-color: #064e3b !important;
+  color: #6ee7b7 !important;
+}
+body[data-theme="dark"] .badge-category {
+  background-color: #075985 !important;
+  color: #7dd3fc !important;
+}
+body[data-theme="dark"] .badge-off {
+  background-color: #1e293b !important;
+  color: #94a3b8 !important;
+  border-color: #475569 !important;
+}
+body[data-theme="dark"] .badge-off .pill-time-tag {
+  color: #cbd5e1 !important;
 }
 
 *, *::before, *::after {
