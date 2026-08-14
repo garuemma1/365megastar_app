@@ -227,8 +227,8 @@ window.ScheduleModule = (function () {
               <button type="button" class="btn btn-sm text-white font-bold" onclick="ScheduleModule.approveTeamSchedule('all')" style="background:linear-gradient(135deg, #10b981 0%, #059669 100%); border:none; box-shadow:0 3px 10px rgba(16,185,129,0.35); font-size:13.5px; padding:8px 20px; border-radius:10px;">
                 <i class="fas fa-check-circle me-1"></i> 🏆 ${currentMonth}월 전체 스케줄 최종 승인 확정
               </button>
-              <button type="button" class="btn btn-sm text-white font-bold" onclick="ScheduleModule.rejectTeamSchedule()" style="background:linear-gradient(135deg, #ea580c 0%, #c2410c 100%); border:none; box-shadow:0 3px 10px rgba(234,88,12,0.35); font-size:13.5px; padding:8px 20px; border-radius:10px;">
-                <i class="fas fa-undo me-1"></i> ↩️ 수정 요청 (재조율)
+              <button type="button" class="btn btn-sm text-white font-bold" onclick="ScheduleModule.rejectTeamSchedule()" style="background:linear-gradient(135deg, #f43f5e 0%, #e11d48 100%); border:none; box-shadow:0 4px 14px rgba(244,63,94,0.35); font-size:13.5px; padding:8px 20px; border-radius:10px;">
+                <i class="fas fa-undo me-1"></i> ↩️ 스케쥴 수정 요청 (재조율)
               </button>
             </div>
           </div>
