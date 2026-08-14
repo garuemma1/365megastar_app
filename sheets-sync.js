@@ -114,27 +114,101 @@ window.SheetsSync = (function () {
   };
 
   // 신규: 약국 정산 시스템 초기 데이터 (Director Only)
+  function generateInitialDailyLogs() {
+    const logs = [];
+    const days = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+    const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+    for (let d = 1; d <= 31; d++) {
+      const dateStr = `2026-08-${String(d).padStart(2, '0')}`;
+      const dayIdx = new Date(dateStr).getDay();
+      const isSun = dayIdx === 0;
+      const isSat = dayIdx === 6;
+      
+      const disp = isSun ? 350000 : (isSat ? 1100000 : 1650000 + (d * 12000) % 250000);
+      const pos = isSun ? 280000 : (isSat ? 750000 : 820000 + (d * 8000) % 180000);
+      const cardRatio = isSun ? 90 : 85;
+      const cardPay = Math.round((disp + pos) * (cardRatio / 100));
+      const cashPay = (disp + pos) - cardPay;
+      const dailyExp = isSun ? 0 : (d % 3 === 0 ? 35000 : 12000);
+      
+      logs.push({
+        date: dateStr,
+        dayOfWeek: dayNames[dayIdx],
+        dispensingRevenue: disp,
+        posRevenue: pos,
+        totalRevenue: disp + pos,
+        cardPay,
+        cashPay,
+        dailyExpense: dailyExp,
+        note: isSun ? '휴일 조제 지정 운영' : (d === 15 ? '광복절 공휴일' : '정상 조제/POS 정산')
+      });
+    }
+    return logs;
+  }
+
   const INITIAL_PHARMACY_SETTLEMENT = {
     month: '2026-08',
-    dispensingRevenue: 48500000, // 조제 총 매출 (조제료 1,850만 + 본인부담금 1,200만 + 공단청구 1,800만)
-    posRevenue: 24200000,        // 매장 POS 매출 (일반약, 영양제, 카운터)
-    drugPurchaseExpense: 42100000, // 약품 사입비 (지오영, 백제 등)
-    operatingExpense: 6800000,     // 고정 관리비 (임대료 350만 + 관리비 80만 + 세무/보안/기타 250만)
-    cardFeeExpense: 1120000        // 카드 가맹점 수수료
+    dispensingFee: 18500000,     // 조제료 수입
+    posRevenue: 24200000,        // 매장 POS 일반매출
+    patientCopay: 12000000,      // 본인부담금
+    nhisClaim: 18000000,         // 공단청구금
+    otherIncome: 1800000,        // 비급여/기타수입
+    
+    // 약품 사입비 결제 (도매상 현금/통장 + 제약사 카드)
+    cashWholesale: {
+      '다우약품': 12400000,
+      '산성호': 8500000,
+      '백제약품': 7200000,
+      '지오영': 6800000
+    },
+    cardPharma: {
+      '대웅제약': 2400000,
+      '동화약품': 1800000,
+      '일양약품': 1200000,
+      '비타민하우스': 950000,
+      'GC녹십자': 1050000
+    },
+    
+    // 공과금 및 고정비
+    rentExpense: 3500000,
+    maintExpense: 500000,
+    insurance4Cost: 1850000,
+    taxAccountantFee: 220000,
+    posCardFee: 1120000,
+    
+    // 금융비용
+    loanInterest: 2150000,
+    loanPrincipal: 1500000,
+
+    // 일일 결산 장부
+    dailyLogs: generateInitialDailyLogs(),
+
+    // 연도별 장기 성장 통계 (2021~2026)
+    yearlyStats: [
+      { year: 2021, revenue: 420000000, drugCost: 260000000, payroll: 72000000, operating: 38000000, profit: 50000000, margin: 11.9 },
+      { year: 2022, revenue: 490000000, drugCost: 300000000, payroll: 84000000, operating: 42000000, profit: 64000000, margin: 13.0 },
+      { year: 2023, revenue: 580000000, drugCost: 350000000, payroll: 98000000, operating: 48000000, profit: 84000000, margin: 14.4 },
+      { year: 2024, revenue: 670000000, drugCost: 400000000, payroll: 115000000, operating: 54000000, profit: 101000000, margin: 15.0 },
+      { year: 2025, revenue: 760000000, drugCost: 450000000, payroll: 132000000, operating: 60000000, profit: 118000000, margin: 15.5 },
+      { year: 2026, revenue: 880000000, drugCost: 510000000, payroll: 154000000, operating: 68000000, profit: 148000000, margin: 16.8 }
+    ]
   };
 
   // 신규: 메가스타 건물 임대업 대시보드 초기 데이터 (Director Only)
   const INITIAL_BUILDING_RENTAL = {
     buildingName: '365메가스타 타워',
+    assetValue: 5500000000, // 보유 건물 자산 가치 55억 원
     units: [
-      { unit: '101호', tenantName: '365메가스타약국 (자사)', type: '약국', rent: 3500000, maintenanceFee: 500000, deposit: 100000000, startDate: '2020-03-01', endDate: '2030-03-01', status: 'PAID', taxInvoice: true, note: '약국장 직접 운영' },
-      { unit: '102호', tenantName: '메가 커피앤베이커리', type: '카페', rent: 2200000, maintenanceFee: 300000, deposit: 50000000, startDate: '2023-05-01', endDate: '2026-10-31', status: 'PAID', taxInvoice: true, note: '계약 만료 D-79 (갱신 상담 예정)' },
-      { unit: '201호', tenantName: '연세 바른의원 (내과/이비인후과)', type: '병원', rent: 4800000, maintenanceFee: 700000, deposit: 150000000, startDate: '2021-04-01', endDate: '2027-04-01', status: 'PAID', taxInvoice: true, note: '처방전 주요 연계 병원' },
-      { unit: '202호', tenantName: '메가스타 치과의원', type: '병원', rent: 3800000, maintenanceFee: 550000, deposit: 100000000, startDate: '2022-09-01', endDate: '2026-09-30', status: 'PENDING', taxInvoice: false, note: '당월 입금 대기 중 (8월 15일 입금 예정)' }
+      { unit: '101호', tenantName: '365메가스타약국 (자사)', repName: '문성도', type: '약국', rent: 3500000, maintenanceFee: 500000, deposit: 100000000, vat: 350000, startDate: '2020-03-01', endDate: '2030-03-01', status: 'PAID', unpaidDays: 0, taxInvoice: true, note: '약국장 직접 운영 (처방/조제)' },
+      { unit: '102호', tenantName: '메가 커피앤베이커리', repName: '김카페', type: '카페/음료', rent: 2200000, maintenanceFee: 300000, deposit: 50000000, vat: 220000, startDate: '2023-05-01', endDate: '2026-10-31', status: 'PAID', unpaidDays: 0, taxInvoice: true, note: '만료 예정 (계약 갱신 상담 필요)' },
+      { unit: '201호', tenantName: '연세 바른의원', repName: '이연세', type: '내과/이비인후과', rent: 4800000, maintenanceFee: 700000, deposit: 150000000, vat: 480000, startDate: '2021-04-01', endDate: '2027-04-01', status: 'PAID', unpaidDays: 0, taxInvoice: true, note: '약국 주요 연계 메디컬 병원' },
+      { unit: '202호', tenantName: '메가스타 치과의원', repName: '박치과', type: '치과의원', rent: 3800000, maintenanceFee: 550000, deposit: 100000000, vat: 380000, startDate: '2022-09-01', endDate: '2026-09-30', status: 'UNPAID', unpaidDays: 5, taxInvoice: false, note: '당월 입금 대기 (8월 15일 입금 약정)' }
     ],
-    financialSummary: {
-      mortgageInterest: 2150000, // 건물 융자 이자
-      buildingMaintenance: 650000 // 건물 미화 및 화재보험 등 유지비
+    expenses: {
+      mortgageInterest: 2150000,  // 담보대출 이자
+      fireInsurance: 250000,      // 화재보험료
+      propertyTax: 450000,        // 재산세 월 할당분
+      buildingMaintenance: 400000 // 시설 유지보수비
     }
   };
 
