@@ -243,23 +243,25 @@ window.ScheduleModule = (function () {
 
       <!-- 📦 2번 통합 박스: 약국장 전용 세무사 제출용 집계표 & 세후 통합명세서 교부 센터 -->
       ${(currUser && currUser.role === '약국장') ? `
-        <div class="tax-control-card mb-4" style="background:linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border:1px solid #334155; border-radius:18px; padding:22px; color:#ffffff; box-shadow:0 8px 24px rgba(15,23,42,0.25);">
+        <div class="tax-control-card mb-4" style="background:#ffffff; border:1.5px solid #cbd5e1; border-radius:18px; padding:22px; box-shadow:0 4px 18px rgba(15,23,42,0.05);">
           <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
             <div class="d-flex align-items-center gap-3">
-              <div style="width:44px; height:44px; border-radius:14px; background:rgba(37,99,235,0.2); border:1px solid rgba(37,99,235,0.4); color:#60a5fa; display:flex; justify-content:center; align-items:center; font-size:20px; flex-shrink:0;">
+              <div style="width:42px; height:42px; border-radius:12px; background:#eff6ff; border:1px solid #bfdbfe; color:#2563eb; display:flex; justify-content:center; align-items:center; font-size:19px; flex-shrink:0;">
                 <i class="fas fa-file-invoice-dollar"></i>
               </div>
               <div>
-                <strong style="font-size:16.5px; font-weight:800; color:#ffffff; letter-spacing:-0.3px;">💼 세무사 제출용 ${currentMonth}월 총근무시수 집계표 & 세후 명세서 교부 센터</strong>
-                <p style="font-size:12.5px; color:#94a3b8; margin:3px 0 0 0;">세무사 제출용 급여 집계표를 다운로드하거나, 세무사 검토 후 전달받은 세후 명세서를 업로드하여 직원에게 교부합니다.</p>
+                <h3 style="font-size:16.5px; font-weight:800; color:#0f172a; margin:0;">
+                  💼 세무사 제출용 ${currentMonth}월 총근무시수 집계표 & 세후 명세서 교부 센터
+                </h3>
+                <p style="font-size:12.5px; color:#64748b; margin:3px 0 0 0;">세무사에 제출할 급여 집계표를 다운로드하거나, 세무사 검토 후 전달받은 세후 명세서를 업로드하여 교부합니다.</p>
               </div>
             </div>
 
             <div class="d-flex gap-2 flex-wrap ms-auto">
-              <button type="button" class="btn btn-sm text-white font-bold" onclick="ScheduleModule.exportTaxAccountantReport()" style="background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%); border:none; box-shadow:0 3px 10px rgba(2,132,199,0.4); font-size:13.5px; padding:9px 20px; border-radius:10px;">
+              <button type="button" class="btn btn-sm text-white font-bold" onclick="ScheduleModule.exportTaxAccountantReport()" style="background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%); border:none; box-shadow:0 4px 12px rgba(2,132,199,0.25); font-size:13.5px; padding:10px 20px; border-radius:10px;">
                 <i class="fas fa-file-export me-1"></i> 📤 세무사 제출용 ${currentMonth}월 총근무시수 & 세전급여 집계표
               </button>
-              <button type="button" class="btn btn-sm text-white font-bold" onclick="ScheduleModule.openDirectorTaxPaystubModal()" style="background:linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); border:none; box-shadow:0 3px 10px rgba(37,99,235,0.4); font-size:13.5px; padding:9px 20px; border-radius:10px;">
+              <button type="button" class="btn btn-sm text-white font-bold" onclick="ScheduleModule.openDirectorTaxPaystubModal()" style="background:linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); border:none; box-shadow:0 4px 12px rgba(37,99,235,0.25); font-size:13.5px; padding:10px 20px; border-radius:10px;">
                 <i class="fas fa-file-invoice me-1"></i> 📁 세후 세무사통합명세서 등록 및 교부
               </button>
             </div>
