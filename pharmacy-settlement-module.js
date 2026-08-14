@@ -114,10 +114,10 @@ window.PharmacySettlementModule = (function () {
         </div>
         <div class="d-flex align-items-center gap-2">
           <button type="button" class="btn btn-outline-success font-bold" onclick="PharmacySettlementModule.openImportModal()" style="border-radius:10px; padding:7px 14px; font-size:13px; box-shadow:0 2px 6px rgba(16,185,129,0.15);">
-            <i class="fas fa-file-import text-success me-1"></i> 📥 구글 시트/엑셀 파일 불러오기
+            <i class="fas fa-file-import text-success me-1"></i> 📥 구글 스프레드시트 불러오기
           </button>
           <button type="button" class="btn btn-outline-primary font-bold" onclick="App.downloadActiveModuleToGoogleSheets()" style="border-radius:10px; padding:7px 14px; font-size:13px; box-shadow:0 2px 6px rgba(37,99,235,0.15);">
-            <i class="fas fa-file-excel text-primary me-1"></i> 📊 구글 시트 엑셀 내보내기
+            <i class="fas fa-file-export text-primary me-1"></i> 📊 구글 스프레드시트 내보내기
           </button>
           <span class="badge bg-danger" style="font-size:12.5px; padding:8px 14px; border-radius:10px;">🔐 약국장 전용 보안 대시보드</span>
         </div>
@@ -645,7 +645,7 @@ window.PharmacySettlementModule = (function () {
 
         window.SheetsSync.savePharmacySettlement(pData);
         render('module-content');
-        alert(`🎉 구글 시트/엑셀 파일(${file.name}) 데이터가 스마트약국 정산으로 연동 반영되었습니다!`);
+        alert(`🎉 구글 스프레드시트 파일(${file.name}) 데이터가 스마트약국 정산으로 연동 반영되었습니다!`);
       } catch (err) {
         alert('❌ 파일 읽기 중 오류가 발생했습니다. 구글 시트에서 다운로드한 CSV 파일 형식을 확인해 주세요.');
       }

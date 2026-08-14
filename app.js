@@ -752,7 +752,7 @@ window.App = (function () {
     link.click();
     document.body.removeChild(link);
 
-    alert(`📊 현재 화면 [${MODULE_TITLES[activeModule] || activeModule}] 주요 내용이 구글 시트 및 엑셀에서 바로 열 수 있는 스프레드시트 파일(${filename})로 다운로드되었습니다!`);
+    alert(`📊 현재 화면 [${MODULE_TITLES[activeModule] || activeModule}] 주요 데이터가 구글 스프레드시트 연동 전용 파일(${filename})로 다운로드되었습니다!`);
   }
 
   function openSheetModal() {

@@ -112,10 +112,10 @@ window.BuildingRentalModule = (function () {
             <i class="fas fa-plus-circle me-1"></i> ➕ 신규 상가/호실 등록
           </button>
           <button type="button" class="btn btn-outline-success font-bold" onclick="BuildingRentalModule.openImportModal()" style="border-radius:10px; padding:7px 14px; font-size:13px; box-shadow:0 2px 6px rgba(16,185,129,0.15);">
-            <i class="fas fa-file-import text-success me-1"></i> 📥 구글 시트/엑셀 파일 불러오기
+            <i class="fas fa-file-import text-success me-1"></i> 📥 구글 스프레드시트 불러오기
           </button>
           <button type="button" class="btn btn-outline-primary font-bold" onclick="App.downloadActiveModuleToGoogleSheets()" style="border-radius:10px; padding:7px 14px; font-size:13px; box-shadow:0 2px 6px rgba(37,99,235,0.15);">
-            <i class="fas fa-file-excel text-primary me-1"></i> 📊 구글 시트 엑셀 내보내기
+            <i class="fas fa-file-export text-primary me-1"></i> 📊 구글 스프레드시트 내보내기
           </button>
         </div>
       </div>
@@ -783,7 +783,7 @@ window.BuildingRentalModule = (function () {
 
         window.SheetsSync.saveBuildingRental(rData);
         render('module-content');
-        alert(`🎉 구글 시트/엑셀 파일(${file.name}) 데이터가 건물 임대 대장으로 연동 반영되었습니다!`);
+        alert(`🎉 구글 스프레드시트 파일(${file.name}) 데이터가 건물 임대 대장으로 연동 반영되었습니다!`);
       } catch (err) {
         alert('❌ 파일 읽기 중 오류가 발생했습니다. CSV 파일 형식을 확인해 주세요.');
       }
