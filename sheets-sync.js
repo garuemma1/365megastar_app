@@ -38,14 +38,14 @@ window.SheetsSync = (function () {
   // 365메가스타약국 정식 9인 명단 및 로그인/이메일 정보 (급여 유형 구분: 시급제 HOURLY / 월급제 MONTHLY)
   const INITIAL_EMPLOYEES = [
     { id: 'emp_1', username: 'director@365megastar.com', email: 'director@365megastar.com', passcode: '367900', name: '문성도', role: '약국장', position: '대표약사', payType: 'DIRECTOR', joinDate: '2020-03-01', hourlyRate: 45000, baseMonthlySalary: 0, phone: '010-3679-0000', usedLeave: 3, pendingLeave: 0, memo: '365메가스타약국 총괄 약국장 (대표약사)', allowedTabs: [...ALL_COMMON_TABS, 'approval-module', 'staff-directory-module', 'pharmacy-settlement-module', 'building-rental-module'] },
-    { id: 'emp_2', username: 'kwon@365megastar.com', email: 'kwon@365megastar.com', passcode: '1234', name: '권명주', role: '근무약사', position: '조제약사', payType: 'HOURLY', joinDate: '2023-01-15', hourlyRate: 35000, baseMonthlySalary: 0, phone: '010-1234-5678', usedLeave: 2, pendingLeave: 0, memo: '조제 팀장 / 약정시급제 적용 근무약사', allowedTabs: [...ALL_COMMON_TABS] },
+    { id: 'emp_2', username: 'kwon@365megastar.com', email: 'kwon@365megastar.com', passcode: '1234', name: '권명주', role: '근무약사', position: '조제약사', payType: 'HOURLY', joinDate: '2024-09-06', hourlyRate: 40000, baseMonthlySalary: 0, phone: '010-2385-0432', usedLeave: 2, pendingLeave: 0, memo: '조제 팀장 / 약정시급제 적용 근무약사', allowedTabs: [...ALL_COMMON_TABS] },
     { id: 'emp_3', username: 'yang@365megastar.com', email: 'yang@365megastar.com', passcode: '1234', name: '양윤지', role: '근무약사', position: '조제약사', payType: 'HOURLY', joinDate: '2022-05-10', hourlyRate: 35000, baseMonthlySalary: 0, phone: '010-2345-6789', usedLeave: 6, pendingLeave: 0, memo: 'DUR 처방전 검수 전담 / 약정시급제 적용 근무약사', allowedTabs: [...ALL_COMMON_TABS] },
-    { id: 'emp_4', username: 'kimdw@365megastar.com', email: 'kimdw@365megastar.com', passcode: '1234', name: '김동완', role: '근무약사', position: '약사', payType: 'HOURLY', joinDate: '2023-08-20', hourlyRate: 35000, baseMonthlySalary: 0, phone: '010-3456-7890', usedLeave: 5, pendingLeave: 0, memo: '야간 조제 전문 / 약정시급제 적용 근무약사', allowedTabs: [...ALL_COMMON_TABS] },
-    { id: 'emp_5', username: 'yoo@365megastar.com', email: 'yoo@365megastar.com', passcode: '1234', name: '유호종', role: '근무약사', position: '약사', payType: 'HOURLY', joinDate: '2024-02-01', hourlyRate: 35000, baseMonthlySalary: 0, phone: '010-4567-8901', usedLeave: 2, pendingLeave: 0, memo: '신규 약품 관리 및 처방 검수 / 약정시급제 적용 근무약사', allowedTabs: [...ALL_COMMON_TABS] },
-    { id: 'emp_6', username: 'lee@365megastar.com', email: 'lee@365megastar.com', passcode: '1234', name: '이승학', role: '일반직원', position: '전산팀', payType: 'MONTHLY', joinDate: '2024-04-01', hourlyRate: 13500, baseMonthlySalary: 2821500, phone: '010-5678-9012', usedLeave: 0, pendingLeave: 0, memo: '전산 팀장 / 주40시간 정액 월급제 (식대 20만 포함)', allowedTabs: [...ALL_COMMON_TABS] },
-    { id: 'emp_7', username: 'kimjh@365megastar.com', email: 'kimjh@365megastar.com', passcode: '1234', name: '김제희', role: '일반직원', position: '조제보조', payType: 'MONTHLY', joinDate: '2022-11-01', hourlyRate: 13000, baseMonthlySalary: 2717000, phone: '010-6789-0123', usedLeave: 6, pendingLeave: 0, memo: '조제 보조 / 주40시간 정액 월급제 (식대 20만 포함)', allowedTabs: [...ALL_COMMON_TABS] },
-    { id: 'emp_8', username: 'yoon@365megastar.com', email: 'yoon@365megastar.com', passcode: '1234', name: '윤세라', role: '일반직원', position: '매장관리', payType: 'MONTHLY', joinDate: '2025-01-02', hourlyRate: 13000, baseMonthlySalary: 2717000, phone: '010-7890-1234', usedLeave: 1, pendingLeave: 0, memo: '매장 관리 / 주40시간 정액 월급제 (식대 20만 포함)', allowedTabs: [...ALL_COMMON_TABS] },
-    { id: 'emp_9', username: 'kimbay@365megastar.com', email: 'kimbay@365megastar.com', passcode: '1234', name: '김배영', role: '일반직원', position: '전산/매장보조', payType: 'MONTHLY', joinDate: '2025-03-01', hourlyRate: 13000, baseMonthlySalary: 2717000, phone: '010-8901-2345', usedLeave: 0, pendingLeave: 0, memo: '전산/매장보조 / 주40시간 정액 월급제 (식대 20만 포함)', allowedTabs: [...ALL_COMMON_TABS] }
+    { id: 'emp_4', username: 'kimdw@365megastar.com', email: 'kimdw@365megastar.com', passcode: '1234', name: '김동완', role: '근무약사', position: '근무약사', payType: 'HOURLY', joinDate: '2026-03-01', hourlyRate: 23000, baseMonthlySalary: 0, phone: '010-8236-9650', usedLeave: 5, pendingLeave: 0, memo: '처방검수및조제전담 / 약정시급제 적용 근무약사', allowedTabs: [...ALL_COMMON_TABS] },
+    { id: 'emp_5', username: 'yoo@365megastar.com', email: 'yoo@365megastar.com', passcode: '1234', name: '유호종', role: '근무약사', position: '파트약사', payType: 'HOURLY', joinDate: '0001-01-01', hourlyRate: 25000, baseMonthlySalary: 0, phone: '010-4055-5868', usedLeave: 2, pendingLeave: 0, memo: '처방검수및일반전담 / 약정시급제 적용 파트약사', allowedTabs: [...ALL_COMMON_TABS] },
+    { id: 'emp_6', username: 'lee@365megastar.com', email: 'lee@365megastar.com', passcode: '1234', name: '이승학', role: '일반직원', position: '전산팀', payType: 'MONTHLY', joinDate: '2024-04-01', hourlyRate: 13500, baseMonthlySalary: 2490000, phone: '010-5678-9012', usedLeave: 0, pendingLeave: 0, memo: '전산 팀장 / 주40시간 정액 월급제 (식대 20만 포함)', allowedTabs: [...ALL_COMMON_TABS] },
+    { id: 'emp_7', username: 'kimjh@365megastar.com', email: 'kimjh@365megastar.com', passcode: '1234', name: '김제희', role: '일반직원', position: '약국전반업무관리', payType: 'MONTHLY', joinDate: '2024-11-01', hourlyRate: 13000, baseMonthlySalary: 2170000, phone: '010-7273-7155', usedLeave: 6, pendingLeave: 0, memo: '조제실실무전반 직간접업무관리 / 월급 임금제', allowedTabs: [...ALL_COMMON_TABS] },
+    { id: 'emp_8', username: 'yoon@365megastar.com', email: 'yoon@365megastar.com', passcode: '1234', name: '윤세라', role: '일반직원', position: '조제보조', payType: 'MONTHLY', joinDate: '2026-03-01', hourlyRate: 13000, baseMonthlySalary: 1720810, phone: '010-6371-4073', usedLeave: 1, pendingLeave: 0, memo: '조제보조/정약 임금제 (식대 20만 포함)', allowedTabs: [...ALL_COMMON_TABS] },
+    { id: 'emp_9', username: 'kimbay@365megastar.com', email: 'kimbay@365megastar.com', passcode: '1234', name: '김배영', role: '일반직원', position: '조제보조', payType: 'MONTHLY', joinDate: '2025-03-01', hourlyRate: 13000, baseMonthlySalary: 1306700, phone: '010-8901-2345', usedLeave: 0, pendingLeave: 0, memo: '전산/매장보조 / 주40시간 정액 월급제 (식대 20만 포함)', allowedTabs: [...ALL_COMMON_TABS] }
   ];
 
   const INITIAL_DISCOUNT_PURCHASES = [
@@ -570,10 +570,10 @@ window.SheetsSync = (function () {
       if (raw) return JSON.parse(raw);
     } catch (e) {}
     return {
-      'emp_2': { weekdayRate: 35000, holidayRate: 40000, breakHours: 1.0 },
+      'emp_2': { weekdayRate: 40000, holidayRate: 40000, breakHours: 1.0 },
       'emp_3': { weekdayRate: 35000, holidayRate: 40000, breakHours: 1.0 },
-      'emp_4': { weekdayRate: 35000, holidayRate: 40000, breakHours: 1.0 },
-      'emp_5': { weekdayRate: 35000, holidayRate: 40000, breakHours: 1.0 }
+      'emp_4': { weekdayRate: 23000, holidayRate: 25000, breakHours: 1.0 },
+      'emp_5': { weekdayRate: 25000, holidayRate: 27000, breakHours: 1.0 }
     };
   }
 

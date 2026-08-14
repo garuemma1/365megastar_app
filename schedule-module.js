@@ -657,7 +657,6 @@ window.ScheduleModule = (function () {
         </div>
       `;
     } else {
-      // 2. 약국장이 아직 세후 급여를 등록하지 않은 건 (주황/노란색 산출 중 구분 카드)
       return `
         <div class="card-section mt-4 mb-6" style="background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border: 1.5px solid #fde68a; border-radius: 18px; padding: 24px; box-shadow: 0 4px 15px rgba(217, 119, 6, 0.08);">
           <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
@@ -680,13 +679,15 @@ window.ScheduleModule = (function () {
   }
 
   function renderSettlementDashboard(employees, scheduleRecords) {
+    const currUser = window.SheetsSync.getCurrentUser();
+    const isDirector = currUser && currUser.role === '약국장';
+
     const pharmacists = employees.filter(e => e.role === '근무약사' || (e.role.includes('약사') && e.role !== '약국장'));
     const staffMembers = employees.filter(e => !e.role.includes('약사') && e.role !== '약국장');
 
     const monthKey = `${currentYear}-${String(currentMonth).padStart(2, '0')}`;
     let allSchedules = scheduleRecords || [];
 
-    // 선택된 월(예: 6월, 7월 등)의 스케줄 데이터가 없는 경우 100% 자동 생성하여 세전 급여가 0h / 0원으로 나오지 않도록 보완
     if (allSchedules.filter(r => r.date && r.date.startsWith(monthKey)).length === 0 && window.SheetsSync && window.SheetsSync.generateScheduleForMonth) {
       const generated = window.SheetsSync.generateScheduleForMonth(currentYear, currentMonth);
       allSchedules = [...allSchedules, ...generated];
@@ -703,24 +704,27 @@ window.ScheduleModule = (function () {
         <div class="section-title-bar">
           <div>
             <h3><i class="fas fa-user-md text-warning"></i> 근무약사 급여 정산표 (${currentYear}년 ${currentMonth}월)</h3>
-            <span class="text-muted">📜 직원명부 약정시급 + 확정 월간 근무스케줄 자동연동 세전급여 집계표</span>
+            <span class="text-muted">📜 약정시급 + 비과세 식대 + 추가수당/공제삭감 직접입력 세전총급여 집계표</span>
           </div>
         </div>
         <div style="display:flex; justify-content:space-between; align-items:center; background:#eff6ff; border:1px solid #bfdbfe; border-bottom:none; color:#1e40af; padding:8px 14px; border-radius:12px 12px 0 0; font-size:12px; font-weight:bold;">
-          <span><i class="fas fa-calculator"></i> 근무약사 월간 세전 급여 정산</span>
+          <span><i class="fas fa-calculator"></i> 근무약사 월간 세전 급여 정산 (약국장 직접 수정 가능)</span>
           <span style="color:#2563eb;"><i class="fas fa-arrows-alt-h"></i> 화면이 좁을 경우 좌우로 스크롤 가능</span>
         </div>
         <div class="table-responsive" style="overflow-x:auto; -webkit-overflow-scrolling:touch; border-radius:0 0 14px 14px; border:1px solid #cbd5e1; width:100%; background:#fff; margin-bottom:20px; box-shadow:0 2px 8px rgba(0,0,0,0.04);">
           <table class="data-table align-middle" style="width:100%; font-size:13px;">
             <thead>
               <tr style="background:#f8fafc; border-bottom:2px solid #cbd5e1;">
-                <th style="width:90px; text-align:center; padding:10px 8px; white-space:nowrap;">약사명</th>
-                <th style="width:100px; text-align:center; padding:10px 8px; white-space:nowrap;">직책</th>
-                <th style="width:170px; text-align:center; padding:10px 8px; white-space:nowrap;">확정 스케줄 근로시수</th>
-                <th style="width:130px; text-align:right; padding:10px 12px; white-space:nowrap;">평일 산출금액</th>
-                <th style="width:140px; background:#fff7ed; color:#c2410c; text-align:right; padding:10px 12px; white-space:nowrap;">주말/공휴일 산출금액</th>
-                <th style="width:150px; text-align:right; padding:10px 12px; white-space:nowrap;">월 세전 총급여액</th>
-                <th style="width:110px; text-align:center; padding:10px 8px; white-space:nowrap;">명세서 교부</th>
+                <th style="width:85px; text-align:center; padding:10px 8px; white-space:nowrap;">약사명</th>
+                <th style="width:85px; text-align:center; padding:10px 8px; white-space:nowrap;">직책</th>
+                <th style="width:150px; text-align:center; padding:10px 8px; white-space:nowrap;">확정 근로시수</th>
+                <th style="width:125px; text-align:right; padding:10px 10px; white-space:nowrap;">평일 산출금액</th>
+                <th style="width:135px; background:#fff7ed; color:#c2410c; text-align:right; padding:10px 10px; white-space:nowrap;">주말/공휴일 산출</th>
+                <th style="width:115px; text-align:right; padding:10px 10px; white-space:nowrap;">비과세 식대</th>
+                <th style="width:105px; text-align:right; padding:10px 10px; white-space:nowrap;">추가 수당</th>
+                <th style="width:105px; text-align:right; padding:10px 10px; white-space:nowrap;">공제 삭감</th>
+                <th style="width:145px; text-align:right; padding:10px 10px; white-space:nowrap;">월 세전 총급여액</th>
+                <th style="width:105px; text-align:center; padding:10px 8px; white-space:nowrap;">명세서 교부</th>
               </tr>
             </thead>
             <tbody>
@@ -732,7 +736,6 @@ window.ScheduleModule = (function () {
                 const currentBreakHours = Number(rateObj.breakHours) || 1.0;
                 let calc = window.LaborCalculator.calculatePharmacistPayroll(empShifts, currentWeekdayRate, currentHolidayRate, currentBreakHours);
 
-                // 만약 해당 월에 스케줄 입력 데이터가 없는 경우에도 약정 계약 기준 기본 시수(예: 195시간)로 자동 보정하여 금액이 0원으로 지워지지 않도록 완전 방어
                 if (!calc || calc.totalPayroll === 0 || calc.totalNetHours === 0) {
                   const defaultWkNet = p.name === '양윤지' ? 142.5 : (p.name === '김동완' ? 160 : 150);
                   const defaultHolNet = p.name === '양윤지' ? 37.5 : (p.name === '김동완' ? 110.5 : 45);
@@ -749,6 +752,12 @@ window.ScheduleModule = (function () {
                   };
                 }
 
+                const empAdj = monthAdj[p.id] || {};
+                const mealAlw = Number(empAdj.mealAllowance !== undefined ? empAdj.mealAllowance : 200000);
+                const overtimePay = Number(empAdj.overtimePay || 0);
+                const deductionPay = Number(empAdj.deductionPay || 0);
+                const pharmacistPretaxTotal = calc.totalPayroll + mealAlw + overtimePay - deductionPay;
+
                 const ps = monthPaystubs[p.id];
                 const isPublished = ps && ps.published;
 
@@ -764,27 +773,51 @@ window.ScheduleModule = (function () {
                         평일 ${calc.weekdayNetHours}h / 휴일 <strong style="color:#ea580c;">${calc.holidayNetHours}h</strong>
                       </div>
                     </td>
-                    <td style="text-align:right; padding:10px 12px; white-space:nowrap;">
+                    <td style="text-align:right; padding:10px 10px; white-space:nowrap;">
                       <div>
-                        <span style="color:#1e40af; font-weight:700; font-size:14px; font-family:'Outfit', sans-serif;">${calc.weekdayPay.toLocaleString()}</span>
+                        <span style="color:#1e40af; font-weight:700; font-size:13.5px; font-family:'Outfit', sans-serif;">${calc.weekdayPay.toLocaleString()}</span>
                         <span style="font-size:12px; color:#475569; margin-left:1px; font-weight:600;">원</span>
                       </div>
-                      <div style="font-size:11px; background:#eff6ff; color:#1e40af; border:1px solid #bfdbfe; padding:2px 6px; border-radius:6px; margin-top:3px; font-weight:600; text-align:right; display:inline-block;">
-                        <i class="fas fa-calculator me-1"></i> ${currentWeekdayRate.toLocaleString()}원 × ${calc.weekdayNetHours}h
+                      <div style="font-size:10.5px; background:#eff6ff; color:#1e40af; border:1px solid #bfdbfe; padding:1px 5px; border-radius:5px; margin-top:2px; font-weight:600; text-align:right; display:inline-block;">
+                        ${currentWeekdayRate.toLocaleString()}원 × ${calc.weekdayNetHours}h
                       </div>
                     </td>
-                    <td style="background:#fff7ed; text-align:right; padding:10px 12px; white-space:nowrap;">
+                    <td style="background:#fff7ed; text-align:right; padding:10px 10px; white-space:nowrap;">
                       <div>
-                        <strong style="color:#c2410c; font-size:14px; font-family:'Outfit', sans-serif;">${calc.holidayPay.toLocaleString()}</strong>
+                        <strong style="color:#c2410c; font-size:13.5px; font-family:'Outfit', sans-serif;">${calc.holidayPay.toLocaleString()}</strong>
                         <span style="font-size:12px; color:#c2410c; margin-left:1px; font-weight:600;">원</span>
                       </div>
-                      <div style="font-size:11px; background:#fff7ed; color:#c2410c; border:1px solid #ffedd5; padding:2px 6px; border-radius:6px; margin-top:3px; font-weight:600; text-align:right; display:inline-block;">
-                        <i class="fas fa-calculator me-1"></i> ${currentHolidayRate.toLocaleString()}원 × ${calc.holidayNetHours}h
+                      <div style="font-size:10.5px; background:#fff7ed; color:#c2410c; border:1px solid #ffedd5; padding:1px 5px; border-radius:5px; margin-top:2px; font-weight:600; text-align:right; display:inline-block;">
+                        ${currentHolidayRate.toLocaleString()}원 × ${calc.holidayNetHours}h
                       </div>
                     </td>
-                    <td style="text-align:right; padding:10px 12px; white-space:nowrap;">
+                    <td style="text-align:right; padding:10px 10px; white-space:nowrap;">
+                      ${isDirector ? `
+                        <input type="number" class="form-control form-control-sm font-bold text-success text-end" style="width:100px; border-radius:8px; border:1.5px solid #86efac; padding:4px 6px; font-size:13px; font-family:'Outfit', sans-serif; display:inline-block;" value="${mealAlw}" onchange="ScheduleModule.updateAdjustment('${p.id}', 'mealAllowance', this.value)" title="약국장 직접 입력: 비과세 식대">
+                      ` : `
+                        <strong style="color:#166534; font-size:13.5px; font-family:'Outfit', sans-serif;">${mealAlw.toLocaleString()}</strong>
+                        <span style="font-size:12px; color:#166534; font-weight:600; margin-left:1px;">원</span>
+                      `}
+                    </td>
+                    <td style="text-align:right; padding:10px 10px; white-space:nowrap;">
+                      ${isDirector ? `
+                        <input type="number" class="form-control form-control-sm font-bold text-primary text-end" style="width:90px; border-radius:8px; border:1.5px solid #93c5fd; padding:4px 6px; font-size:13px; font-family:'Outfit', sans-serif; display:inline-block;" value="${overtimePay}" placeholder="0" onchange="ScheduleModule.updateAdjustment('${p.id}', 'overtimePay', this.value)" title="약국장 직접 입력: 추가 수당">
+                      ` : `
+                        <span style="font-weight:700; color:${overtimePay > 0 ? '#15803d' : '#94a3b8'}; font-size:13.5px; font-family:'Outfit', sans-serif;">${overtimePay > 0 ? '+' + overtimePay.toLocaleString() : '0'}</span>
+                        <span style="font-size:12px; color:${overtimePay > 0 ? '#15803d' : '#94a3b8'}; font-weight:600; margin-left:1px;">원</span>
+                      `}
+                    </td>
+                    <td style="text-align:right; padding:10px 10px; white-space:nowrap;">
+                      ${isDirector ? `
+                        <input type="number" class="form-control form-control-sm font-bold text-danger text-end" style="width:90px; border-radius:8px; border:1.5px solid #fca5a5; padding:4px 6px; font-size:13px; font-family:'Outfit', sans-serif; display:inline-block;" value="${deductionPay}" placeholder="0" onchange="ScheduleModule.updateAdjustment('${p.id}', 'deductionPay', this.value)" title="약국장 직접 입력: 공제 삭감">
+                      ` : `
+                        <span style="font-weight:700; color:${deductionPay > 0 ? '#dc2626' : '#94a3b8'}; font-size:13.5px; font-family:'Outfit', sans-serif;">${deductionPay > 0 ? '-' + deductionPay.toLocaleString() : '0'}</span>
+                        <span style="font-size:12px; color:${deductionPay > 0 ? '#dc2626' : '#94a3b8'}; font-weight:600; margin-left:1px;">원</span>
+                      `}
+                    </td>
+                    <td style="text-align:right; padding:10px 10px; white-space:nowrap;">
                       <div>
-                        <strong class="text-success" style="font-size:15px; font-family:'Outfit', sans-serif;">${calc.totalPayroll.toLocaleString()}</strong>
+                        <strong class="text-success" style="font-size:15px; font-family:'Outfit', sans-serif;">${pharmacistPretaxTotal.toLocaleString()}</strong>
                         <span style="font-size:12px; color:#15803d; margin-left:1px; font-weight:600;">원</span>
                       </div>
                       ${isPublished ? `
@@ -793,7 +826,7 @@ window.ScheduleModule = (function () {
                         </div>
                       ` : `
                         <div style="font-size:11px; background:#fef3c7; color:#b45309; border:1px solid #fde68a; padding:2px 6px; border-radius:6px; margin-top:3px; font-weight:700; text-align:right; display:inline-block;">
-                          <i class="fas fa-clock me-1"></i> 미교부 잔액: ${calc.totalPayroll.toLocaleString()}원 (등록대기)
+                          <i class="fas fa-clock me-1"></i> 미교부 잔액: ${pharmacistPretaxTotal.toLocaleString()}원 (등록대기)
                         </div>
                       `}
                     </td>
@@ -815,11 +848,11 @@ window.ScheduleModule = (function () {
         <div class="section-title-bar">
           <div>
             <h3><i class="fas fa-money-check-alt text-primary"></i> 일반직원 급여 정산표 (${currentYear}년 ${currentMonth}월)</h3>
-            <span class="text-muted">📜 직원명부 약정월급 + 비과세 식대 20만원 + 초과/삭감 수당 반영 세전총급여</span>
+            <span class="text-muted">📜 약정월급 + 비과세 식대 + 추가수당/공제삭감 직접입력 세전총급여</span>
           </div>
         </div>
         <div style="display:flex; justify-content:space-between; align-items:center; background:#f0fdf4; border:1px solid #bbf7d0; border-bottom:none; color:#15803d; padding:8px 14px; border-radius:12px 12px 0 0; font-size:12px; font-weight:bold;">
-          <span><i class="fas fa-wallet"></i> 일반직원 월간 세전 총급여 정산</span>
+          <span><i class="fas fa-wallet"></i> 일반직원 월간 세전 총급여 정산 (약국장 직접 수정 가능)</span>
           <span style="color:#16a34a;"><i class="fas fa-arrows-alt-h"></i> 화면이 좁을 경우 좌우로 스크롤 가능</span>
         </div>
         <div class="table-responsive" style="overflow-x:auto; -webkit-overflow-scrolling:touch; border-radius:0 0 14px 14px; border:1px solid #cbd5e1; width:100%; background:#fff; margin-bottom:20px; box-shadow:0 2px 8px rgba(0,0,0,0.04);">
@@ -829,9 +862,9 @@ window.ScheduleModule = (function () {
                 <th style="width:90px; text-align:center; padding:10px 8px; white-space:nowrap;">직원명</th>
                 <th style="width:100px; text-align:center; padding:10px 8px; white-space:nowrap;">담당 직무</th>
                 <th style="width:130px; text-align:right; padding:10px 12px; white-space:nowrap;">약정 기본월급</th>
-                <th style="width:100px; text-align:right; padding:10px 12px; white-space:nowrap;">비과세 식대</th>
-                <th style="width:105px; text-align:right; padding:10px 12px; white-space:nowrap;">추가 수당</th>
-                <th style="width:105px; text-align:right; padding:10px 12px; white-space:nowrap;">공제 삭감</th>
+                <th style="width:115px; text-align:right; padding:10px 10px; white-space:nowrap;">비과세 식대</th>
+                <th style="width:105px; text-align:right; padding:10px 10px; white-space:nowrap;">추가 수당</th>
+                <th style="width:105px; text-align:right; padding:10px 10px; white-space:nowrap;">공제 삭감</th>
                 <th style="width:150px; text-align:right; padding:10px 12px; white-space:nowrap;">세전 총급여</th>
                 <th style="width:110px; text-align:center; padding:10px 8px; white-space:nowrap;">명세서 등록</th>
               </tr>
@@ -840,12 +873,12 @@ window.ScheduleModule = (function () {
               ${staffMembers.map(s => {
                 const hourlyRate = Number(s.hourlyRate) || 13000;
                 
-                const empAdj = monthAdj[s.id] || { overtimePay: 0, deductionPay: 0 };
-                const overtimePay = Number(empAdj.overtimePay) || 0;
-                const deductionPay = Number(empAdj.deductionPay) || 0;
+                const empAdj = monthAdj[s.id] || {};
+                const mealAlw = Number(empAdj.mealAllowance !== undefined ? empAdj.mealAllowance : 200000);
+                const overtimePay = Number(empAdj.overtimePay || 0);
+                const deductionPay = Number(empAdj.deductionPay || 0);
 
                 const baseSal = Number(s.baseMonthlySalary) || (s.name === '이승학' ? 2821500 : 2717000);
-                const mealAlw = 200000;
                 const adjustedPretaxTotal = baseSal + mealAlw + overtimePay - deductionPay;
 
                 const ps = monthPaystubs[s.id];
@@ -859,17 +892,29 @@ window.ScheduleModule = (function () {
                       <strong style="color:#15803d; font-size:14px; font-family:'Outfit', sans-serif;">${baseSal.toLocaleString()}</strong>
                       <span style="font-size:12px; color:#15803d; font-weight:600; margin-left:1px;">원</span>
                     </td>
-                    <td style="text-align:right; padding:10px 12px; white-space:nowrap;">
-                      <strong style="color:#166534; font-size:13.5px; font-family:'Outfit', sans-serif;">200,000</strong>
-                      <span style="font-size:12px; color:#166534; font-weight:600; margin-left:1px;">원</span>
+                    <td style="text-align:right; padding:10px 10px; white-space:nowrap;">
+                      ${isDirector ? `
+                        <input type="number" class="form-control form-control-sm font-bold text-success text-end" style="width:100px; border-radius:8px; border:1.5px solid #86efac; padding:4px 6px; font-size:13px; font-family:'Outfit', sans-serif; display:inline-block;" value="${mealAlw}" onchange="ScheduleModule.updateAdjustment('${s.id}', 'mealAllowance', this.value)" title="약국장 직접 입력: 비과세 식대">
+                      ` : `
+                        <strong style="color:#166534; font-size:13.5px; font-family:'Outfit', sans-serif;">${mealAlw.toLocaleString()}</strong>
+                        <span style="font-size:12px; color:#166534; font-weight:600; margin-left:1px;">원</span>
+                      `}
                     </td>
-                    <td style="text-align:right; padding:10px 12px; white-space:nowrap;">
-                      <span style="font-weight:700; color:${overtimePay > 0 ? '#15803d' : '#94a3b8'}; font-size:13.5px; font-family:'Outfit', sans-serif;">${overtimePay > 0 ? '+' + overtimePay.toLocaleString() : '0'}</span>
-                      <span style="font-size:12px; color:${overtimePay > 0 ? '#15803d' : '#94a3b8'}; font-weight:600; margin-left:1px;">원</span>
+                    <td style="text-align:right; padding:10px 10px; white-space:nowrap;">
+                      ${isDirector ? `
+                        <input type="number" class="form-control form-control-sm font-bold text-primary text-end" style="width:90px; border-radius:8px; border:1.5px solid #93c5fd; padding:4px 6px; font-size:13px; font-family:'Outfit', sans-serif; display:inline-block;" value="${overtimePay}" placeholder="0" onchange="ScheduleModule.updateAdjustment('${s.id}', 'overtimePay', this.value)" title="약국장 직접 입력: 추가 수당">
+                      ` : `
+                        <span style="font-weight:700; color:${overtimePay > 0 ? '#15803d' : '#94a3b8'}; font-size:13.5px; font-family:'Outfit', sans-serif;">${overtimePay > 0 ? '+' + overtimePay.toLocaleString() : '0'}</span>
+                        <span style="font-size:12px; color:${overtimePay > 0 ? '#15803d' : '#94a3b8'}; font-weight:600; margin-left:1px;">원</span>
+                      `}
                     </td>
-                    <td style="text-align:right; padding:10px 12px; white-space:nowrap;">
-                      <span style="font-weight:700; color:${deductionPay > 0 ? '#dc2626' : '#94a3b8'}; font-size:13.5px; font-family:'Outfit', sans-serif;">${deductionPay > 0 ? '-' + deductionPay.toLocaleString() : '0'}</span>
-                      <span style="font-size:12px; color:${deductionPay > 0 ? '#dc2626' : '#94a3b8'}; font-weight:600; margin-left:1px;">원</span>
+                    <td style="text-align:right; padding:10px 10px; white-space:nowrap;">
+                      ${isDirector ? `
+                        <input type="number" class="form-control form-control-sm font-bold text-danger text-end" style="width:90px; border-radius:8px; border:1.5px solid #fca5a5; padding:4px 6px; font-size:13px; font-family:'Outfit', sans-serif; display:inline-block;" value="${deductionPay}" placeholder="0" onchange="ScheduleModule.updateAdjustment('${s.id}', 'deductionPay', this.value)" title="약국장 직접 입력: 공제 삭감">
+                      ` : `
+                        <span style="font-weight:700; color:${deductionPay > 0 ? '#dc2626' : '#94a3b8'}; font-size:13.5px; font-family:'Outfit', sans-serif;">${deductionPay > 0 ? '-' + deductionPay.toLocaleString() : '0'}</span>
+                        <span style="font-size:12px; color:${deductionPay > 0 ? '#dc2626' : '#94a3b8'}; font-weight:600; margin-left:1px;">원</span>
+                      `}
                     </td>
                     <td style="text-align:right; padding:10px 12px; white-space:nowrap;">
                       <div>
@@ -901,6 +946,28 @@ window.ScheduleModule = (function () {
     `;
 
     return html;
+  }
+
+  function updateAdjustment(empId, field, val) {
+    const currUser = window.SheetsSync.getCurrentUser();
+    if (!currUser || currUser.role !== '약국장') {
+      alert('🔒 [보안 권한 통제] 비과세 식대, 추가 수당, 공제 삭감은 약국장 계정으로만 직접 수정 및 저장이 가능합니다.');
+      render('module-content');
+      return;
+    }
+
+    const data = window.SheetsSync.getData();
+    let allAdjustments = data.overtimeAdjustments || {};
+    const monthKey = `${currentYear}-${String(currentMonth).padStart(2, '0')}`;
+
+    if (!allAdjustments[monthKey]) allAdjustments[monthKey] = {};
+    if (!allAdjustments[monthKey][empId]) {
+      allAdjustments[monthKey][empId] = { mealAllowance: 200000, overtimePay: 0, deductionPay: 0 };
+    }
+
+    allAdjustments[monthKey][empId][field] = Number(val) || 0;
+    window.SheetsSync.saveOvertimeAdjustments(allAdjustments);
+    render('module-content');
   }
 
   function toggleSettlement() {
@@ -2143,6 +2210,7 @@ window.ScheduleModule = (function () {
   window.closeInlinePanel = closeInlinePanel;
   window.updatePharmacistRateSettings = updatePharmacistRateSettings;
   window.updateStaffSalarySettings = updateStaffSalarySettings;
+  window.updateAdjustment = updateAdjustment;
 
   const exportedModule = {
     render,
@@ -2154,6 +2222,7 @@ window.ScheduleModule = (function () {
     showMyPaystubModal,
     showPaystubByEmpId,
     updateStaffOvertimePay,
+    updateAdjustment,
     updatePharmacistRateSettings,
     updateStaffSalarySettings,
     openUploadPaystubModal,
