@@ -1395,7 +1395,8 @@ body[data-theme="dark"] .rules-chapter-card,
 body[data-theme="dark"] .article-item,
 body[data-theme="dark"] .purchase-item-card,
 body[data-theme="dark"] .summary-group-card,
-body[data-theme="dark"] .tsa-card {
+body[data-theme="dark"] .tsa-card,
+body[data-theme="dark"] .schedule-control-card {
   background-color: #151e38 !important;
   color: #f8fafc !important;
   border-color: #334155 !important;
