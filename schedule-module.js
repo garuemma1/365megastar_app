@@ -41,8 +41,10 @@ window.ScheduleModule = (function () {
     let end = endTime;
 
     if (!start || !end) {
-      if (shift === 'A') { start = '09:00'; end = '17:30'; }
-      else if (shift === 'B') { start = '13:30'; end = '22:00'; }
+      if (shift === 'A') { start = '09:00'; end = '18:00'; }
+      else if (shift === 'B') { start = '10:00'; end = '22:00'; }
+      else if (shift === 'C') { start = '09:00'; end = '13:00'; }
+      else if (shift === 'D') { start = '13:00'; end = '22:00'; }
       else if (shift === 'FULL') { start = '09:00'; end = '22:00'; }
       else return '';
     }
@@ -320,10 +322,10 @@ window.ScheduleModule = (function () {
               <div class="form-group">
                 <label>빠른 기본 조 선택</label>
                 <div class="shift-preset-grid">
-                  <button type="button" class="btn btn-outline btn-sm" onclick="ScheduleModule.setPresetTime('09:00', '17:30', 'A')">A조 (09:00~17:30, 실7.5h)</button>
-                  <button type="button" class="btn btn-outline btn-sm" onclick="ScheduleModule.setPresetTime('13:30', '22:00', 'B')">B조 (13:30~22:00, 실7.5h)</button>
-                  <button type="button" class="btn btn-outline btn-sm" onclick="ScheduleModule.setPresetTime('09:00', '22:00', 'FULL')">FULL (09:00~22:00, 실12h)</button>
-                  <button type="button" class="btn btn-outline btn-sm" onclick="ScheduleModule.setPresetTime('18:00', '22:00', 'C')">C조 (18:00~22:00, 야간)</button>
+                  <button type="button" class="btn btn-outline btn-sm font-bold" onclick="ScheduleModule.setPresetTime('09:00', '18:00', 'A')">A조 (09:00~18:00, 실8h)</button>
+                  <button type="button" class="btn btn-outline btn-sm font-bold" onclick="ScheduleModule.setPresetTime('10:00', '22:00', 'B')">B조 (10:00~22:00, 실11h)</button>
+                  <button type="button" class="btn btn-outline btn-sm font-bold" onclick="ScheduleModule.setPresetTime('09:00', '13:00', 'C')">C조 (09:00~13:00, 실4h)</button>
+                  <button type="button" class="btn btn-outline btn-sm font-bold" onclick="ScheduleModule.setPresetTime('13:00', '22:00', 'D')">D조 (13:00~22:00, 실8h)</button>
                 </div>
               </div>
 

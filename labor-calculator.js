@@ -37,8 +37,10 @@ window.LaborCalculator = (function () {
     let end = endTimeStr;
 
     if (!start || !end) {
-      if (shiftCode === 'A') { start = '09:00'; end = '17:30'; }
-      else if (shiftCode === 'B') { start = '13:30'; end = '22:00'; }
+      if (shiftCode === 'A') { start = '09:00'; end = '18:00'; }
+      else if (shiftCode === 'B') { start = '10:00'; end = '22:00'; }
+      else if (shiftCode === 'C') { start = '09:00'; end = '13:00'; }
+      else if (shiftCode === 'D') { start = '13:00'; end = '22:00'; }
       else if (shiftCode === 'FULL') { start = '09:00'; end = '22:00'; }
       else return 0;
     }
