@@ -77,7 +77,12 @@ window.BuildingRentalModule = (function () {
           <h2 style="font-size:22px; font-weight:800; color:#0f172a; margin:0;"><i class="fas fa-building text-success me-2"></i> 🏢 365메가스타 타워 건물 임대업 대시보드</h2>
           <p class="subtitle" style="font-size:13px; color:#64748b; margin:4px 0 0 0;">약국장(건물주) 전용: 상가 호실별 임대차 매트릭스, D-Day 만료 알림, 수납 관리 및 수익률(Cap Rate) 분석</p>
         </div>
-        <span class="badge bg-danger" style="font-size:12.5px; padding:8px 14px; border-radius:10px;">🔒 대표 건물주 전용 대시보드</span>
+        <div class="d-flex align-items-center gap-2">
+          <button type="button" class="btn btn-outline-success font-bold" onclick="App.downloadActiveModuleToGoogleSheets()" style="border-radius:10px; padding:7px 14px; font-size:13px; box-shadow:0 2px 6px rgba(16,185,129,0.15);">
+            <i class="fas fa-file-excel text-success me-1"></i> 📊 구글 시트 엑셀 내보내기
+          </button>
+          <span class="badge bg-danger" style="font-size:12.5px; padding:8px 14px; border-radius:10px;">🔒 대표 건물주 전용 대시보드</span>
+        </div>
       </div>
 
       <!-- 💡 상단 핵심 자산 KPI 요약 카드 (Executive Asset KPI Cards) -->

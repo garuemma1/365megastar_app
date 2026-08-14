@@ -1,10 +1,11 @@
 /**
- * 10. 스마트약국 정산 시스템 모듈 컨트롤러 (Smart Pharmacy Financial Settlement Engine v30.0)
- * 약국장 전용: 3종 엑셀 데이터(월간손익 P&L / 일일결산 회계장부 / 연도별 장기성장통계) 완벽 통합
+ * 10. 스마트약국 정산 시스템 모듈 컨트롤러 (Smart Pharmacy Financial Settlement Engine v33.0)
+ * 약국장 전용: 3종 엑셀 데이터(일일결산 회계장부 1순위 / 월간손익 P&L 2순위 / 연도별 장기성장통계 3순위)
+ * 일반매출, 카드/현금 수입 세분화 및 구글 시트 엑셀 실시간 연동
  */
 window.PharmacySettlementModule = (function () {
 
-  let activeSubTab = 'pnl'; // 'pnl' | 'daily' | 'yearly'
+  let activeSubTab = 'daily'; // 1순위: 'daily' | 2순위: 'pnl' | 3순위: 'yearly'
 
   function setSubTab(tab) {
     activeSubTab = tab;
@@ -58,13 +59,17 @@ window.PharmacySettlementModule = (function () {
       };
     });
 
-    // 2. 수입 산출
+    // 2. 수입 산출 (일반매출, 카드 수입, 현금 수입 추가)
     const dispensingFee = Number(pData.dispensingFee) || 18500000;
-    const posRevenue = Number(pData.posRevenue) || 24200000;
+    const generalRevenue = Number(pData.generalRevenue || pData.posRevenue) || 24200000;
     const patientCopay = Number(pData.patientCopay) || 12000000;
     const nhisClaim = Number(pData.nhisClaim) || 18000000;
     const otherIncome = Number(pData.otherIncome) || 1800000;
-    const totalRevenue = dispensingFee + posRevenue + patientCopay + nhisClaim + otherIncome;
+    const totalRevenue = dispensingFee + generalRevenue + patientCopay + nhisClaim + otherIncome;
+
+    // 카드 수입 & 현금 수입 (미설정 시 총수입의 85%/15% 자동 할당)
+    const cardRevenue = Number(pData.cardRevenue) || Math.round(totalRevenue * 0.85);
+    const cashRevenue = Number(pData.cashRevenue) || (totalRevenue - cardRevenue);
 
     // 3. 약품 사입비 산출 (도매상 현금 + 제약사 카드)
     const cashWholesaleObj = pData.cashWholesale || { '다우약품': 12400000, '산성호': 8500000, '백제약품': 7200000, '지오영': 6800000 };
@@ -105,9 +110,12 @@ window.PharmacySettlementModule = (function () {
       <div class="module-header d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
         <div>
           <h2 style="font-size:22px; font-weight:800; color:#0f172a; margin:0;"><i class="fas fa-calculator text-primary me-2"></i> 📊 365메가스타약국 스마트 정산 대시보드</h2>
-          <p class="subtitle" style="font-size:13px; color:#64748b; margin:4px 0 0 0;">약국장 전용: 2026년 8월 처방 조제·POS 매출, 약품 사입비, 인건비 및 월 순이익 P&L 손익계산서</p>
+          <p class="subtitle" style="font-size:13px; color:#64748b; margin:4px 0 0 0;">약국장 전용: 2026년 8월 일일결산 장부, 처방 조제·일반매출, 카드/현금 수입, 사입비 및 월 P&L 손익계산서</p>
         </div>
         <div class="d-flex align-items-center gap-2">
+          <button type="button" class="btn btn-outline-success font-bold" onclick="App.downloadActiveModuleToGoogleSheets()" style="border-radius:10px; padding:7px 14px; font-size:13px; box-shadow:0 2px 6px rgba(16,185,129,0.15);">
+            <i class="fas fa-file-excel text-success me-1"></i> 📊 구글 시트 엑셀 내보내기
+          </button>
           <span class="badge bg-danger" style="font-size:12.5px; padding:8px 14px; border-radius:10px;">🔐 약국장 전용 보안 대시보드</span>
         </div>
       </div>
@@ -126,7 +134,7 @@ window.PharmacySettlementModule = (function () {
               ${fmt(totalRevenue)} <span class="currency-unit" style="font-size:14px; font-weight:700;">원</span>
             </div>
             <div class="kpi-subtitle-text">
-              조제료 ${fmt(dispensingFee + patientCopay + nhisClaim)}원 · POS ${fmt(posRevenue)}원
+              조제료 ${fmt(dispensingFee + patientCopay + nhisClaim)}원 · 일반매출 ${fmt(generalRevenue)}원
             </div>
           </div>
         </div>
@@ -178,19 +186,19 @@ window.PharmacySettlementModule = (function () {
               ${fmt(dailyAvgRev)} <span class="currency-unit" style="font-size:14px; font-weight:700;">원</span>
             </div>
             <div class="kpi-subtitle-text">
-              매일 평균 조제 + POS 매출 자동 연동
+              매일 평균 조제 + 일반매출 자동 연동
             </div>
           </div>
         </div>
       </div>
 
-      <!-- 📌 세부 3대 서브 탭 네비게이션 -->
+      <!-- 📌 세부 3대 서브 탭 네비게이션 (순서 개편: 1.일일결산 -> 2.월간손익 -> 3.장기통계) -->
       <div class="d-flex gap-2 border-bottom pb-3 mb-4 flex-wrap">
-        <button type="button" class="btn ${activeSubTab === 'pnl' ? 'btn-primary font-bold' : 'btn-outline-secondary'}" onclick="PharmacySettlementModule.setSubTab('pnl')" style="border-radius:10px; padding:10px 20px; font-size:14px;">
-          <i class="fas fa-file-invoice me-1"></i> ① 월간 종합 손익계산서 (P&L View)
-        </button>
         <button type="button" class="btn ${activeSubTab === 'daily' ? 'btn-primary font-bold' : 'btn-outline-secondary'}" onclick="PharmacySettlementModule.setSubTab('daily')" style="border-radius:10px; padding:10px 20px; font-size:14px;">
-          <i class="fas fa-book me-1"></i> ② 일일 결산 & 회계 장부 (Daily Log)
+          <i class="fas fa-book me-1"></i> ① 일일 결산 & 회계 장부 (Daily Log)
+        </button>
+        <button type="button" class="btn ${activeSubTab === 'pnl' ? 'btn-primary font-bold' : 'btn-outline-secondary'}" onclick="PharmacySettlementModule.setSubTab('pnl')" style="border-radius:10px; padding:10px 20px; font-size:14px;">
+          <i class="fas fa-file-invoice me-1"></i> ② 월간 종합 손익계산서 (P&L View)
         </button>
         <button type="button" class="btn ${activeSubTab === 'yearly' ? 'btn-primary font-bold' : 'btn-outline-secondary'}" onclick="PharmacySettlementModule.setSubTab('yearly')" style="border-radius:10px; padding:10px 20px; font-size:14px;">
           <i class="fas fa-chart-bar me-1"></i> ③ 연도별 장기 성장 통계 (Historical Trends)
@@ -198,10 +206,67 @@ window.PharmacySettlementModule = (function () {
       </div>
     `;
 
-    // 서브 탭 1: 월간 종합 손익계산서
-    if (activeSubTab === 'pnl') {
+    // 1순위 서브 탭: 일일 결산 & 회계 장부 (Daily Log)
+    if (activeSubTab === 'daily') {
+      const dailyLogs = pData.dailyLogs || [];
+
       html += `
-        <!-- 1. 수입 세부 분석 -->
+        <div class="card mb-4 shadow-sm" style="border-radius:18px; border:1.5px solid #cbd5e1; overflow:hidden;">
+          <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2" style="background:#0f172a; color:#ffffff; padding:16px 20px;">
+            <h3 style="font-size:16.5px; font-weight:800; margin:0; color:#ffffff;"><i class="fas fa-book-open me-2 text-warning"></i> 2026년 8월 일일 결산 및 회계 장부 (Daily Log)</h3>
+            <div class="d-flex align-items-center gap-2">
+              <button type="button" class="btn btn-sm btn-outline-light font-bold" onclick="App.downloadActiveModuleToGoogleSheets()">
+                <i class="fas fa-file-excel text-success me-1"></i> 구글 시트 연동 다운로드
+              </button>
+              <span style="font-size:12.5px; color:#cbd5e1;">전일 대비 증감 및 요일별 매출 추이</span>
+            </div>
+          </div>
+          <div class="card-body p-0">
+            <div class="table-responsive">
+              <table class="table table-striped table-hover align-middle mb-0" style="font-size:13px;">
+                <thead style="background:#f1f5f9; color:#334155;">
+                  <tr>
+                    <th style="text-align:center; padding:10px; width:110px;">일자</th>
+                    <th style="text-align:center; padding:10px; width:60px;">요일</th>
+                    <th style="text-align:right; padding:10px;">조제 매출</th>
+                    <th style="text-align:right; padding:10px;">일반 매출</th>
+                    <th style="text-align:right; padding:10px;">일 총 매출</th>
+                    <th style="text-align:center; padding:10px; width:100px;">카드/현금 비중</th>
+                    <th style="text-align:right; padding:10px;">일 소액지출</th>
+                    <th style="padding:10px;">비고 및 특이사항</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${dailyLogs.map(log => `
+                    <tr>
+                      <td style="text-align:center; font-weight:700; color:#0f172a;">${log.date}</td>
+                      <td style="text-align:center;">
+                        <span class="${log.dayOfWeek === '일' ? 'text-danger font-bold' : (log.dayOfWeek === '토' ? 'text-primary font-bold' : 'text-dark')}">
+                          ${log.dayOfWeek}요일
+                        </span>
+                      </td>
+                      <td style="text-align:right; font-weight:700; color:#1e40af; font-family:'Outfit', sans-serif;">${fmt(log.dispensingRevenue)} 원</td>
+                      <td style="text-align:right; font-weight:700; color:#0369a1; font-family:'Outfit', sans-serif;">${fmt(log.posRevenue)} 원</td>
+                      <td style="text-align:right; font-weight:800; color:#15803d; font-family:'Outfit', sans-serif;">${fmt(log.totalRevenue)} 원</td>
+                      <td style="text-align:center;">
+                        <span class="badge bg-light text-dark" style="border:1px solid #cbd5e1; font-size:11px;">카드 ${log.cardPay > 0 ? Math.round((log.cardPay/log.totalRevenue)*100) : 85}%</span>
+                      </td>
+                      <td style="text-align:right; color:#dc2626; font-weight:600; font-family:'Outfit', sans-serif;">${fmt(log.dailyExpense)} 원</td>
+                      <td style="color:#64748b; font-size:12px;">${log.note}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // 2순위 서브 탭: 월간 종합 손익계산서 (P&L View)
+    else if (activeSubTab === 'pnl') {
+      html += `
+        <!-- 1. 수입 세부 분석 (카드 수입 & 현금 수입 신규 추가 및 일반매출 용어 적용) -->
         <div class="card mb-4 shadow-sm" style="border-radius:18px; border:1.5px solid #cbd5e1; overflow:hidden;">
           <div class="card-header d-flex justify-content-between align-items-center" style="background:#eff6ff; border-bottom:1.5px solid #bfdbfe; padding:16px 20px;">
             <h3 style="font-size:16px; font-weight:800; color:#1e40af; margin:0;"><i class="fas fa-coins me-2"></i> 1. 수입 분석 (Revenue Breakdown)</h3>
@@ -226,10 +291,24 @@ window.PharmacySettlementModule = (function () {
                     </td>
                   </tr>
                   <tr>
-                    <td style="font-weight:700; color:#0f172a;">🛒 매장 POS 일반매출</td>
-                    <td style="color:#64748b;">일반의약품, 영양제, 의약외품, 마스크 등 카운터 POS 결제액</td>
+                    <td style="font-weight:700; color:#0f172a;">🛒 매장 일반매출</td>
+                    <td style="color:#64748b;">일반의약품, 영양제, 의약외품, 마스크 등 카운터 일반매출 결제액</td>
                     <td style="text-align:right;">
-                      <input type="number" class="form-control form-control-sm text-end font-bold text-primary" style="font-size:14px; border-radius:8px; border:1.5px solid #93c5fd;" value="${posRevenue}" onchange="PharmacySettlementModule.updateField('posRevenue', this.value)">
+                      <input type="number" class="form-control form-control-sm text-end font-bold text-primary" style="font-size:14px; border-radius:8px; border:1.5px solid #93c5fd;" value="${generalRevenue}" onchange="PharmacySettlementModule.updateField('generalRevenue', this.value)">
+                    </td>
+                  </tr>
+                  <tr style="background:#f8fafc;">
+                    <td style="font-weight:700; color:#2563eb; padding-left:28px;">💳 (세분화) 카드 수입</td>
+                    <td style="color:#64748b;">당월 총 수입 중 신용/체크 카드 가맹점 입금액 (약 85%)</td>
+                    <td style="text-align:right;">
+                      <input type="number" class="form-control form-control-sm text-end font-bold text-primary" style="font-size:14px; border-radius:8px; border:1.5px solid #93c5fd;" value="${cardRevenue}" onchange="PharmacySettlementModule.updateField('cardRevenue', this.value)">
+                    </td>
+                  </tr>
+                  <tr style="background:#f8fafc;">
+                    <td style="font-weight:700; color:#059669; padding-left:28px;">💵 (세분화) 현금 수입</td>
+                    <td style="color:#64748b;">당월 총 수입 중 현금 및 통장 계좌이체 수납액 (약 15%)</td>
+                    <td style="text-align:right;">
+                      <input type="number" class="form-control form-control-sm text-end font-bold text-success" style="font-size:14px; border-radius:8px; border:1.5px solid #a7f3d0;" value="${cashRevenue}" onchange="PharmacySettlementModule.updateField('cashRevenue', this.value)">
                     </td>
                   </tr>
                   <tr>
@@ -403,7 +482,7 @@ window.PharmacySettlementModule = (function () {
                       </td>
                     </tr>
                     <tr>
-                      <td style="font-weight:700; padding:10px 16px;">💳 POS/카드결제/통신 수수료</td>
+                      <td style="font-weight:700; padding:10px 16px;">💳 일반매출/카드결제/통신 수수료</td>
                       <td style="text-align:right; padding:10px 16px;">
                         <input type="number" class="form-control form-control-sm text-end font-bold" style="width:140px; display:inline-block;" value="${posFee}" onchange="PharmacySettlementModule.updateField('posCardFee', this.value)">
                       </td>
@@ -451,59 +530,7 @@ window.PharmacySettlementModule = (function () {
       `;
     }
 
-    // 서브 탭 2: 일일 결산 & 회계 장부
-    else if (activeSubTab === 'daily') {
-      const dailyLogs = pData.dailyLogs || [];
-
-      html += `
-        <div class="card mb-4 shadow-sm" style="border-radius:18px; border:1.5px solid #cbd5e1; overflow:hidden;">
-          <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2" style="background:#0f172a; color:#ffffff; padding:16px 20px;">
-            <h3 style="font-size:16.5px; font-weight:800; margin:0; color:#ffffff;"><i class="fas fa-book-open me-2 text-warning"></i> 2026년 8월 일일 결산 및 회계 장부 (Daily Log)</h3>
-            <span style="font-size:12.5px; color:#cbd5e1;">전일 대비 증감 및 요일별 매출 추이</span>
-          </div>
-          <div class="card-body p-0">
-            <div class="table-responsive">
-              <table class="table table-striped table-hover align-middle mb-0" style="font-size:13px;">
-                <thead style="background:#f1f5f9; color:#334155;">
-                  <tr>
-                    <th style="text-align:center; padding:10px; width:110px;">일자</th>
-                    <th style="text-align:center; padding:10px; width:60px;">요일</th>
-                    <th style="text-align:right; padding:10px;">조제 매출</th>
-                    <th style="text-align:right; padding:10px;">POS 매출</th>
-                    <th style="text-align:right; padding:10px;">일 총 매출</th>
-                    <th style="text-align:center; padding:10px; width:100px;">카드/현금 비중</th>
-                    <th style="text-align:right; padding:10px;">일 소액지출</th>
-                    <th style="padding:10px;">비고 및 특이사항</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${dailyLogs.map(log => `
-                    <tr>
-                      <td style="text-align:center; font-weight:700; color:#0f172a;">${log.date}</td>
-                      <td style="text-align:center;">
-                        <span class="${log.dayOfWeek === '일' ? 'text-danger font-bold' : (log.dayOfWeek === '토' ? 'text-primary font-bold' : 'text-dark')}">
-                          ${log.dayOfWeek}요일
-                        </span>
-                      </td>
-                      <td style="text-align:right; font-weight:700; color:#1e40af; font-family:'Outfit', sans-serif;">${fmt(log.dispensingRevenue)} 원</td>
-                      <td style="text-align:right; font-weight:700; color:#0369a1; font-family:'Outfit', sans-serif;">${fmt(log.posRevenue)} 원</td>
-                      <td style="text-align:right; font-weight:800; color:#15803d; font-family:'Outfit', sans-serif;">${fmt(log.totalRevenue)} 원</td>
-                      <td style="text-align:center;">
-                        <span class="badge bg-light text-dark" style="border:1px solid #cbd5e1; font-size:11px;">카드 ${log.cardPay > 0 ? Math.round((log.cardPay/log.totalRevenue)*100) : 85}%</span>
-                      </td>
-                      <td style="text-align:right; color:#dc2626; font-weight:600; font-family:'Outfit', sans-serif;">${fmt(log.dailyExpense)} 원</td>
-                      <td style="color:#64748b; font-size:12px;">${log.note}</td>
-                    </tr>
-                  `).join('')}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      `;
-    }
-
-    // 서브 탭 3: 연도별 장기 성장 통계
+    // 3순위 서브 탭: 연도별 장기 성장 통계 (Historical Trends)
     else if (activeSubTab === 'yearly') {
       const stats = pData.yearlyStats || [];
 
@@ -546,7 +573,7 @@ window.PharmacySettlementModule = (function () {
             </div>
 
             <div class="alert alert-info p-3" style="border-radius:12px; font-size:13.5px;">
-              💡 <strong>계절별 매출 사이클 비교 분석:</strong> 봄/가을 환절기(3~5월, 9~11월) 처방 조제 매출이 연간 매출의 약 58%를 차지하며, 여름철(7~8월)에는 영양제 및 일반의약품 POS 매출 비중이 상승하는 경향을 보입니다.
+              💡 <strong>계절별 매출 사이클 비교 분석:</strong> 봄/가을 환절기(3~5월, 9~11월) 처방 조제 매출이 연간 매출의 약 58%를 차지하며, 여름철(7~8월)에는 영양제 및 일반의약품 매출 비중이 상승하는 경향을 보입니다.
             </div>
           </div>
         </div>

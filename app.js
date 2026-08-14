@@ -687,15 +687,49 @@ window.App = (function () {
       });
 
     } else if (activeModule === 'pharmacy-settlement') {
-      filename = `365메가스타약국_스마트정산대시보드.csv`;
+      filename = `365메가스타약국_스마트정산대시보드_2026년08월.csv`;
       const ps = data.pharmacySettlement || {};
+      const dispensingFee = Number(ps.dispensingFee) || 18500000;
+      const generalRevenue = Number(ps.generalRevenue || ps.posRevenue) || 24200000;
+      const patientCopay = Number(ps.patientCopay) || 12000000;
+      const nhisClaim = Number(ps.nhisClaim) || 18000000;
+      const otherIncome = Number(ps.otherIncome) || 1800000;
+      const totalRev = dispensingFee + generalRevenue + patientCopay + nhisClaim + otherIncome;
+      const cardRev = Number(ps.cardRevenue) || Math.round(totalRev * 0.85);
+      const cashRev = Number(ps.cashRevenue) || (totalRev - cardRev);
+
       rows.push(['365메가스타약국 스마트 정산 손익 대시보드']);
-      rows.push(['항목', '금액(원)']);
-      rows.push(['처방전 조제 매출', ps.dispensingRevenue || 0]);
-      rows.push(['매장 POS 매출', ps.posRevenue || 0]);
-      rows.push(['약품 사입비 (지오영/백제 등)', ps.drugPurchaseExpense || 0]);
-      rows.push(['고정 관리비 (임대료/관리비 등)', ps.operatingExpense || 0]);
-      rows.push(['카드 수수료', ps.cardFeeExpense || 0]);
+      rows.push(['산출년월', '2026년 08월']);
+      rows.push([]);
+      rows.push(['[ 1. 월간 손익 요약 (P&L Summary) ]']);
+      rows.push(['수입 항목', '산출 설명', '금액(원)']);
+      rows.push(['처방전 조제료 수입', '조제기술료 및 행위료', dispensingFee]);
+      rows.push(['매장 일반매출', '일반의약품, 영양제, 의약외품', generalRevenue]);
+      rows.push(['(세분화) 카드 수입', '신용/체크카드 결제 수납액', cardRev]);
+      rows.push(['(세분화) 현금 수입', '현금 및 계좌이체 수납액', cashRev]);
+      rows.push(['환자 본인부담금', '창구 직접 결제액', patientCopay]);
+      rows.push(['국민건강보험공단 청구금', '공단 입금 요양급여비', nhisClaim]);
+      rows.push(['비급여 및 기타수입', '비급여 주사제/제수입', otherIncome]);
+      rows.push(['당월 총수입 합계', '', totalRev]);
+      rows.push([]);
+      rows.push(['[ 2. 2026년 8월 일일 결산 회계 장부 ]']);
+      rows.push(['일자', '요일', '조제매출(원)', '일반매출(원)', '일총매출(원)', '카드수입액(원)', '현금수입액(원)', '일소액지출(원)', '비고']);
+      (ps.dailyLogs || []).forEach(l => {
+        rows.push([l.date, l.dayOfWeek, l.dispensingRevenue, l.posRevenue, l.totalRevenue, l.cardPay, l.cashPay, l.dailyExpense, l.note]);
+      });
+
+    } else if (activeModule === 'building-rental') {
+      filename = `365메가스타타워_건물임대업_자산대장.csv`;
+      const br = data.buildingRental || {};
+      rows.push(['365메가스타 타워 건물 임대업 대시보드 자산 대장']);
+      rows.push(['건물명', br.buildingName || '365메가스타 타워']);
+      rows.push(['보유 자산가치', br.assetValue || 5500000000]);
+      rows.push([]);
+      rows.push(['[ 호실별 임대차 계약 대장 ]']);
+      rows.push(['호실', '입주 상호명', '대표자명', '업종', '보증금(원)', '월 임대료(원)', '월 관리비(원)', '부가세 VAT(원)', '계약 시작일', '계약 만료일', '수납 상태', '비고']);
+      (br.units || []).forEach(u => {
+        rows.push([u.unit, u.tenantName, u.repName || '대표자', u.type, u.deposit, u.rent, u.maintenanceFee, u.vat || (u.rent * 0.1), u.startDate, u.endDate, u.status === 'PAID' ? '수납완료' : '당월미납', u.note]);
+      });
 
     } else {
       filename = `365메가스타약국_${activeModule}.csv`;
