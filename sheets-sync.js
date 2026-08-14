@@ -546,9 +546,9 @@ window.SheetsSync = (function () {
     const el = document.getElementById('cloud-sync-badge');
     if (el) {
       if (status === 'success') {
-        el.innerHTML = '<span class="badge bg-success" style="font-size:11.5px; padding:5px 9px; border-radius:12px;"><i class="fas fa-cloud-check me-1"></i> ☁️ 실시간 클라우드 공유 연동 중</span>';
+        el.innerHTML = '<span class="badge bg-success" style="font-size:11.5px; padding:5px 9px; border-radius:12px;"><i class="fas fa-cloud-check me-1"></i> <span class="sync-badge-full-text">☁️ 실시간 클라우드 공유 연동 중</span><span class="sync-badge-short-text">☁️ 연동중</span></span>';
       } else {
-        el.innerHTML = '<span class="badge bg-secondary" style="font-size:11.5px; padding:5px 9px; border-radius:12px;"><i class="fas fa-cloud me-1"></i> ☁️ 동기화 가동 중</span>';
+        el.innerHTML = '<span class="badge bg-secondary" style="font-size:11.5px; padding:5px 9px; border-radius:12px;"><i class="fas fa-cloud me-1"></i> <span class="sync-badge-full-text">☁️ 동기화 가동 중</span><span class="sync-badge-short-text">☁️ 동기화</span></span>';
       }
     }
   }

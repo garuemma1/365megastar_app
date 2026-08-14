@@ -227,6 +227,9 @@ body {
 .header-right { display: flex; align-items: center; gap: 12px; }
 .header-btn { display: flex; align-items: center; gap: 8px; padding: 8px 14px; background: var(--bg-main); border: 1px solid var(--border-color); border-radius: var(--border-radius-md); color: var(--text-main); font-size: 13px; font-weight: 500; cursor: pointer; }
 
+.sync-badge-short-text { display: none !important; }
+.sync-badge-full-text { display: inline !important; }
+
 .module-content { padding: 28px; flex: 1; }
 
 .mobile-bottom-nav {
@@ -1066,14 +1069,19 @@ body {
   .drawer-sidebar.open { transform: translateX(0); }
   .main-wrapper { margin-left: 0 !important; }
   
-  /* 상단 헤더 모바일 정돈 - 글자 깨짐 및 세로 래핑 전면 방지 */
-  .top-header { padding: 0 10px; height: 56px; gap: 8px; }
-  .header-left { gap: 8px; min-width: 0; flex-shrink: 1; }
-  .header-logo-img { height: 32px; width: 32px; }
+  /* 상단 헤더 모바일 정돈 - 로고 및 클라우드 연동 뱃지 겹침 원천 차단 */
+  .sync-badge-short-text { display: inline !important; }
+  .sync-badge-full-text { display: none !important; }
+
+  .top-header { padding: 0 8px !important; height: 54px !important; gap: 4px !important; justify-content: space-between !important; }
+  .header-left { gap: 6px !important; min-width: 0 !important; flex-shrink: 0 !important; }
+  .header-logo-img { height: 28px !important; width: 28px !important; flex-shrink: 0 !important; }
   .header-module-info { display: none !important; } /* 상단 중복 제목 모바일 숨김 (본문 h2로만 깨끗하게 표시) */
   
-  .header-right { gap: 4px; flex-shrink: 0; }
-  .header-btn { padding: 5px 8px !important; font-size: 11px !important; }
+  .header-right { gap: 4px !important; flex-shrink: 1 !important; min-width: 0 !important; justify-content: flex-end !important; }
+  #cloud-sync-badge { flex-shrink: 0 !important; }
+  #cloud-sync-badge .badge { font-size: 10.5px !important; padding: 4px 6px !important; border-radius: 8px !important; }
+  .header-btn { padding: 4px 6px !important; font-size: 11px !important; }
   .header-btn span { display: none !important; } /* 모바일에서는 아이콘으로 컴팩트하게 노출 */
   
   .module-content { padding: 12px 10px; padding-bottom: 84px; }
