@@ -207,24 +207,26 @@ window.ScheduleModule = (function () {
       ${(currUser && currUser.role === '약국장') ? `
         <div class="director-confirm-banner mb-4">
           <div class="dc-title">
-            <i class="fas fa-user-check text-warning fs-20"></i>
+            <div style="width:42px; height:42px; border-radius:12px; background:rgba(245,158,11,0.15); border:1px solid rgba(245,158,11,0.3); color:#fbbf24; display:flex; justify-content:center; align-items:center; font-size:18px; flex-shrink:0;">
+              <i class="fas fa-user-shield"></i>
+            </div>
             <div>
-              <strong>🔐 약국장 전용 ${currentMonth}월 근무스케줄 최종 승인 & 컨폼 센터</strong>
-              <p class="text-xs text-muted">약사팀/일반직원팀에서 자율 제출한 스케줄을 검토 후 1클릭으로 최종 승인하거나 수정 요망 조율을 진행하세요.</p>
+              <strong style="font-size:16px; font-weight:800; color:#ffffff; letter-spacing:-0.3px;">🔐 약국장 전용 ${currentMonth}월 근무스케줄 최종 승인 & 컨폼 센터</strong>
+              <p style="font-size:12.5px; color:#94a3b8; margin:2px 0 0 0;">약사팀/일반직원팀에서 자율 제출한 스케줄을 검토 후 1클릭으로 최종 승인하거나 수정 요망 조율을 진행하세요.</p>
             </div>
           </div>
           <div class="dc-actions d-flex gap-2 flex-wrap">
-            <button type="button" class="btn btn-sm btn-primary text-white font-bold" onclick="ScheduleModule.openDirectorTaxPaystubModal()" style="box-shadow:0 3px 8px rgba(37,99,235,0.35); font-size:13px; padding:6px 14px;">
-              <i class="fas fa-file-invoice"></i> 📁 세후 세무사통합명세서 등록 및 교부
+            <button type="button" class="btn btn-sm text-white font-bold" onclick="ScheduleModule.openDirectorTaxPaystubModal()" style="background:#2563eb; border:none; box-shadow:0 3px 10px rgba(37,99,235,0.4); font-size:13px; padding:7px 15px; border-radius:10px;">
+              <i class="fas fa-file-invoice me-1"></i> 📁 세후 세무사통합명세서 등록 및 교부
             </button>
-            <button type="button" class="btn btn-sm btn-info text-white font-bold" onclick="ScheduleModule.exportTaxAccountantReport()">
-              <i class="fas fa-file-export"></i> 📤 세무사 제출용 ${currentMonth}월 총근무시수 & 세전급여 집계표
+            <button type="button" class="btn btn-sm text-white font-bold" onclick="ScheduleModule.exportTaxAccountantReport()" style="background:#0284c7; border:none; box-shadow:0 3px 10px rgba(2,132,199,0.4); font-size:13px; padding:7px 15px; border-radius:10px;">
+              <i class="fas fa-file-export me-1"></i> 📤 세무사 제출용 ${currentMonth}월 총근무시수 & 세전급여 집계표
             </button>
-            <button type="button" class="btn btn-sm btn-success font-bold" onclick="ScheduleModule.approveTeamSchedule('all')">
-              <i class="fas fa-check-circle"></i> 🏆 ${currentMonth}월 전체 스케줄 최종 승인 확정
+            <button type="button" class="btn btn-sm text-white font-bold" onclick="ScheduleModule.approveTeamSchedule('all')" style="background:#10b981; border:none; box-shadow:0 3px 10px rgba(16,185,129,0.4); font-size:13px; padding:7px 15px; border-radius:10px;">
+              <i class="fas fa-check-circle me-1"></i> 🏆 ${currentMonth}월 전체 스케줄 최종 승인 확정
             </button>
-            <button type="button" class="btn btn-sm btn-warning font-bold" onclick="ScheduleModule.rejectTeamSchedule()">
-              <i class="fas fa-undo"></i> ↩️ 수정 요청 (재조율)
+            <button type="button" class="btn btn-sm text-white font-bold" onclick="ScheduleModule.rejectTeamSchedule()" style="background:#ea580c; border:none; box-shadow:0 3px 10px rgba(234,88,12,0.4); font-size:13px; padding:7px 15px; border-radius:10px;">
+              <i class="fas fa-undo me-1"></i> ↩️ 수정 요청 (재조율)
             </button>
           </div>
         </div>

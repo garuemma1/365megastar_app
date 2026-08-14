@@ -1,4 +1,4 @@
-﻿/* ==========================================================================
+/* ==========================================================================
    365메가스타약국 HR/OPS 플랫폼 메인 스타일시트 (365 Megastar Pharmacy Stylesheet)
    ========================================================================== */
 
@@ -557,16 +557,17 @@ body {
 .shift-preset-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 6px; }
 .labor-notice-box { background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: var(--border-radius-sm); padding: 10px 14px; font-size: 12px; color: #065f46; }
 
-.team-schedule-approval-box { display: flex; gap: 14px; flex-wrap: wrap; }
-.tsa-card { flex: 1; min-width: 260px; background: #ffffff; border: 1px solid var(--border-color); border-radius: var(--border-radius-md); padding: 14px 16px; box-shadow: var(--shadow-sm); }
-.tsa-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-.tsa-title { font-size: 14px; }
-.tsa-desc { font-size: 12.5px; color: var(--text-muted); line-height: 1.4; margin-bottom: 6px; }
-.tsa-approved { border-left: 4px solid var(--primary); background: #f0fdf4; }
-.tsa-submitted { border-left: 4px solid #0284c7; background: #f0f9ff; }
-.tsa-draft { border-left: 4px solid #d97706; background: #fffbeb; }
+.team-schedule-approval-box { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+.tsa-card { background: #ffffff; border: 1.5px solid #cbd5e1; border-radius: 16px; padding: 18px 20px; box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04); transition: all 0.2s ease; }
+.tsa-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(15, 23, 42, 0.07); }
+.tsa-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid #f1f5f9; }
+.tsa-title { font-size: 15px; color: #0f172a; }
+.tsa-desc { font-size: 13px; color: #64748b; line-height: 1.5; margin-bottom: 8px; }
+.tsa-approved { border-left: 5px solid #10b981; background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%); }
+.tsa-submitted { border-left: 5px solid #2563eb; background: linear-gradient(135deg, #ffffff 0%, #eff6ff 100%); }
+.tsa-draft { border-left: 5px solid #64748b; background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); }
 
-.director-confirm-banner { background: #fefce8; border: 1px solid #fef08a; border-radius: var(--border-radius-md); padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; gap: 14px; flex-wrap: wrap; }
+.director-confirm-banner { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border: 1px solid #334155; border-radius: 18px; padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.25); }
 .dc-title { display: flex; align-items: center; gap: 10px; }
 
 .team-approval-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 10px; }
