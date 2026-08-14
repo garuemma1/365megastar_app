@@ -542,16 +542,21 @@ window.SheetsSync = (function () {
   }
 
   function getPharmacistRates() {
-    try {
-      const raw = safeGetItem('365_pharmacist_rates_v1');
-      if (raw) return JSON.parse(raw);
-    } catch (e) {}
-    return {
+    const defaultRates = {
       'emp_2': { weekdayRate: 40000, holidayRate: 40000, breakHours: 1.0 },
-      'emp_3': { weekdayRate: 35000, holidayRate: 40000, breakHours: 1.0 },
-      'emp_4': { weekdayRate: 23000, holidayRate: 25000, breakHours: 1.0 },
+      'emp_3': { weekdayRate: 25000, holidayRate: 27000, breakHours: 1.0 },
+      'emp_4': { weekdayRate: 23000, holidayRate: 23000, breakHours: 1.0 },
       'emp_5': { weekdayRate: 25000, holidayRate: 27000, breakHours: 1.0 }
     };
+    try {
+      const raw = safeGetItem('365_pharmacist_rates_v1');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        return { ...defaultRates, ...parsed };
+      }
+    } catch (e) {}
+    safeSetItem('365_pharmacist_rates_v1', JSON.stringify(defaultRates));
+    return defaultRates;
   }
 
   function savePharmacistRates(data) {

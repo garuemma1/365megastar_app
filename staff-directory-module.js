@@ -707,7 +707,7 @@ window.StaffDirectoryModule = (function () {
         <div class="mt-2 p-3" style="background:#f0fdf4; border-radius:12px; border:1px solid #dcfce7;">
           <div class="mb-2">
             <label class="form-label mb-1 font-bold" style="font-size:12px; color:#15803d;">👛 기본 고정월급 (원/월):</label>
-            <input type="number" id="pay-input-salary-${empId}" class="form-control form-control-sm font-bold text-end" value="${target.baseMonthlySalary || 2717000}" style="color:#15803d;">
+            <input type="number" id="pay-input-salary-${empId}" class="form-control form-control-sm font-bold text-end" value="${target.baseMonthlySalary || 0}" style="color:#15803d;">
           </div>
           <div class="mb-3">
             <label class="form-label mb-1 font-bold" style="font-size:12px; color:#0369a1;">⏱️ 초과/연장 책정시급 (원/h):</label>
