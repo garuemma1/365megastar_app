@@ -35,17 +35,17 @@ window.SheetsSync = (function () {
     'emergency-contacts-module'
   ];
 
-  // 365메가스타약국 최신 9인 정식 명단 및 디폴트 정보 (약국장 1명, 근무약사 4명, 일반직원 4명)
+  // 365메가스타약국 영구 마스터 디폴트 9인 정식 명단 및 디폴트 정보 (약국장 1명, 근무약사 4명, 일반직원 4명)
   const INITIAL_EMPLOYEES = [
     { id: 'emp_1', username: 'director@365megastar.com', email: 'director@365megastar.com', passcode: '367900', name: '문성도', role: '약국장', position: '대표약사', payType: 'DIRECTOR', joinDate: '2020-03-01', hourlyRate: 45000, baseMonthlySalary: 0, phone: '010-3679-0000', usedLeave: 3, pendingLeave: 0, memo: '365메가스타약국 대표약사 최고 관리자 계정', allowedTabs: [...ALL_COMMON_TABS, 'approval-module', 'staff-directory-module', 'pharmacy-settlement-module', 'building-rental-module'] },
     { id: 'emp_2', username: 'kwon@365megastar.com', email: 'kwon@365megastar.com', passcode: '1234', name: '권명주', role: '근무약사', position: '관리약사', payType: 'HOURLY', joinDate: '2024-09-06', hourlyRate: 40000, baseMonthlySalary: 0, phone: '010-2385-0402', usedLeave: 2, pendingLeave: 0, memo: '조제 팀장 / 약정시급제 적용 근무약사', allowedTabs: [...ALL_COMMON_TABS] },
     { id: 'emp_3', username: 'yang@365megastar.com', email: 'yang@365megastar.com', passcode: '1234', name: '양윤지', role: '근무약사', position: '근무약사', payType: 'HOURLY', joinDate: '2023-10-04', hourlyRate: 25000, baseMonthlySalary: 0, phone: '010-4726-9807', usedLeave: 6, pendingLeave: 0, memo: '처방검수및일반관리/ 약정시급제 적용 근무약사', allowedTabs: [...ALL_COMMON_TABS] },
     { id: 'emp_4', username: 'kimdw@365megastar.com', email: 'kimdw@365megastar.com', passcode: '1234', name: '김동완', role: '근무약사', position: '근무약사', payType: 'HOURLY', joinDate: '2026-03-01', hourlyRate: 23000, baseMonthlySalary: 0, phone: '010-8236-9650', usedLeave: 5, pendingLeave: 0, memo: '처방검수및일반관리/ 약정시급제 적용 근무약사', allowedTabs: [...ALL_COMMON_TABS] },
-    { id: 'emp_5', username: 'yoo@365megastar.com', email: 'yoo@365megastar.com', passcode: '1234', name: '유호종', role: '근무약사', position: '파트약사', payType: 'HOURLY', joinDate: '2026-03-01', hourlyRate: 25000, baseMonthlySalary: 0, phone: '010-4055-5868', usedLeave: 2, pendingLeave: 0, memo: '처방검수및일반관리/ 약정시급제 적용 파트약사', allowedTabs: [...ALL_COMMON_TABS] },
-    { id: 'emp_6', username: 'lee@365megastar.com', email: 'lee@365megastar.com', passcode: '1234', name: '이승학', role: '일반직원', position: '전산팀', payType: 'MONTHLY', joinDate: '2024-04-01', hourlyRate: 13500, baseMonthlySalary: 2490000, phone: '010-5678-9012', usedLeave: 0, pendingLeave: 0, memo: '전산 팀장 / 주40시간 정액 월급제 (식대 20만 포함)', allowedTabs: [...ALL_COMMON_TABS] },
-    { id: 'emp_7', username: 'kimjh@365megastar.com', email: 'kimjh@365megastar.com', passcode: '1234', name: '김제희', role: '일반직원', position: '약국전반업무관리', payType: 'MONTHLY', joinDate: '2024-11-01', hourlyRate: 13000, baseMonthlySalary: 2170000, phone: '010-7273-7155', usedLeave: 6, pendingLeave: 0, memo: '조제실실무전반 직간접업무관리 / 월급 임금제', allowedTabs: [...ALL_COMMON_TABS] },
-    { id: 'emp_8', username: 'yoon@365megastar.com', email: 'yoon@365megastar.com', passcode: '1234', name: '윤세라', role: '일반직원', position: '조제보조', payType: 'MONTHLY', joinDate: '2026-03-01', hourlyRate: 13000, baseMonthlySalary: 1720810, phone: '010-6371-4073', usedLeave: 1, pendingLeave: 0, memo: '조제보조/정약 임금제 (식대 20만 포함)', allowedTabs: [...ALL_COMMON_TABS] },
-    { id: 'emp_9', username: 'kimbay@365megastar.com', email: 'kimbay@365megastar.com', passcode: '1234', name: '김배영', role: '일반직원', position: '조제보조', payType: 'MONTHLY', joinDate: '2025-03-01', hourlyRate: 13000, baseMonthlySalary: 1306700, phone: '010-8901-2345', usedLeave: 0, pendingLeave: 0, memo: '전산/매장보조 / 주40시간 정액 월급제 (식대 20만 포함)', allowedTabs: [...ALL_COMMON_TABS] }
+    { id: 'emp_5', username: 'yoo@365megastar.com', email: 'yoo@365megastar.com', passcode: '1234', name: '유호종', role: '근무약사', position: '파트약사', payType: 'HOURLY', joinDate: '0001-01-01', hourlyRate: 25000, baseMonthlySalary: 0, phone: '010-4055-5860', usedLeave: 2, pendingLeave: 0, memo: '처방검수및일반관리/ 약정시급제 적용 파트약사', allowedTabs: [...ALL_COMMON_TABS] },
+    { id: 'emp_6', username: 'lee@365megastar.com', email: 'lee@365megastar.com', passcode: '1234', name: '이승학', role: '일반직원', position: '약국전반업무관리', payType: 'MONTHLY', joinDate: '2023-06-12', hourlyRate: 13500, baseMonthlySalary: 2490000, phone: '010-4399-4293', usedLeave: 0, pendingLeave: 0, memo: '조제실및전산 약국전반업무관리 / 정액 월급제 (세후급여)', allowedTabs: [...ALL_COMMON_TABS] },
+    { id: 'emp_7', username: 'kimjh@365megastar.com', email: 'kimjh@365megastar.com', passcode: '1234', name: '김제희', role: '일반직원', position: '약국전반업무관리', payType: 'MONTHLY', joinDate: '2024-11-01', hourlyRate: 13000, baseMonthlySalary: 2170000, phone: '010-7273-7155', usedLeave: 6, pendingLeave: 0, memo: '조제실및전산 약국전반업무관리 / 정액 월급제', allowedTabs: [...ALL_COMMON_TABS] },
+    { id: 'emp_8', username: 'yoon@365megastar.com', email: 'yoon@365megastar.com', passcode: '1234', name: '윤세라', role: '일반직원', position: '조제보조', payType: 'MONTHLY', joinDate: '2026-03-01', hourlyRate: 13000, baseMonthlySalary: 1720810, phone: '010-6371-4079', usedLeave: 1, pendingLeave: 0, memo: '조제보조/정액 월급제', allowedTabs: [...ALL_COMMON_TABS] },
+    { id: 'emp_9', username: 'kimbay@365megastar.com', email: 'kimbay@365megastar.com', passcode: '1234', name: '김배영', role: '일반직원', position: '약국재고관리및부장직', payType: 'MONTHLY', joinDate: '2025-11-18', hourlyRate: 15000, baseMonthlySalary: 1106700, phone: '010-2711-3257', usedLeave: 0, pendingLeave: 0, memo: '약국전반업무보조/부장직', allowedTabs: [...ALL_COMMON_TABS] }
   ];
 
   const INITIAL_DISCOUNT_PURCHASES = [
@@ -287,34 +287,9 @@ window.SheetsSync = (function () {
 
   // --- 저장소 Getter & Setter 유틸리티 ---
   function getEmployees() {
-    let emps;
-    try {
-      const raw = safeGetItem(STORAGE_KEYS.EMPLOYEES);
-      emps = raw ? JSON.parse(raw) : INITIAL_EMPLOYEES;
-    } catch (e) {
-      emps = INITIAL_EMPLOYEES;
-    }
-
-    if (!Array.isArray(emps) || emps.length === 0) {
-      emps = INITIAL_EMPLOYEES;
-    }
-
-    // 최신 정식 9인 명단(INITIAL_EMPLOYEES)을 기본 디폴트로 병합하여 언제 어디서나 디폴트값 보장
-    const finalEmps = INITIAL_EMPLOYEES.map(init => {
-      const saved = emps.find(e => e.id === init.id || e.name === init.name);
-      return {
-        ...init,
-        ...(saved || {}),
-        phone: (saved && saved.phone && saved.phone.length > 5) ? saved.phone : init.phone,
-        hourlyRate: (saved && saved.hourlyRate !== undefined) ? saved.hourlyRate : init.hourlyRate,
-        joinDate: (saved && saved.joinDate && saved.joinDate !== '0001-01-01') ? saved.joinDate : init.joinDate,
-        memo: (saved && saved.memo) ? saved.memo : init.memo,
-        position: (saved && saved.position) ? saved.position : init.position
-      };
-    });
-
-    safeSetItem(STORAGE_KEYS.EMPLOYEES, JSON.stringify(finalEmps));
-    return finalEmps;
+    // 영구 마스터 디폴트 9인 정식 명단(INITIAL_EMPLOYEES)을 PC/인터넷 환경 무관 100% 마스터 디폴트로 고정
+    safeSetItem(STORAGE_KEYS.EMPLOYEES, JSON.stringify(INITIAL_EMPLOYEES));
+    return INITIAL_EMPLOYEES;
   }
 
   function saveEmployees(data) {
