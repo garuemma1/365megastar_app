@@ -10,8 +10,14 @@ window.ScheduleModule = (function () {
   let showOffStaff = false; // false: 근무자만 보기, true: OFF 포함 전체 보기
   let showSettlement = true;
   let showCalendar = true; // 달력 접고 펴기 토글 상태
+  let showSubmittedDetails = true; // 약국장 전용 전 직원 신청 스케줄 상세 내역 접고 펴기 토글 상태
   let activeInlinePanel = null; // null | 'director-tax-pdf' | empId | 'my-paystub' (팝업창 차단 원천 해결용 인라인 작업 패널 상태)
   let isPayrollUnlocked = true;
+
+  function toggleSubmittedDetails() {
+    showSubmittedDetails = !showSubmittedDetails;
+    render('module-content');
+  }
 
   const DYNAMIC_COLOR_PALETTE = [
     'badge-black', 'badge-blue', 'badge-purple', 'badge-orange',
@@ -454,6 +460,24 @@ window.ScheduleModule = (function () {
   }
 
   function renderDirectorSubmittedDetailsCard(year, month, employees, scheduleRecords) {
+    if (!showSubmittedDetails) {
+      return `
+        <div class="card mb-4 shadow-sm" style="border-radius:18px; border:1.5px solid #cbd5e1; background:#ffffff; overflow:hidden;">
+          <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2" style="background:#0f172a; color:#ffffff; padding:14px 22px;">
+            <div class="d-flex align-items-center gap-2">
+              <span class="badge bg-warning text-dark font-bold" style="padding:6px 12px; font-size:12px; border-radius:8px;">🔐 약국장 전용</span>
+              <h3 style="font-size:16px; font-weight:800; margin:0; color:#ffffff;">
+                📋 ${month}월 전 직원 신청 근무 스케줄 상세 내역 (날짜·요일·시간·실근무시수)
+              </h3>
+            </div>
+            <button type="button" class="btn btn-sm btn-outline-light font-bold" onclick="ScheduleModule.toggleSubmittedDetails()" style="border-radius:10px; padding:6px 16px; font-size:13px;">
+              <i class="fas fa-chevron-down me-1"></i> 상세 내역 펼치기 ▼
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
     const monthKey = `${year}-${String(month).padStart(2, '0')}`;
     const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
 
@@ -495,7 +519,12 @@ window.ScheduleModule = (function () {
               📋 ${month}월 전 직원 신청 근무 스케줄 상세 내역 (날짜·요일·시간·실근무시수)
             </h3>
           </div>
-          <span style="font-size:12.5px; color:#cbd5e1;">전체 ${employees.length}인 자율 제출 상세 명단 (합산 시수 자동 산출)</span>
+          <div class="d-flex align-items-center gap-3">
+            <span style="font-size:12.5px; color:#cbd5e1;" class="d-none d-md-inline">전체 ${employees.length}인 자율 제출 상세 명단</span>
+            <button type="button" class="btn btn-sm btn-outline-light font-bold" onclick="ScheduleModule.toggleSubmittedDetails()" style="border-radius:10px; padding:6px 16px; font-size:13px;">
+              <i class="fas fa-chevron-up me-1"></i> 상세 내역 접기 ▲
+            </button>
+          </div>
         </div>
 
         <div class="card-body" style="padding:20px;">
@@ -508,17 +537,17 @@ window.ScheduleModule = (function () {
               const roleColor = isPharmacist ? '#1e40af' : '#15803d';
 
               return `
-                <div class="accordion-item mb-3" style="border:1.5px solid #e2e8f0; border-radius:14px; overflow:hidden;">
+                <div class="accordion-item mb-3" style="border:1.5px solid #e2e8f0; border-radius:14px; overflow:hidden; background:#ffffff;">
                   <h2 class="accordion-header" id="heading-${emp.id}">
-                    <button class="accordion-button ${idx === 0 ? '' : 'collapsed'}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-${emp.id}" style="background:#f8fafc; font-size:14px; font-weight:700; padding:14px 18px;">
+                    <button class="accordion-button ${idx === 0 ? '' : 'collapsed'}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-${emp.id}" style="background:#f8fafc; font-size:14px; font-weight:700; padding:14px 18px; box-shadow:none;">
                       <div class="d-flex justify-content-between align-items-center w-100 flex-wrap gap-2 me-3">
-                        <div class="d-flex align-items-center gap-2">
-                          <span style="font-size:15px; font-weight:800; color:#0f172a;">👤 ${emp.name} (${emp.position || emp.role})</span>
-                          <span style="background:${roleBg}; color:${roleColor}; font-size:11.5px; padding:3px 8px; border-radius:6px; font-weight:700;">${roleBadge}</span>
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                          <span style="font-size:15px; font-weight:800; color:#0f172a; white-space:nowrap;">👤 ${emp.name} (${emp.position || emp.role})</span>
+                          <span style="background:${roleBg}; color:${roleColor}; font-size:11.5px; padding:3px 8px; border-radius:6px; font-weight:700; white-space:nowrap;">${roleBadge}</span>
                         </div>
-                        <div class="d-flex align-items-center gap-3">
-                          <span style="font-size:13px; color:#64748b;">신청 근무일수: <strong style="color:#0f172a;">${item.records.length}일</strong></span>
-                          <span style="font-size:13.5px; color:#2563eb; font-weight:800; background:#eff6ff; padding:4px 12px; border-radius:8px; border:1px solid #bfdbfe;">
+                        <div class="d-flex align-items-center gap-2 flex-wrap ms-auto">
+                          <span style="font-size:13px; color:#475569; white-space:nowrap;">신청 근무일수: <strong style="color:#0f172a;">${item.records.length}일</strong></span>
+                          <span style="font-size:13px; color:#1d4ed8; font-weight:800; background:#eff6ff; padding:4px 12px; border-radius:8px; border:1px solid #bfdbfe; white-space:nowrap; display:inline-block;">
                             ⏱️ 당월 신청 총시수: ${item.totalNetHours}h
                           </span>
                         </div>
@@ -534,29 +563,29 @@ window.ScheduleModule = (function () {
                           <table class="table table-sm table-striped align-middle mb-0" style="font-size:13px;">
                             <thead style="background:#f1f5f9; color:#334155;">
                               <tr>
-                                <th style="text-align:center; padding:8px 12px; width:110px;">근무 일자</th>
-                                <th style="text-align:center; padding:8px 8px; width:60px;">요일</th>
-                                <th style="text-align:center; padding:8px 10px; width:90px;">근무 조</th>
-                                <th style="text-align:center; padding:8px 12px; width:150px;">신청 출퇴근 시간</th>
-                                <th style="text-align:center; padding:8px 10px; width:100px;">휴게시간 차감</th>
-                                <th style="text-align:right; padding:8px 14px; width:120px;">실근무 시수</th>
+                                <th style="text-align:center; padding:10px 12px; width:120px; white-space:nowrap;">근무 일자</th>
+                                <th style="text-align:center; padding:10px 8px; width:70px; white-space:nowrap;">요일</th>
+                                <th style="text-align:center; padding:10px 10px; width:90px; white-space:nowrap;">근무 조</th>
+                                <th style="text-align:center; padding:10px 12px; width:160px; white-space:nowrap;">신청 출퇴근 시간</th>
+                                <th style="text-align:center; padding:10px 10px; width:140px; white-space:nowrap;">휴게시간 차감</th>
+                                <th style="text-align:right; padding:10px 16px; width:120px; white-space:nowrap;">실근무 시수</th>
                               </tr>
                             </thead>
                             <tbody>
                               ${item.records.map(r => `
                                 <tr>
-                                  <td style="text-align:center; font-weight:700; color:#1e293b;">${r.date}</td>
-                                  <td style="text-align:center;">
+                                  <td style="text-align:center; font-weight:700; color:#1e293b; white-space:nowrap;">${r.date}</td>
+                                  <td style="text-align:center; white-space:nowrap;">
                                     <span class="${r.dayOfWeek === '일' ? 'text-danger font-bold' : (r.dayOfWeek === '토' ? 'text-primary font-bold' : 'text-dark')}">
                                       ${r.dayOfWeek}요일
                                     </span>
                                   </td>
-                                  <td style="text-align:center;"><span class="badge bg-secondary" style="font-size:11px;">${r.shift}조</span></td>
-                                  <td style="text-align:center; font-weight:700; color:#2563eb;">${r.startTime} ~ ${r.endTime}</td>
-                                  <td style="text-align:center; color:#64748b;">
-                                    ${r.breakHours === 0.5 ? '⏱️ 30분' : (r.breakHours === 0 ? '⚡ 0시간 (차감없음)' : '☕ ' + r.breakHours + '시간')}
+                                  <td style="text-align:center; white-space:nowrap;"><span class="badge bg-secondary" style="font-size:11px; padding:4px 8px;">${r.shift}조</span></td>
+                                  <td style="text-align:center; font-weight:700; color:#2563eb; white-space:nowrap;">${r.startTime} ~ ${r.endTime}</td>
+                                  <td style="text-align:center; color:#475569; white-space:nowrap;">
+                                    ${r.breakHours === 0.5 ? '<span class="badge bg-warning text-dark" style="font-size:11.5px; padding:4px 8px;">⏱️ 30분</span>' : (r.breakHours === 0 ? '<span class="badge bg-success" style="font-size:11.5px; padding:4px 8px;">⚡ 0시간 (차감없음)</span>' : '<span class="badge bg-light text-dark" style="border:1px solid #cbd5e1; font-size:11.5px; padding:4px 8px;">☕ 1시간</span>')}
                                   </td>
-                                  <td style="text-align:right; font-weight:800; color:#15803d;">${r.netHours}시간</td>
+                                  <td style="text-align:right; font-weight:800; color:#15803d; padding-right:16px; white-space:nowrap;">${r.netHours}시간</td>
                                 </tr>
                               `).join('')}
                             </tbody>
@@ -2361,6 +2390,7 @@ window.ScheduleModule = (function () {
   window.processTaxPdfFile = processTaxPdfFile;
   window.executeTaxPaystubPublishing = executeTaxPaystubPublishing;
   window.toggleCalendar = toggleCalendar;
+  window.toggleSubmittedDetails = toggleSubmittedDetails;
   window.closeInlinePanel = closeInlinePanel;
   window.updatePharmacistRateSettings = updatePharmacistRateSettings;
   window.updateStaffSalarySettings = updateStaffSalarySettings;
@@ -2372,6 +2402,7 @@ window.ScheduleModule = (function () {
     setShowOffStaff,
     toggleSettlement,
     toggleCalendar,
+    toggleSubmittedDetails,
     closeInlinePanel,
     showMyPaystubModal,
     showPaystubByEmpId,
