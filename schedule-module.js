@@ -271,6 +271,9 @@ window.ScheduleModule = (function () {
         </div>
       ` : ''}
 
+      <!-- 📋 약국장 전용: 전 직원 신청 근무 스케줄 상세 내역 (날짜·요일·신청시간·실근무시수) -->
+      ${(currUser && currUser.role === '약국장') ? renderDirectorSubmittedDetailsCard(currentYear, currentMonth, employees, scheduleRecords) : ''}
+
       <!-- 💡 팝업창 차단 원천 해결: 인라인 작업 카드 패널 (화면에 직접 바로 펼쳐지는 인라인 작업창) -->
       ${renderInlineWorkPanel(currUser, employees)}
 
@@ -448,6 +451,124 @@ window.ScheduleModule = (function () {
 
     gridHtml += '</div>';
     return gridHtml;
+  }
+
+  function renderDirectorSubmittedDetailsCard(year, month, employees, scheduleRecords) {
+    const monthKey = `${year}-${String(month).padStart(2, '0')}`;
+    const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+
+    const employeeDetails = employees.map(emp => {
+      const empRecords = scheduleRecords.filter(r => r.empId === emp.id && r.date && r.date.startsWith(monthKey) && r.shift !== 'OFF');
+      empRecords.sort((a, b) => a.date.localeCompare(b.date));
+
+      let totalNetHours = 0;
+      const list = empRecords.map(rec => {
+        const d = new Date(rec.date);
+        const dayOfWeek = dayNames[d.getDay()];
+        const netH = window.LaborCalculator.calculateShiftNetHours(rec.startTime, rec.endTime, rec.shift, rec.breakHours !== undefined ? rec.breakHours : 1.0);
+        totalNetHours += netH;
+        return {
+          date: rec.date,
+          dayOfWeek,
+          shift: rec.shift,
+          startTime: rec.startTime || '09:00',
+          endTime: rec.endTime || '18:00',
+          breakHours: rec.breakHours !== undefined ? rec.breakHours : 1.0,
+          netHours: netH
+        };
+      });
+
+      return {
+        emp,
+        records: list,
+        totalNetHours: Math.round(totalNetHours * 10) / 10
+      };
+    });
+
+    return `
+      <div class="card mb-4 shadow-sm" style="border-radius:18px; border:1.5px solid #cbd5e1; background:#ffffff; overflow:hidden;">
+        <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2" style="background:#0f172a; color:#ffffff; padding:16px 22px;">
+          <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-warning text-dark font-bold" style="padding:6px 12px; font-size:12.5px; border-radius:8px;">🔐 약국장 전용</span>
+            <h3 style="font-size:16.5px; font-weight:800; margin:0; color:#ffffff;">
+              📋 ${month}월 전 직원 신청 근무 스케줄 상세 내역 (날짜·요일·시간·실근무시수)
+            </h3>
+          </div>
+          <span style="font-size:12.5px; color:#cbd5e1;">전체 ${employees.length}인 자율 제출 상세 명단 (합산 시수 자동 산출)</span>
+        </div>
+
+        <div class="card-body" style="padding:20px;">
+          <div class="accordion" id="directorSubmittedScheduleAccordion">
+            ${employeeDetails.map((item, idx) => {
+              const emp = item.emp;
+              const isPharmacist = emp.role.includes('약사') || emp.role === '약국장';
+              const roleBadge = isPharmacist ? '💊 근무약사' : '💻 일반직원';
+              const roleBg = isPharmacist ? '#dbeafe' : '#dcfce7';
+              const roleColor = isPharmacist ? '#1e40af' : '#15803d';
+
+              return `
+                <div class="accordion-item mb-3" style="border:1.5px solid #e2e8f0; border-radius:14px; overflow:hidden;">
+                  <h2 class="accordion-header" id="heading-${emp.id}">
+                    <button class="accordion-button ${idx === 0 ? '' : 'collapsed'}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-${emp.id}" style="background:#f8fafc; font-size:14px; font-weight:700; padding:14px 18px;">
+                      <div class="d-flex justify-content-between align-items-center w-100 flex-wrap gap-2 me-3">
+                        <div class="d-flex align-items-center gap-2">
+                          <span style="font-size:15px; font-weight:800; color:#0f172a;">👤 ${emp.name} (${emp.position || emp.role})</span>
+                          <span style="background:${roleBg}; color:${roleColor}; font-size:11.5px; padding:3px 8px; border-radius:6px; font-weight:700;">${roleBadge}</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-3">
+                          <span style="font-size:13px; color:#64748b;">신청 근무일수: <strong style="color:#0f172a;">${item.records.length}일</strong></span>
+                          <span style="font-size:13.5px; color:#2563eb; font-weight:800; background:#eff6ff; padding:4px 12px; border-radius:8px; border:1px solid #bfdbfe;">
+                            ⏱️ 당월 신청 총시수: ${item.totalNetHours}h
+                          </span>
+                        </div>
+                      </div>
+                    </button>
+                  </h2>
+                  <div id="collapse-${emp.id}" class="accordion-collapse collapse ${idx === 0 ? 'show' : ''}" data-bs-parent="#directorSubmittedScheduleAccordion">
+                    <div class="accordion-body p-0">
+                      ${item.records.length === 0 ? `
+                        <div class="p-3 text-center text-muted" style="font-size:13px;">등록된 근무 신청 내역이 없습니다. (ALL OFF)</div>
+                      ` : `
+                        <div class="table-responsive">
+                          <table class="table table-sm table-striped align-middle mb-0" style="font-size:13px;">
+                            <thead style="background:#f1f5f9; color:#334155;">
+                              <tr>
+                                <th style="text-align:center; padding:8px 12px; width:110px;">근무 일자</th>
+                                <th style="text-align:center; padding:8px 8px; width:60px;">요일</th>
+                                <th style="text-align:center; padding:8px 10px; width:90px;">근무 조</th>
+                                <th style="text-align:center; padding:8px 12px; width:150px;">신청 출퇴근 시간</th>
+                                <th style="text-align:center; padding:8px 10px; width:100px;">휴게시간 차감</th>
+                                <th style="text-align:right; padding:8px 14px; width:120px;">실근무 시수</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              ${item.records.map(r => `
+                                <tr>
+                                  <td style="text-align:center; font-weight:700; color:#1e293b;">${r.date}</td>
+                                  <td style="text-align:center;">
+                                    <span class="${r.dayOfWeek === '일' ? 'text-danger font-bold' : (r.dayOfWeek === '토' ? 'text-primary font-bold' : 'text-dark')}">
+                                      ${r.dayOfWeek}요일
+                                    </span>
+                                  </td>
+                                  <td style="text-align:center;"><span class="badge bg-secondary" style="font-size:11px;">${r.shift}조</span></td>
+                                  <td style="text-align:center; font-weight:700; color:#2563eb;">${r.startTime} ~ ${r.endTime}</td>
+                                  <td style="text-align:center; color:#64748b;">☕ ${r.breakHours}시간</td>
+                                  <td style="text-align:right; font-weight:800; color:#15803d;">${r.netHours}시간</td>
+                                </tr>
+                              `).join('')}
+                            </tbody>
+                          </table>
+                        </div>
+                      `}
+                    </div>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      </div>
+    `;
   }
 
   function computeItemizedPaystubBreakdown(currUser, paystub) {
@@ -772,26 +893,10 @@ window.ScheduleModule = (function () {
               ${pharmacists.map(p => {
                 const empShifts = allSchedules.filter(r => r.empId === p.id && r.date && r.date.startsWith(monthKey));
                 const rateObj = pRatesMap[p.id] || {};
-                const currentWeekdayRate = Number(p.hourlyRate) || Number(rateObj.weekdayRate) || 35000;
+                const currentWeekdayRate = Number(p.hourlyRate) || Number(rateObj.weekdayRate) || 40000;
                 const currentHolidayRate = Number(rateObj.holidayRate) || 40000;
                 const currentBreakHours = Number(rateObj.breakHours) || 1.0;
                 let calc = window.LaborCalculator.calculatePharmacistPayroll(empShifts, currentWeekdayRate, currentHolidayRate, currentBreakHours);
-
-                if (!calc || calc.totalPayroll === 0 || calc.totalNetHours === 0) {
-                  const defaultWkNet = p.name === '양윤지' ? 142.5 : (p.name === '김동완' ? 160 : 150);
-                  const defaultHolNet = p.name === '양윤지' ? 37.5 : (p.name === '김동완' ? 110.5 : 45);
-                  const wkPay = defaultWkNet * currentWeekdayRate;
-                  const holPay = defaultHolNet * currentHolidayRate;
-                  calc = {
-                    totalWorkDays: p.name === '김동완' ? 31 : (p.name === '양윤지' ? 24 : 26),
-                    totalNetHours: defaultWkNet + defaultHolNet,
-                    weekdayNetHours: defaultWkNet,
-                    holidayNetHours: defaultHolNet,
-                    weekdayPay: wkPay,
-                    holidayPay: holPay,
-                    totalPayroll: wkPay + holPay
-                  };
-                }
 
                 const empAdj = monthAdj[p.id] || {};
                 const mealAlw = Number(empAdj.mealAllowance !== undefined ? empAdj.mealAllowance : 200000);
@@ -801,6 +906,7 @@ window.ScheduleModule = (function () {
 
                 const ps = monthPaystubs[p.id];
                 const isPublished = ps && ps.published;
+                const activeUnsettledPretax = isPublished ? 0 : pharmacistPretaxTotal;
 
                 return `
                   <tr>
@@ -858,12 +964,12 @@ window.ScheduleModule = (function () {
                     </td>
                     <td style="text-align:right; padding:10px 10px; white-space:nowrap;">
                       <div>
-                        <strong class="text-success" style="font-size:15px; font-family:'Outfit', sans-serif;">${pharmacistPretaxTotal.toLocaleString()}</strong>
-                        <span style="font-size:12px; color:#15803d; margin-left:1px; font-weight:600;">원</span>
+                        <strong class="${isPublished ? 'text-muted' : 'text-success'}" style="font-size:15px; font-family:'Outfit', sans-serif;">${activeUnsettledPretax.toLocaleString()}</strong>
+                        <span style="font-size:12px; color:${isPublished ? '#64748b' : '#15803d'}; margin-left:1px; font-weight:600;">원</span>
                       </div>
                       ${isPublished ? `
                         <div style="font-size:11px; background:#d1fae5; color:#047857; border:1px solid #6ee7b7; padding:2px 6px; border-radius:6px; margin-top:3px; font-weight:700; text-align:right; display:inline-block;">
-                          <i class="fas fa-check-double me-1"></i> 교부완료 (미정산 0원 조율)
+                          <i class="fas fa-check-double me-1"></i> 교부완료 (미정산 0원 정산)
                         </div>
                       ` : `
                         <div style="font-size:11px; background:#fef3c7; color:#b45309; border:1px solid #fde68a; padding:2px 6px; border-radius:6px; margin-top:3px; font-weight:700; text-align:right; display:inline-block;">
@@ -924,6 +1030,7 @@ window.ScheduleModule = (function () {
 
                 const ps = monthPaystubs[s.id];
                 const isPublished = ps && ps.published;
+                const activeUnsettledPretaxStaff = isPublished ? 0 : adjustedPretaxTotal;
 
                 return `
                   <tr>
@@ -959,12 +1066,12 @@ window.ScheduleModule = (function () {
                     </td>
                     <td style="text-align:right; padding:10px 12px; white-space:nowrap;">
                       <div>
-                        <strong class="text-success" style="font-size:15px; font-family:'Outfit', sans-serif;">${adjustedPretaxTotal.toLocaleString()}</strong>
-                        <span style="font-size:12px; color:#15803d; margin-left:1px; font-weight:600;">원</span>
+                        <strong class="${isPublished ? 'text-muted' : 'text-success'}" style="font-size:15px; font-family:'Outfit', sans-serif;">${activeUnsettledPretaxStaff.toLocaleString()}</strong>
+                        <span style="font-size:12px; color:${isPublished ? '#64748b' : '#15803d'}; margin-left:1px; font-weight:600;">원</span>
                       </div>
                       ${isPublished ? `
                         <div style="font-size:11px; background:#d1fae5; color:#047857; border:1px solid #6ee7b7; padding:2px 6px; border-radius:6px; margin-top:3px; font-weight:700; text-align:right; display:inline-block;">
-                          <i class="fas fa-check-double me-1"></i> 교부완료 (미정산 0원 조율)
+                          <i class="fas fa-check-double me-1"></i> 교부완료 (미정산 0원 정산)
                         </div>
                       ` : `
                         <div style="font-size:11px; background:#fef3c7; color:#b45309; border:1px solid #fde68a; padding:2px 6px; border-radius:6px; margin-top:3px; font-weight:700; text-align:right; display:inline-block;">
