@@ -65,6 +65,8 @@ window.App = (function () {
         if (window.ScheduleModule) window.ScheduleModule.closeShiftModal();
         if (window.WorklogModule) window.WorklogModule.closeModal();
         if (window.DiscountPurchaseModule) window.DiscountPurchaseModule.closeModal();
+        const pModal = document.getElementById('property-crud-modal');
+        if (pModal) pModal.style.display = 'none';
       }
     });
 
