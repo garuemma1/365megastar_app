@@ -1401,11 +1401,50 @@ body[data-theme="dark"] .tsa-card {
   border-color: #334155 !important;
 }
 
-/* Explicit Pinned Notice Card Override */
+/* Explicit Pinned Notice Card & Labor Law Banner Override */
 body[data-theme="dark"] .notice-card.pinned {
   background: linear-gradient(135deg, #151e38 0%, #064e3b 100%) !important;
   border-left: 4px solid #10b981 !important;
   border-color: #059669 !important;
+}
+
+body[data-theme="dark"] .labor-law-banner {
+  background: linear-gradient(135deg, #151e38 0%, #064e3b 100%) !important;
+  border-color: #059669 !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4) !important;
+}
+
+body[data-theme="dark"] .law-icon {
+  background: #059669 !important;
+  color: #ffffff !important;
+}
+
+body[data-theme="dark"] .law-text strong {
+  color: #6ee7b7 !important;
+}
+
+body[data-theme="dark"] .law-text li {
+  color: #a7f3d0 !important;
+}
+
+body[data-theme="dark"] .law-text li::before {
+  color: #34d399 !important;
+}
+
+body[data-theme="dark"] #inline-leave-box {
+  background: linear-gradient(135deg, #151e38 0%, #064e3b 100%) !important;
+  border-color: #059669 !important;
+}
+
+body[data-theme="dark"] #inline-leave-box h3,
+body[data-theme="dark"] #inline-leave-box label {
+  color: #f8fafc !important;
+}
+
+body[data-theme="dark"] .labor-notice-box {
+  background: #064e3b !important;
+  border-color: #059669 !important;
+  color: #a7f3d0 !important;
 }
 
 body[data-theme="dark"] .tsa-card.tsa-approved {
