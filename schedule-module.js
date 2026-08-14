@@ -465,7 +465,8 @@ window.ScheduleModule = (function () {
       const list = empRecords.map(rec => {
         const d = new Date(rec.date);
         const dayOfWeek = dayNames[d.getDay()];
-        const netH = window.LaborCalculator.calculateShiftNetHours(rec.startTime, rec.endTime, rec.shift, rec.breakHours !== undefined ? rec.breakHours : 1.0);
+        const recBreak = (rec.breakHours !== undefined && rec.breakHours !== null && !isNaN(rec.breakHours)) ? Number(rec.breakHours) : 1.0;
+        const netH = window.LaborCalculator.calculateShiftNetHours(rec.startTime, rec.endTime, rec.shift, recBreak);
         totalNetHours += netH;
         return {
           date: rec.date,
@@ -473,7 +474,7 @@ window.ScheduleModule = (function () {
           shift: rec.shift,
           startTime: rec.startTime || '09:00',
           endTime: rec.endTime || '18:00',
-          breakHours: rec.breakHours !== undefined ? rec.breakHours : 1.0,
+          breakHours: recBreak,
           netHours: netH
         };
       });
@@ -552,7 +553,9 @@ window.ScheduleModule = (function () {
                                   </td>
                                   <td style="text-align:center;"><span class="badge bg-secondary" style="font-size:11px;">${r.shift}조</span></td>
                                   <td style="text-align:center; font-weight:700; color:#2563eb;">${r.startTime} ~ ${r.endTime}</td>
-                                  <td style="text-align:center; color:#64748b;">☕ ${r.breakHours}시간</td>
+                                  <td style="text-align:center; color:#64748b;">
+                                    ${r.breakHours === 0.5 ? '⏱️ 30분' : (r.breakHours === 0 ? '⚡ 0시간 (차감없음)' : '☕ ' + r.breakHours + '시간')}
+                                  </td>
                                   <td style="text-align:right; font-weight:800; color:#15803d;">${r.netHours}시간</td>
                                 </tr>
                               `).join('')}
@@ -1201,8 +1204,8 @@ window.ScheduleModule = (function () {
 
     const breakSelect = document.getElementById('modal-break-hours');
     if (breakSelect) {
-      if (rec && rec.breakHours !== undefined && rec.breakHours !== null) {
-        breakSelect.value = String(rec.breakHours);
+      if (rec && rec.breakHours !== undefined && rec.breakHours !== null && !isNaN(rec.breakHours)) {
+        breakSelect.value = Number(rec.breakHours).toFixed(1);
       } else {
         breakSelect.value = "1.0";
       }
@@ -1266,7 +1269,11 @@ window.ScheduleModule = (function () {
     const endTime = document.getElementById('modal-end-time').value;
 
     const breakSelect = document.getElementById('modal-break-hours');
-    const breakHours = breakSelect ? (parseFloat(breakSelect.value) || 1.0) : 1.0;
+    let breakHours = 1.0;
+    if (breakSelect && breakSelect.value !== undefined && breakSelect.value !== '') {
+      const parsed = parseFloat(breakSelect.value);
+      if (!isNaN(parsed)) breakHours = parsed;
+    }
 
     if (!isDirector && empId !== currUser.id) {
       alert('🔒 [권한 통제] 본인의 근무/휴무 스케줄만 수정 및 저장할 수 있습니다.');
