@@ -116,8 +116,8 @@ window.PharmacySettlementModule = (function () {
           <button type="button" class="btn btn-outline-success font-bold" onclick="PharmacySettlementModule.openImportModal()" style="border-radius:10px; padding:7px 14px; font-size:13px; box-shadow:0 2px 6px rgba(16,185,129,0.15);">
             <i class="fas fa-file-import text-success me-1"></i> 📥 구글 스프레드시트 불러오기
           </button>
-          <button type="button" class="btn btn-outline-primary font-bold" onclick="App.downloadActiveModuleToGoogleSheets()" style="border-radius:10px; padding:7px 14px; font-size:13px; box-shadow:0 2px 6px rgba(37,99,235,0.15);">
-            <i class="fas fa-file-export text-primary me-1"></i> 📊 구글 스프레드시트 내보내기
+          <button type="button" class="btn btn-outline-primary font-bold" onclick="App.openSheetModal()" style="border-radius:10px; padding:7px 14px; font-size:13px; box-shadow:0 2px 6px rgba(37,99,235,0.15);">
+            <i class="fas fa-file-export text-primary me-1"></i> 📊 구글 스프레드시트 연동 설정
           </button>
           <span class="badge bg-danger" style="font-size:12.5px; padding:8px 14px; border-radius:10px;">🔐 약국장 전용 보안 대시보드</span>
         </div>
@@ -218,8 +218,8 @@ window.PharmacySettlementModule = (function () {
           <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2" style="background:#0f172a; color:#ffffff; padding:16px 20px;">
             <h3 style="font-size:16.5px; font-weight:800; margin:0; color:#ffffff;"><i class="fas fa-book-open me-2 text-warning"></i> 2026년 8월 일일 결산 및 회계 장부 (Daily Log)</h3>
             <div class="d-flex align-items-center gap-2">
-              <button type="button" class="btn btn-sm btn-outline-light font-bold" onclick="App.downloadActiveModuleToGoogleSheets()">
-                <i class="fas fa-file-excel text-success me-1"></i> 구글 시트 연동 다운로드
+              <button type="button" class="btn btn-sm btn-outline-light font-bold" onclick="App.openSheetModal()">
+                <i class="fas fa-table text-success me-1"></i> 구글 시트 연동 설정
               </button>
               <span style="font-size:12.5px; color:#cbd5e1;">전일 대비 증감 및 요일별 매출 추이</span>
             </div>

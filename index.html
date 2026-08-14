@@ -97,9 +97,9 @@
       </nav>
 
       <div class="drawer-footer">
-        <div class="sheet-status-badge" onclick="App.downloadActiveModuleToGoogleSheets()" style="cursor:pointer;" title="현재 화면 주요 내용 구글 시트 / 엑셀 다운로드">
+        <div class="sheet-status-badge" onclick="App.openSheetModal()" style="cursor:pointer;" title="구글 스프레드시트 100% 양방향 실시간 동기화 설정">
           <span class="status-dot"></span>
-          <span id="sheet-sync-status-text">📊 구글 시트 다운로드</span>
+          <span id="sheet-sync-status-text">📊 구글 시트 연동 설정</span>
         </div>
       </div>
     </aside>
@@ -128,9 +128,9 @@
             <!-- JS 동적 생성 (로그인 상태에 따라 로그인/계정선택 또는 프로필+로그아웃+비번변경 렌더링) -->
           </div>
 
-          <button class="header-btn" onclick="App.downloadActiveModuleToGoogleSheets()" title="현재 화면 주요 내용 구글 시트 / 엑셀 다운로드" style="border-radius:20px; font-size:12px; font-weight:700; padding:6px 14px; background:#eff6ff; border:1.5px solid #3b82f6; color:#1d4ed8; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 6px rgba(37,99,235,0.15);">
-            <i class="fas fa-file-excel text-success" style="font-size:14px;"></i>
-            <span>구글 시트 연동</span>
+          <button class="header-btn" onclick="App.openSheetModal()" title="구글 스프레드시트 100% 양방향 실시간 동기화 설정" style="border-radius:20px; font-size:12px; font-weight:700; padding:6px 14px; background:#eff6ff; border:1.5px solid #3b82f6; color:#1d4ed8; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 6px rgba(37,99,235,0.15);">
+            <i class="fas fa-table text-success" style="font-size:14px;"></i>
+            <span>구글 시트 연동 설정</span>
           </button>
 
           <button class="header-btn" onclick="App.toggleTheme()" title="다크/라이트 테마 전환" style="border-radius:50%; width:34px; height:34px; padding:0; display:inline-flex; justify-content:center; align-items:center; background:#ffffff; border:1px solid #cbd5e1; box-shadow:0 1px 3px rgba(0,0,0,0.05); color:#334155;">
@@ -654,21 +654,21 @@
 
   <!-- JavaScript Scripts Loading -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
-  <script src="rules-data.js?v=39.0"></script>
-  <script src="labor-calculator.js?v=39.0"></script>
-  <script src="sheets-sync.js?v=39.0"></script>
-  <script src="notices-module.js?v=39.0"></script>
-  <script src="worklog-module.js?v=39.0"></script>
-  <script src="schedule-module.js?v=39.0"></script>
-  <script src="annual-leave-module.js?v=39.0"></script>
-  <script src="staff-directory-module.js?v=39.0"></script>
-  <script src="discount-purchase-module.js?v=39.0"></script>
-  <script src="emergency-contacts-module.js?v=39.0"></script>
-  <script src="pharmacy-settlement-module.js?v=39.0"></script>
-  <script src="building-rental-module.js?v=39.0"></script>
-  <script src="approval-module.js?v=39.0"></script>
-  <script src="rules-module.js?v=39.0"></script>
-  <script src="app.js?v=39.0"></script>
+  <script src="rules-data.js?v=40.0"></script>
+  <script src="labor-calculator.js?v=40.0"></script>
+  <script src="sheets-sync.js?v=40.0"></script>
+  <script src="notices-module.js?v=40.0"></script>
+  <script src="worklog-module.js?v=40.0"></script>
+  <script src="schedule-module.js?v=40.0"></script>
+  <script src="annual-leave-module.js?v=40.0"></script>
+  <script src="staff-directory-module.js?v=40.0"></script>
+  <script src="discount-purchase-module.js?v=40.0"></script>
+  <script src="emergency-contacts-module.js?v=40.0"></script>
+  <script src="pharmacy-settlement-module.js?v=40.0"></script>
+  <script src="building-rental-module.js?v=40.0"></script>
+  <script src="approval-module.js?v=40.0"></script>
+  <script src="rules-module.js?v=40.0"></script>
+  <script src="app.js?v=40.0"></script>
 
 </body>
 </html>

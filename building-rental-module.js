@@ -114,8 +114,8 @@ window.BuildingRentalModule = (function () {
           <button type="button" class="btn btn-outline-success font-bold" onclick="BuildingRentalModule.openImportModal()" style="border-radius:10px; padding:7px 14px; font-size:13px; box-shadow:0 2px 6px rgba(16,185,129,0.15);">
             <i class="fas fa-file-import text-success me-1"></i> 📥 구글 스프레드시트 불러오기
           </button>
-          <button type="button" class="btn btn-outline-primary font-bold" onclick="App.downloadActiveModuleToGoogleSheets()" style="border-radius:10px; padding:7px 14px; font-size:13px; box-shadow:0 2px 6px rgba(37,99,235,0.15);">
-            <i class="fas fa-file-export text-primary me-1"></i> 📊 구글 스프레드시트 내보내기
+          <button type="button" class="btn btn-outline-primary font-bold" onclick="App.openSheetModal()" style="border-radius:10px; padding:7px 14px; font-size:13px; box-shadow:0 2px 6px rgba(37,99,235,0.15);">
+            <i class="fas fa-file-export text-primary me-1"></i> 📊 구글 스프레드시트 연동 설정
           </button>
         </div>
       </div>
