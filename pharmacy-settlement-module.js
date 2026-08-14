@@ -345,12 +345,12 @@ window.PharmacySettlementModule = (function () {
           </div>
         </div>
 
-        <!-- 2. 약품 결제 분석 (도매상 현금 + 제약사 카드) -->
+        <!-- 2. 약품 결제 분석 (도매상 및 제약사 현금결제 + 도매상 및 제약사 카드결제) -->
         <div class="row g-4 mb-4">
           <div class="col-md-6">
             <div class="card h-100 shadow-sm" style="border-radius:18px; border:1.5px solid #cbd5e1; overflow:hidden;">
               <div class="card-header" style="background:#fef2f2; border-bottom:1.5px solid #fecaca; padding:16px 20px;">
-                <h3 style="font-size:15.5px; font-weight:800; color:#991b1b; margin:0;"><i class="fas fa-truck-loading me-2"></i> 2-A. 약품 도매상 현금 결제 (Wholesale Cash)</h3>
+                <h3 style="font-size:15.5px; font-weight:800; color:#991b1b; margin:0;"><i class="fas fa-truck-loading me-2"></i> 2-A. 도매상 및 제약사 현금결제</h3>
               </div>
               <div class="card-body p-0">
                 <table class="table align-middle mb-0" style="font-size:13px;">
@@ -364,7 +364,7 @@ window.PharmacySettlementModule = (function () {
                       </tr>
                     `).join('')}
                     <tr style="background:#fef2f2; font-weight:800;">
-                      <td style="color:#991b1b; padding:10px 16px;">도매상 현금결제 소계</td>
+                      <td style="color:#991b1b; padding:10px 16px;">도매상 및 제약사 현금결제 소계</td>
                       <td style="text-align:right; color:#dc2626; font-size:15px; padding:10px 16px; font-family:'Outfit', sans-serif;">${fmt(totalCashWholesale)} 원</td>
                     </tr>
                   </tbody>
@@ -376,7 +376,7 @@ window.PharmacySettlementModule = (function () {
           <div class="col-md-6">
             <div class="card h-100 shadow-sm" style="border-radius:18px; border:1.5px solid #cbd5e1; overflow:hidden;">
               <div class="card-header" style="background:#fff7ed; border-bottom:1.5px solid #fed7aa; padding:16px 20px;">
-                <h3 style="font-size:15.5px; font-weight:800; color:#c2410c; margin:0;"><i class="fas fa-credit-card me-2"></i> 2-B. 제약사 직거래 카드 결제 (Pharma Credit Card)</h3>
+                <h3 style="font-size:15.5px; font-weight:800; color:#c2410c; margin:0;"><i class="fas fa-credit-card me-2"></i> 2-B. 도매상 및 제약사 카드결제</h3>
               </div>
               <div class="card-body p-0">
                 <table class="table align-middle mb-0" style="font-size:13px;">
@@ -390,7 +390,7 @@ window.PharmacySettlementModule = (function () {
                       </tr>
                     `).join('')}
                     <tr style="background:#fff7ed; font-weight:800;">
-                      <td style="color:#c2410c; padding:10px 16px;">제약사 카드결제 소계</td>
+                      <td style="color:#c2410c; padding:10px 16px;">도매상 및 제약사 카드결제 소계</td>
                       <td style="text-align:right; color:#ea580c; font-size:15px; padding:10px 16px; font-family:'Outfit', sans-serif;">${fmt(totalCardPharma)} 원</td>
                     </tr>
                   </tbody>
@@ -639,6 +639,21 @@ window.PharmacySettlementModule = (function () {
               else if (keyName.includes('본인부담금') || keyName.includes('patientCopay')) pData.patientCopay = numVal;
               else if (keyName.includes('청구금') || keyName.includes('nhisClaim')) pData.nhisClaim = numVal;
               else if (keyName.includes('기타수입') || keyName.includes('otherIncome')) pData.otherIncome = numVal;
+              else if (keyName.includes('임차료') || keyName.includes('rentExpense')) pData.rentExpense = numVal;
+              else if (keyName.includes('관리비') || keyName.includes('maintExpense')) pData.maintExpense = numVal;
+              else if (keyName.includes('4대보험') || keyName.includes('insurance4Cost')) pData.insurance4Cost = numVal;
+              else if (keyName.includes('기장료') || keyName.includes('taxAccountantFee')) pData.taxAccountantFee = numVal;
+              else if (keyName.includes('통신 수수료') || keyName.includes('posCardFee')) pData.posCardFee = numVal;
+              else if (keyName.includes('대출 이자') || keyName.includes('loanInterest')) pData.loanInterest = numVal;
+              else if (keyName.includes('원리금 상환액') || keyName.includes('loanPrincipal')) pData.loanPrincipal = numVal;
+              else if (['다우약품', '산성호', '백제약품', '지오영'].some(k => keyName.includes(k))) {
+                if (!pData.cashWholesale) pData.cashWholesale = {};
+                pData.cashWholesale[keyName] = numVal;
+              }
+              else if (['대웅제약', '동화약품', '일양약품', '비타민하우스', 'GC녹십자'].some(k => keyName.includes(k))) {
+                if (!pData.cardPharma) pData.cardPharma = {};
+                pData.cardPharma[keyName] = numVal;
+              }
             }
           }
         });

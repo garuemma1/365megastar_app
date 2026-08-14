@@ -700,9 +700,13 @@ window.App = (function () {
       const cardRev = Number(ps.cardRevenue) || Math.round(totalRev * 0.85);
       const cashRev = Number(ps.cashRevenue) || (totalRev - cardRev);
 
+      const cashWholesale = ps.cashWholesale || { '다우약품': 12400000, '산성호': 8500000, '백제약품': 7200000, '지오영': 6800000 };
+      const cardPharma = ps.cardPharma || { '대웅제약': 2400000, '동화약품': 1800000, '일양약품': 1200000, '비타민하우스': 950000, 'GC녹십자': 1050000 };
+
       rows.push(['365메가스타약국 스마트 정산 손익 대시보드']);
       rows.push(['산출년월', '2026년 08월']);
       rows.push([]);
+
       rows.push(['[ 1. 월간 손익 요약 (P&L Summary) ]']);
       rows.push(['수입 항목', '산출 설명', '금액(원)']);
       rows.push(['처방전 조제료 수입', '조제기술료 및 행위료', dispensingFee]);
@@ -714,7 +718,37 @@ window.App = (function () {
       rows.push(['비급여 및 기타수입', '비급여 주사제/제수입', otherIncome]);
       rows.push(['당월 총수입 합계', '', totalRev]);
       rows.push([]);
-      rows.push(['[ 2. 2026년 8월 일일 결산 회계 장부 ]']);
+
+      rows.push(['[ 2-A. 도매상 및 제약사 현금결제 ]']);
+      rows.push(['업체명/거래처', '결제 방식', '결제 금액(원)']);
+      Object.entries(cashWholesale).forEach(([k, v]) => {
+        rows.push([k, '현금/계좌이체 결제', v]);
+      });
+      rows.push([]);
+
+      rows.push(['[ 2-B. 도매상 및 제약사 카드결제 ]']);
+      rows.push(['업체명/거래처', '결제 방식', '결제 금액(원)']);
+      Object.entries(cardPharma).forEach(([k, v]) => {
+        rows.push([k, '신용카드 결제', v]);
+      });
+      rows.push([]);
+
+      rows.push(['[ 3. 공과금 및 고정 관리비 ]']);
+      rows.push(['비용 항목', '산출 설명', '금액(원)']);
+      rows.push(['약국 월 임차료', '매장 월세', Number(ps.rentExpense) || 3500000]);
+      rows.push(['건물 관리비', '전기/수도/수선 관리비', Number(ps.maintExpense) || 500000]);
+      rows.push(['4대보험 사업주 부담금', '직원 4대보험 부담금', Number(ps.insurance4Cost) || 1850000]);
+      rows.push(['세무사 기장료', '세무사 기장/결산 수수료', Number(ps.taxAccountantFee) || 220000]);
+      rows.push(['카드/통신 수수료', 'POS/카드 가맹점 수수료', Number(ps.posCardFee) || 1120000]);
+      rows.push([]);
+
+      rows.push(['[ 4. 금융비용 및 원리금 상환 ]']);
+      rows.push(['금융 항목', '산출 설명', '금액(원)']);
+      rows.push(['담보대출 이자', '약국 담보/운전자금 이자', Number(ps.loanInterest) || 2150000]);
+      rows.push(['대출 원리금 상환액', '원금 및 이자 상환액', Number(ps.loanPrincipal) || 1500000]);
+      rows.push([]);
+
+      rows.push(['[ 5. 2026년 8월 일일 결산 회계 장부 (31일) ]']);
       rows.push(['일자', '요일', '조제매출(원)', '일반매출(원)', '일총매출(원)', '카드수입액(원)', '현금수입액(원)', '일소액지출(원)', '비고']);
       (ps.dailyLogs || []).forEach(l => {
         rows.push([l.date, l.dayOfWeek, l.dispensingRevenue, l.posRevenue, l.totalRevenue, l.cardPay, l.cashPay, l.dailyExpense, l.note]);

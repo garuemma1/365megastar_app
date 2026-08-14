@@ -201,7 +201,7 @@ window.BuildingRentalModule = (function () {
           <i class="fas fa-trophy me-1"></i> ② 지분별/상가별 수익 기여도 분석 뷰
         </button>
         <button type="button" class="btn ${activeSubTab === 'tax_renew' ? 'btn-success font-bold' : 'btn-outline-secondary'}" onclick="BuildingRentalModule.setSubTab('tax_renew')" style="border-radius:10px; padding:10px 20px; font-size:14px;">
-          <i class="fas fa-file-invoice-dollar me-1"></i> ③ 세금계산서 발행 & 계약 만료 알림 센터
+          <i class="fas fa-bell me-1"></i> ③ 계약 만료 알림 센터 & 5% 증액 계산기
         </button>
       </div>
     `;
@@ -404,41 +404,13 @@ window.BuildingRentalModule = (function () {
       `;
     }
 
-    // 3. [세무계산서 발행 & 계약 만료 알림 센터]
+    // 3. [계약 만료 알림 센터 & 5% 증액 시뮬레이션 계산기]
     else if (activeSubTab === 'tax_renew') {
       const incRent = Math.round(simCurrentRent * (1 + simPercent / 100));
       const addedRentMonth = incRent - simCurrentRent;
       const addedRentYear = addedRentMonth * 12;
 
       html += `
-        <!-- 세금계산서 발행용 원클릭 사업자정보 복사 센터 -->
-        <div class="card mb-4 shadow-sm" style="border-radius:18px; border:1.5px solid #cbd5e1; overflow:hidden;">
-          <div class="card-header" style="background:#f8fafc; border-bottom:1.5px solid #e2e8f0; padding:16px 20px;">
-            <h3 style="font-size:16px; font-weight:800; color:#334155; margin:0;"><i class="fas fa-copy me-2 text-primary"></i> 📑 매월 세금계산서 발행용 사업자 정보 원클릭 복사 센터</h3>
-          </div>
-          <div class="card-body p-4">
-            <div class="row g-3">
-              ${calculatedUnits.map(p => `
-                <div class="col-md-4 col-sm-6">
-                  <div class="p-3" style="background:#ffffff; border:1.5px solid #e2e8f0; border-radius:14px;">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                      <strong style="font-size:14px; color:#0f172a;">${p.buildingName}</strong>
-                      <span class="badge ${p.vatType === 'TAX_EXEMPT' ? 'bg-secondary' : 'bg-success'}" style="font-size:11px;">
-                        ${p.vatType === 'TAX_EXEMPT' ? '면세' : '과세 (VAT별도)'}
-                      </span>
-                    </div>
-                    <div style="font-size:12.5px; color:#64748b;">사업자번호: <strong style="color:#0f172a;">${p.bizNo || '미등록'}</strong></div>
-                    <div style="font-size:12.5px; color:#64748b;">임차인/대표: <strong>${p.tenantName} (${p.repName})</strong></div>
-                    <div style="font-size:12.5px; color:#64748b;">월세: <strong style="color:#2563eb;">${fmt(p.rent)}원</strong></div>
-                    <button type="button" class="btn btn-sm btn-outline-primary w-100 font-bold mt-3" onclick="BuildingRentalModule.copyTaxInfo('${p.buildingName}', '${p.bizNo}', '${p.tenantName}', '${p.repName}', ${p.rent})" style="border-radius:8px;">
-                      📋 사업자 정보 복사
-                    </button>
-                  </div>
-                </div>
-              `).join('')}
-            </div>
-          </div>
-        </div>
 
         <!-- 계약 만료 알림 센터 -->
         <div class="card mb-4 shadow-sm" style="border-radius:18px; border:1.5px solid #fde68a; background:#fffbeb; overflow:hidden;">
