@@ -631,7 +631,29 @@ window.PharmacySettlementModule = (function () {
           if (parts.length >= 2) {
             const keyName = parts[0];
             const numVal = Number(parts[parts.length - 1]);
-            if (!isNaN(numVal) && numVal >= 0) {
+
+            // 일일 결산 31일 일자별 행 파싱 (예: 2026-08-01, 토, 650000, 850000...)
+            if (keyName && (keyName.startsWith('2026-') || keyName.match(/^\d{4}-\d{2}-\d{2}$/))) {
+              const dispensingRev = Number(parts[2]) || 0;
+              const posRev = Number(parts[3]) || 0;
+              const totalRev = Number(parts[4]) || (dispensingRev + posRev);
+              const cardPay = Number(parts[5]) || Math.round(totalRev * 0.85);
+              const cashPay = Number(parts[6]) || (totalRev - cardPay);
+              const dailyExp = Number(parts[7]) || 0;
+              const noteStr = parts[8] || '구글 시트 일일 결산 연동';
+
+              if (!pData.dailyLogs) pData.dailyLogs = [];
+              const targetLog = pData.dailyLogs.find(l => l.date === keyName);
+              if (targetLog) {
+                targetLog.dispensingRevenue = dispensingRev;
+                targetLog.posRevenue = posRev;
+                targetLog.totalRevenue = totalRev;
+                targetLog.cardPay = cardPay;
+                targetLog.cashPay = cashPay;
+                targetLog.dailyExpense = dailyExp;
+                if (noteStr) targetLog.note = noteStr;
+              }
+            } else if (!isNaN(numVal) && numVal >= 0) {
               if (keyName.includes('조제료') || keyName.includes('dispensingFee')) pData.dispensingFee = numVal;
               else if (keyName.includes('일반매출') || keyName.includes('generalRevenue')) pData.generalRevenue = numVal;
               else if (keyName.includes('카드 수입') || keyName.includes('cardRevenue')) pData.cardRevenue = numVal;
