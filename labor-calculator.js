@@ -159,7 +159,8 @@ window.LaborCalculator = (function () {
     empShifts.forEach(item => {
       const shiftCode = item.shift || 'OFF';
       if (shiftCode !== 'OFF' && shiftCode !== 'LEAVE') {
-        const netHours = calculateShiftNetHours(item.startTime, item.endTime, shiftCode);
+        const shiftBreak = (item.breakHours !== undefined && item.breakHours !== null && !isNaN(item.breakHours)) ? Number(item.breakHours) : 1.0;
+        const netHours = calculateShiftNetHours(item.startTime, item.endTime, shiftCode, shiftBreak);
         if (netHours > 0) {
           totalWorkDays++;
           totalNetHours += netHours;

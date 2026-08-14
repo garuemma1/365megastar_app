@@ -1296,8 +1296,7 @@ window.ScheduleModule = (function () {
 
     window.SheetsSync.saveData(window.SheetsSync.STORAGE_KEYS.SCHEDULE, schedule);
     closeShiftModal();
-    const txt = breakHours === 1.0 ? '1시간' : (breakHours === 0.5 ? '30분' : '0시간');
-    alert('☕ 근무시간 및 휴게시간(' + txt + ') 설정이 정상 저장되었습니다.');
+    render('module-content');
   }
 
   function sendPaystubEmail(empEmail, name, role, netHours, rate, baseSalary, holidayAllowance, totalSalary, mealAllowance, type) {
