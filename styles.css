@@ -243,6 +243,98 @@ body {
   box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.08);
 }
 
+/* ==========================================================================
+   Executive KPI Summary Card Design System (Refined Executive Style)
+   ========================================================================== */
+.kpi-summary-card {
+  background: var(--bg-card, #ffffff);
+  border: 1.5px solid var(--border-color, #e2e8f0);
+  border-radius: 16px;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s ease;
+}
+
+.kpi-summary-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+  border-color: #cbd5e1;
+}
+
+.kpi-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.kpi-title-text {
+  font-size: 13px;
+  font-weight: 700;
+  color: #64748b;
+  letter-spacing: -0.3px;
+}
+
+.kpi-icon-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.kpi-number-display {
+  font-size: 24px;
+  font-weight: 800;
+  font-family: 'Outfit', 'Pretendard', sans-serif;
+  letter-spacing: -0.5px;
+  line-height: 1.2;
+  margin-bottom: 8px;
+}
+
+.kpi-subtitle-text {
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 500;
+  line-height: 1.35;
+  word-break: keep-all;
+}
+
+/* Color Avatar Themes */
+.kpi-avatar-blue { background: #eff6ff; color: #2563eb; }
+.kpi-avatar-red { background: #fef2f2; color: #dc2626; }
+.kpi-avatar-emerald { background: #f0fdf4; color: #16a34a; }
+.kpi-avatar-amber { background: #fff7ed; color: #ea580c; }
+.kpi-avatar-purple { background: #faf5ff; color: #9333ea; }
+
+body[data-theme="dark"] .kpi-summary-card {
+  background-color: #151e38 !important;
+  border-color: #334155 !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3) !important;
+}
+
+body[data-theme="dark"] .kpi-title-text,
+body[data-theme="dark"] .kpi-subtitle-text {
+  color: #94a3b8 !important;
+}
+
+body[data-theme="dark"] .kpi-number-display {
+  color: #f8fafc !important;
+}
+
+body[data-theme="dark"] .kpi-avatar-blue { background: rgba(37, 99, 235, 0.2) !important; color: #60a5fa !important; }
+body[data-theme="dark"] .kpi-avatar-red { background: rgba(220, 38, 38, 0.2) !important; color: #f87171 !important; }
+body[data-theme="dark"] .kpi-avatar-emerald { background: rgba(22, 163, 74, 0.2) !important; color: #4ade80 !important; }
+body[data-theme="dark"] .kpi-avatar-amber { background: rgba(234, 88, 12, 0.2) !important; color: #fb923c !important; }
+body[data-theme="dark"] .kpi-avatar-purple { background: rgba(147, 51, 234, 0.2) !important; color: #c084fc !important; }
+
 /* 럭셔리 요약 스탯 카드 GRID */
 .stats-overview-grid {
   display: grid;

@@ -112,34 +112,74 @@ window.PharmacySettlementModule = (function () {
         </div>
       </div>
 
-      <!-- 💡 상단 핵심 KPI 요약 카드 (Summary KPI Cards) -->
+      <!-- 💡 상단 핵심 KPI 요약 카드 (Executive Summary KPI Cards) -->
       <div class="row g-3 mb-4">
         <div class="col-md-3 col-6">
-          <div class="card p-3 h-100 text-white shadow-sm" style="background:linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%); border-radius:16px; border:none;">
-            <span style="font-size:12.5px; color:#93c5fd; font-weight:700;"><i class="fas fa-coins me-1"></i> 당월 약국 총 수입</span>
-            <div style="font-size:22px; font-weight:800; margin-top:6px; font-family:'Outfit', sans-serif;">${fmt(totalRevenue)} 원</div>
-            <span style="font-size:11.5px; color:#bfdbfe; margin-top:4px;">조제 ${fmt(dispensingFee + patientCopay + nhisClaim)}원 / POS ${fmt(posRevenue)}원</span>
+          <div class="kpi-summary-card">
+            <div class="kpi-header-row">
+              <span class="kpi-title-text">당월 약국 총 수입</span>
+              <div class="kpi-icon-avatar kpi-avatar-blue">
+                <i class="fas fa-wallet"></i>
+              </div>
+            </div>
+            <div class="kpi-number-display text-primary">
+              ${fmt(totalRevenue)} <span class="currency-unit" style="font-size:14px; font-weight:700;">원</span>
+            </div>
+            <div class="kpi-subtitle-text">
+              조제료 ${fmt(dispensingFee + patientCopay + nhisClaim)}원 · POS ${fmt(posRevenue)}원
+            </div>
           </div>
         </div>
+
         <div class="col-md-3 col-6">
-          <div class="card p-3 h-100 text-white shadow-sm" style="background:linear-gradient(135deg, #991b1b 0%, #dc2626 100%); border-radius:16px; border:none;">
-            <span style="font-size:12.5px; color:#fca5a5; font-weight:700;"><i class="fas fa-file-invoice-dollar me-1"></i> 당월 약국 총 지출</span>
-            <div style="font-size:22px; font-weight:800; margin-top:6px; font-family:'Outfit', sans-serif;">${fmt(totalExpenses)} 원</div>
-            <span style="font-size:11.5px; color:#fecdd3; margin-top:4px;">사입 ${fmt(totalDrugCost)}원 / 인건비 ${fmt(totalPayrollExpense)}원</span>
+          <div class="kpi-summary-card">
+            <div class="kpi-header-row">
+              <span class="kpi-title-text">당월 약국 총 지출</span>
+              <div class="kpi-icon-avatar kpi-avatar-red">
+                <i class="fas fa-file-invoice-dollar"></i>
+              </div>
+            </div>
+            <div class="kpi-number-display text-danger">
+              ${fmt(totalExpenses)} <span class="currency-unit" style="font-size:14px; font-weight:700;">원</span>
+            </div>
+            <div class="kpi-subtitle-text">
+              약품비 ${fmt(totalDrugCost)}원 · 인건비 ${fmt(totalPayrollExpense)}원
+            </div>
           </div>
         </div>
+
         <div class="col-md-3 col-6">
-          <div class="card p-3 h-100 text-white shadow-sm" style="background:linear-gradient(135deg, #065f46 0%, #10b981 100%); border-radius:16px; border:none;">
-            <span style="font-size:12.5px; color:#a7f3d0; font-weight:700;"><i class="fas fa-chart-line me-1"></i> 당월 약국 순이익 (P&L)</span>
-            <div style="font-size:22px; font-weight:800; margin-top:6px; font-family:'Outfit', sans-serif;">${fmt(netProfit)} 원</div>
-            <span style="font-size:11.5px; color:#d1fae5; margin-top:4px;">손익 마진율: <strong style="color:#ffffff;">${marginRate}%</strong></span>
+          <div class="kpi-summary-card">
+            <div class="kpi-header-row">
+              <span class="kpi-title-text">당월 약국 순이익 (P&L)</span>
+              <div class="kpi-icon-avatar kpi-avatar-emerald">
+                <i class="fas fa-chart-line"></i>
+              </div>
+            </div>
+            <div class="kpi-number-display text-success">
+              ${fmt(netProfit)} <span class="currency-unit" style="font-size:14px; font-weight:700;">원</span>
+            </div>
+            <div class="kpi-subtitle-text d-flex align-items-center gap-1">
+              <span>손익 마진율:</span>
+              <span class="badge bg-success" style="font-size:11px; padding:3px 7px; border-radius:6px;">${marginRate}%</span>
+            </div>
           </div>
         </div>
+
         <div class="col-md-3 col-6">
-          <div class="card p-3 h-100 shadow-sm" style="background:#ffffff; border:1.5px solid #cbd5e1; border-radius:16px;">
-            <span style="font-size:12.5px; color:#64748b; font-weight:700;"><i class="fas fa-calendar-day me-1 text-warning"></i> 일평균 매출액 (31일)</span>
-            <div style="font-size:22px; font-weight:800; color:#d97706; margin-top:6px; font-family:'Outfit', sans-serif;">${fmt(dailyAvgRev)} 원</div>
-            <span style="font-size:11.5px; color:#64748b; margin-top:4px;">매일 평균 매출 집계 연동</span>
+          <div class="kpi-summary-card">
+            <div class="kpi-header-row">
+              <span class="kpi-title-text">일평균 매출액 (31일)</span>
+              <div class="kpi-icon-avatar kpi-avatar-amber">
+                <i class="fas fa-calendar-day"></i>
+              </div>
+            </div>
+            <div class="kpi-number-display text-warning" style="color:#d97706 !important;">
+              ${fmt(dailyAvgRev)} <span class="currency-unit" style="font-size:14px; font-weight:700;">원</span>
+            </div>
+            <div class="kpi-subtitle-text">
+              매일 평균 조제 + POS 매출 자동 연동
+            </div>
           </div>
         </div>
       </div>

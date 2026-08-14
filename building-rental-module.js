@@ -80,34 +80,73 @@ window.BuildingRentalModule = (function () {
         <span class="badge bg-danger" style="font-size:12.5px; padding:8px 14px; border-radius:10px;">🔒 대표 건물주 전용 대시보드</span>
       </div>
 
-      <!-- 💡 상단 핵심 자산 KPI 요약 카드 (Asset KPI Cards) -->
+      <!-- 💡 상단 핵심 자산 KPI 요약 카드 (Executive Asset KPI Cards) -->
       <div class="row g-3 mb-4">
         <div class="col-md-3 col-6">
-          <div class="card p-3 h-100 text-white shadow-sm" style="background:linear-gradient(135deg, #065f46 0%, #059669 100%); border-radius:16px; border:none;">
-            <span style="font-size:12.5px; color:#a7f3d0; font-weight:700;"><i class="fas fa-landmark me-1"></i> 총 자산가치 / 보증금</span>
-            <div style="font-size:20px; font-weight:800; margin-top:6px; font-family:'Outfit', sans-serif;">${fmt(assetVal)} 원</div>
-            <span style="font-size:11.5px; color:#d1fae5; margin-top:4px;">보증금 합계: <strong style="color:#ffffff;">${fmt(totalDeposit)}원</strong></span>
+          <div class="kpi-summary-card">
+            <div class="kpi-header-row">
+              <span class="kpi-title-text">총 자산가치 / 보증금</span>
+              <div class="kpi-icon-avatar kpi-avatar-blue">
+                <i class="fas fa-landmark"></i>
+              </div>
+            </div>
+            <div class="kpi-number-display text-primary">
+              ${fmt(assetVal)} <span class="currency-unit" style="font-size:14px; font-weight:700;">원</span>
+            </div>
+            <div class="kpi-subtitle-text">
+              임대 보증금 합계: <strong style="color:#0f172a;">${fmt(totalDeposit)}원</strong>
+            </div>
           </div>
         </div>
+
         <div class="col-md-3 col-6">
-          <div class="card p-3 h-100 text-white shadow-sm" style="background:linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%); border-radius:16px; border:none;">
-            <span style="font-size:12.5px; color:#93c5fd; font-weight:700;"><i class="fas fa-wallet me-1"></i> 당월 총 임대 수입</span>
-            <div style="font-size:22px; font-weight:800; margin-top:6px; font-family:'Outfit', sans-serif;">${fmt(totalMonthlyIncome)} 원</div>
-            <span style="font-size:11.5px; color:#bfdbfe; margin-top:4px;">월세 ${fmt(totalMonthlyRent)}원 / 관리비 ${fmt(totalMonthlyMaint)}원</span>
+          <div class="kpi-summary-card">
+            <div class="kpi-header-row">
+              <span class="kpi-title-text">당월 총 임대 수입</span>
+              <div class="kpi-icon-avatar kpi-avatar-emerald">
+                <i class="fas fa-wallet"></i>
+              </div>
+            </div>
+            <div class="kpi-number-display text-success">
+              ${fmt(totalMonthlyIncome)} <span class="currency-unit" style="font-size:14px; font-weight:700;">원</span>
+            </div>
+            <div class="kpi-subtitle-text">
+              월세 ${fmt(totalMonthlyRent)}원 · 관리비 ${fmt(totalMonthlyMaint)}원
+            </div>
           </div>
         </div>
+
         <div class="col-md-3 col-6">
-          <div class="card p-3 h-100 text-white shadow-sm" style="background:linear-gradient(135deg, #7c2d12 0%, #ea580c 100%); border-radius:16px; border:none;">
-            <span style="font-size:12.5px; color:#fed7aa; font-weight:700;"><i class="fas fa-receipt me-1"></i> 당월 유지 지출</span>
-            <div style="font-size:22px; font-weight:800; margin-top:6px; font-family:'Outfit', sans-serif;">${fmt(totalMonthlyExpense)} 원</div>
-            <span style="font-size:11.5px; color:#ffedd5; margin-top:4px;">대출이자 ${fmt(expObj.mortgageInterest)}원 / 기타 ${fmt(totalMonthlyExpense - expObj.mortgageInterest)}원</span>
+          <div class="kpi-summary-card">
+            <div class="kpi-header-row">
+              <span class="kpi-title-text">당월 유지 지출</span>
+              <div class="kpi-icon-avatar kpi-avatar-red">
+                <i class="fas fa-receipt"></i>
+              </div>
+            </div>
+            <div class="kpi-number-display text-danger">
+              ${fmt(totalMonthlyExpense)} <span class="currency-unit" style="font-size:14px; font-weight:700;">원</span>
+            </div>
+            <div class="kpi-subtitle-text">
+              대출이자 ${fmt(expObj.mortgageInterest)}원 · 제세 ${fmt(totalMonthlyExpense - expObj.mortgageInterest)}원
+            </div>
           </div>
         </div>
+
         <div class="col-md-3 col-6">
-          <div class="card p-3 h-100 shadow-sm" style="background:#ffffff; border:1.5px solid #cbd5e1; border-radius:16px;">
-            <span style="font-size:12.5px; color:#64748b; font-weight:700;"><i class="fas fa-chart-pie me-1 text-primary"></i> 실질 임대수익률 (Cap Rate)</span>
-            <div style="font-size:24px; font-weight:800; color:#2563eb; margin-top:6px; font-family:'Outfit', sans-serif;">${capRate}%</div>
-            <span style="font-size:11.5px; color:#64748b; margin-top:4px;">연 순수익: <strong style="color:#0f172a;">${fmt(netAnnualIncome)}원</strong></span>
+          <div class="kpi-summary-card">
+            <div class="kpi-header-row">
+              <span class="kpi-title-text">실질 임대수익률 (Cap Rate)</span>
+              <div class="kpi-icon-avatar kpi-avatar-amber">
+                <i class="fas fa-chart-pie"></i>
+              </div>
+            </div>
+            <div class="kpi-number-display text-warning" style="color:#ea580c !important;">
+              ${capRate}<span class="currency-unit" style="font-size:16px; font-weight:700;">%</span>
+            </div>
+            <div class="kpi-subtitle-text">
+              연 순수익: <strong style="color:#0f172a;">${fmt(netAnnualIncome)}원</strong>
+            </div>
           </div>
         </div>
       </div>
