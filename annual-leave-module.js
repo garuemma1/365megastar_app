@@ -234,19 +234,28 @@ window.AnnualLeaveModule = (function () {
             <h3><i class="far fa-calendar-alt text-warning"></i> 연차 신청 및 승인 달력 현황 (${currentCalYear}년 ${currentCalMonth}월)</h3>
             <span class="text-muted">📅 확정된 연차 승인 및 결재 대기 중인 휴가 현황</span>
           </div>
-          <div class="d-flex align-items-center gap-2">
-            <div class="view-mode-toggle">
-              <button type="button" class="mode-btn ${calViewMode === 'grid' ? 'active' : ''}" onclick="AnnualLeaveModule.setCalViewMode('grid')">
-                <i class="fas fa-th"></i> 달력 보기
+     <div class="d-flex align-items-center gap-3 flex-wrap">
+            <!-- 1. 고급스러운 토글 스위치 (달력/목록) -->
+            <div style="background:#f1f5f9; padding:4px; border-radius:12px; display:inline-flex; border:1px solid #e2e8f0;">
+              <button type="button" onclick="AnnualLeaveModule.setCalViewMode('grid')" style="border:none; background:${calViewMode === 'grid' ? '#ffffff' : 'transparent'}; color:${calViewMode === 'grid' ? '#0f172a' : '#64748b'}; box-shadow:${calViewMode === 'grid' ? '0 2px 6px rgba(0,0,0,0.06)' : 'none'}; border-radius:8px; padding:6px 16px; font-size:13px; font-weight:800; transition:all 0.2s;">
+                <i class="fas fa-th me-1"></i> 달력
               </button>
-              <button type="button" class="mode-btn ${calViewMode === 'list' ? 'active' : ''}" onclick="AnnualLeaveModule.setCalViewMode('list')">
-                <i class="fas fa-list"></i> 목록 보기
+              <button type="button" onclick="AnnualLeaveModule.setCalViewMode('list')" style="border:none; background:${calViewMode === 'list' ? '#ffffff' : 'transparent'}; color:${calViewMode === 'list' ? '#0f172a' : '#64748b'}; box-shadow:${calViewMode === 'list' ? '0 2px 6px rgba(0,0,0,0.06)' : 'none'}; border-radius:8px; padding:6px 16px; font-size:13px; font-weight:800; transition:all 0.2s;">
+                <i class="fas fa-list me-1"></i> 목록
               </button>
             </div>
-            <div class="month-nav-btns">
-              <button type="button" class="btn btn-icon" onclick="AnnualLeaveModule.changeCalMonth(-1)"><i class="fas fa-chevron-left"></i></button>
-              <span class="current-month-label font-bold">${currentCalYear}년 ${currentCalMonth}월</span>
-              <button type="button" class="btn btn-icon" onclick="AnnualLeaveModule.changeCalMonth(1)"><i class="fas fa-chevron-right"></i></button>
+
+            <!-- 2. 고급스러운 일체형 월 네비게이션 -->
+            <div style="display:inline-flex; align-items:center; background:#ffffff; border:1.5px solid #cbd5e1; border-radius:12px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,0.03);">
+              <button type="button" onclick="AnnualLeaveModule.changeCalMonth(-1)" style="border:none; background:transparent; color:#475569; padding:8px 16px; cursor:pointer; transition:background 0.2s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
+                <i class="fas fa-chevron-left"></i>
+              </button>
+              <span style="font-size:15px; font-weight:800; color:#0f172a; padding:0 12px; min-width:100px; text-align:center; font-family:'Outfit', sans-serif;">
+                ${currentCalYear}년 ${currentCalMonth}월
+              </span>
+              <button type="button" onclick="AnnualLeaveModule.changeCalMonth(1)" style="border:none; background:transparent; color:#475569; padding:8px 16px; cursor:pointer; transition:background 0.2s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
+                <i class="fas fa-chevron-right"></i>
+              </button>
             </div>
           </div>
         </div>
@@ -490,25 +499,25 @@ window.AnnualLeaveModule = (function () {
             </span>
             ${isToday ? `<span style="font-size:9px; color:#2563eb; font-weight:700; background:#dbeafe; padding:1px 4px; border-radius:4px;">오늘</span>` : ''}
           </div>
-          <div class="cal-leave-items" style="display:flex; flex-direction:column; gap:3px; flex:1; justify-content:flex-start;">
+     <div class="cal-leave-items" style="display:flex; flex-direction:column; gap:4px; flex:1; justify-content:flex-start; margin-top:2px;">
             ${dayLeaves.map(l => {
               const isApproved = l.status === 'APPROVED';
               const bgStyle = isApproved 
-                ? 'background:linear-gradient(135deg, #059669 0%, #047857 100%); color:#ffffff; box-shadow:0 2px 5px rgba(5,150,105,0.25);'
-                : 'background:linear-gradient(135deg, #d97706 0%, #b45309 100%); color:#ffffff; box-shadow:0 2px 5px rgba(217,119,6,0.25);';
+                ? 'background:linear-gradient(135deg, #059669 0%, #047857 100%); color:#ffffff; box-shadow:0 2px 4px rgba(5,150,105,0.2); border:0.5px solid #064e3b;'
+                : 'background:linear-gradient(135deg, #ea580c 0%, #c2410c 100%); color:#ffffff; box-shadow:0 2px 4px rgba(234,88,12,0.2); border:0.5px solid #7c2d12;';
 
               return `
-                <div class="leave-item-chip" style="${bgStyle} border-radius:6px; padding:3px 4px; font-size:10.5px; font-weight:700; display:flex; align-items:center; justify-content:space-between; gap:2px; cursor:pointer; width:100%; box-sizing:border-box; overflow:hidden;" title="${l.empName} (${l.type} - ${l.reason})">
-                  <div style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1; min-width:0;">
-                    <i class="fas ${isApproved ? 'fa-umbrella-beach' : 'fa-clock'}" style="font-size:9px; margin-right:1px; opacity:0.9;"></i> ${l.empName}
+                <div class="leave-item-chip" style="${bgStyle} border-radius:5px; padding:4px 5px; display:flex; flex-direction:column; gap:2px; cursor:pointer; width:100%; box-sizing:border-box; overflow:hidden; min-height:36px; justify-content:center;" title="${l.empName} (${l.type} - ${l.reason})">
+                  <div style="font-size:11.5px; font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; width:100%; text-align:center; line-height:1.1;">
+                    <i class="fas ${isApproved ? 'fa-check' : 'fa-clock'}" style="font-size:9px; margin-right:2px; opacity:0.85;"></i>${l.empName}
                   </div>
-                  <span style="font-size:9px; background:rgba(255,255,255,0.25); padding:1px 3px; border-radius:3px; white-space:nowrap; flex-shrink:0;">
+                  <div style="font-size:9.5px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; width:100%; text-align:center; background:rgba(255,255,255,0.2); border-radius:3px; padding:1px 0;">
                     ${l.type}
-                  </span>
+                  </div>
                 </div>
               `;
             }).join('')}
-          </div>
+          </div> 
         </div>
       `;
     }

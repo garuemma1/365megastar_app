@@ -282,22 +282,27 @@ window.ScheduleModule = (function () {
 
       <!-- 💡 팝업창 차단 원천 해결: 인라인 작업 카드 패널 (화면에 직접 바로 펼쳐지는 인라인 작업창) -->
       ${renderInlineWorkPanel(currUser, employees)}
+<!-- 💰 [순서 변경 1] 급여 정산표 영역: 스크롤 최소화를 위해 달력 위로 배치 (고급형 UI) -->
+      ${(currUser && currUser.role === '약국장') ? renderSettlementDashboard(employees, scheduleRecords) : renderStaffPersonalPaystubSection(currUser)}
 
-      <!-- 월간 근무스케줄 달력 영역 (접고 펴기 토글 지원) -->
+      <!-- 📅 [순서 변경 2] 월간 근무스케줄 달력 영역: 화면 최하단으로 이동 -->
       ${showCalendar ? `
-        <div class="card-section mb-4">
-          <div class="mobile-scroll-hint mb-3">
-            <i class="fas fa-mobile-alt"></i> 📱 안드로이드/아이폰 최적화: 일요일부터 토요일까지 7열 전체가 스마트폰 화면에 맞춤 자동 정렬되었습니다. (날짜/뱃지 터치 시 근무시간 및 OFF 설정)
+        <div class="card-section mb-6" style="background:#ffffff; border:1.5px solid #cbd5e1; border-radius:24px; padding:24px; box-shadow:0 12px 35px rgba(15,23,42,0.08); margin-top:32px;">
+          <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
+            <h3 style="font-size:18px; font-weight:800; color:#0f172a; margin:0;">
+              <i class="fas fa-calendar-alt text-success me-2"></i> ${currentMonth}월 전체 팀원 근무 스케줄 현황
+            </h3>
+            <span class="badge bg-light text-dark font-bold" style="padding:6px 14px; border-radius:12px; border:1px solid #e2e8f0; font-size:12.5px;">
+              <i class="fas fa-mobile-alt text-primary me-1"></i> 날짜 터치 시 수정
+            </span>
           </div>
-          <div class="calendar-scroll-wrapper">
+          
+          <div class="calendar-scroll-wrapper" style="border-radius:16px; overflow:hidden; border:1.5px solid #e2e8f0;">
             ${renderImage1StyleCalendar(currentYear, currentMonth, employees, scheduleRecords)}
           </div>
         </div>
       ` : ''}
-
-      <!-- 급여 정산표 영역: 약국장 접속 시 상시 전면 노출, 직원 개인 접속 시 본인 명세서만 표시 -->
-      ${(currUser && currUser.role === '약국장') ? renderSettlementDashboard(employees, scheduleRecords) : renderStaffPersonalPaystubSection(currUser)}
-
+     
       <!-- 자율 출퇴근 시간 및 OFF(휴무) 설정 모달 -->
       <div class="modal-overlay" id="shift-modal" style="display:none;">
         <div class="modal-card">

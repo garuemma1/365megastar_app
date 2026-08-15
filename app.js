@@ -829,15 +829,16 @@ window.App = (function () {
           </a>
         </div>
 
-        <!-- 3단계 세팅 탭 -->
+   <!-- 3단계 세팅 탭 -->
         <div class="mb-4">
-          <h5 class="font-bold text-dark mb-2" style="font-size:14.5px;">[1단계] 구글 스프레드시트 5개 탭 & 1행 컬럼 세팅</h5>
+          <h5 class="font-bold text-dark mb-2" style="font-size:14.5px;">[1단계] 구글 스프레드시트 탭 & 1행 컬럼 세팅</h5>
           <div class="p-3" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; font-size:12.5px; line-height:1.7;">
             <div>1️⃣ <strong>직원명부</strong>: 직원ID, 성명, 구분/직무, 직책, 급여유형, 입사일자, 기본급/시급, 연락처, 이메일계정, 잔여연차, 비고</div>
-            <div>2️⃣ <strong>월간근무스케줄</strong>: 일자, 직원ID, 직원명, 직무, 근무구분, 출근시간, 퇴근시간, 휴게시간차감, 실근무시수</div>
-            <div>3️⃣ <strong>스마트약국정산</strong>: 산출년월, 조제료수입, 일반매출, 카드수입, 현금수입, 본인부담금, 공단청구금, 비급여수입, 도매상현금결제합계, 제약사카드결제합계, 고정관리비합계, 금융비용합계, 총수입, 총지출, 순이익, 마진율</div>
-            <div>4️⃣ <strong>건물임대대장</strong>: 호실/상호명, 소유형태, 지분율(%), 입주상호, 대표자명, 사업자번호, 소재지, 보증금, 월임대료, 월대출이자, 전체순수익, 내지분순수익, 계약만료일, 특약사항</div>
-            <div>5️⃣ <strong>연차신청대장</strong>: 신청ID, 신청일시, 직원ID, 직원명, 직무, 시작일, 종료일, 사용일수, 휴가구분, 신청사유, 승인상태</div>
+            <div>2️⃣ <strong>일일결산</strong>: 일자, 마감담당자, 식대, 박카스, 봉투, 기타잡비, 이월시재, 현금잔고, 카드결제액</div>
+            <div>3️⃣ <strong>월간근무스케줄</strong>: 일자, 직원ID, 직원명, 직무, 근무구분, 출근시간, 퇴근시간, 휴게시간차감, 실근무시수</div>
+            <div>4️⃣ <strong>스마트약국정산</strong>: 산출년월, 조제료수입, 일반매출, 카드수입, 현금수입, 본인부담금, 공단청구금, 비급여수입, 도매상현금결제합계, 제약사카드결제합계, 고정관리비합계, 금융비용합계, 총수입, 총지출, 순이익, 마진율</div>
+            <div>5️⃣ <strong>건물임대대장</strong>: 호실/상호명, 소유형태, 지분율(%), 입주상호, 대표자명, 사업자번호, 소재지, 보증금, 월임대료, 월대출이자, 전체순수익, 내지분순수익, 계약만료일, 특약사항</div>
+            <div>6️⃣ <strong>연차신청대장</strong>: 신청ID, 신청일시, 직원ID, 직원명, 직무, 시작일, 종료일, 사용일수, 휴가구분, 신청사유, 승인상태</div>
           </div>
         </div>
 
@@ -882,8 +883,7 @@ window.App = (function () {
     const modal = document.getElementById('sheet-sync-setup-modal');
     if (modal) modal.style.display = 'none';
   }
-
-  function copyGasScriptCode() {
+function copyGasScriptCode() {
     const code = `/**
  * 365메가스타약국 & 구글 스프레드시트 100% 실시간 양방향 동기화 Google Apps Script
  * Sheet ID: 16yVS9f9bQs9Z2S1k2McnxhHGb9QjQguPa93MxZvNtP0
@@ -893,6 +893,7 @@ function doGet(e) {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var data = {
     employees: readSheetData(ss.getSheetByName("직원명부")),
+    dailySettlement: readSheetData(ss.getSheetByName("일일결산")),
     schedule: readSheetData(ss.getSheetByName("월간근무스케줄")),
     pharmacySettlement: readSheetData(ss.getSheetByName("스마트약국정산")),
     buildingRental: readSheetData(ss.getSheetByName("건물임대대장")),
@@ -907,6 +908,7 @@ function doPost(e) {
     var contents = JSON.parse(e.postData.contents);
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     if (contents.employees) writeSheetData(ss.getSheetByName("직원명부"), contents.employees);
+    if (contents.dailySettlement) writeSheetData(ss.getSheetByName("일일결산"), contents.dailySettlement);
     if (contents.pharmacySettlement) writeSheetData(ss.getSheetByName("스마트약국정산"), contents.pharmacySettlement);
     if (contents.buildingRental) writeSheetData(ss.getSheetByName("건물임대대장"), contents.buildingRental);
     return ContentService.createTextOutput(JSON.stringify({ status: "SUCCESS" }))
@@ -925,7 +927,7 @@ function readSheetData(sheet) {
   var result = [];
   for (var i = 1; i < values.length; i++) {
     var row = {};
-    for (var j = 0; j < headers.length; j++) {
+    for (let j = 0; j < headers.length; j++) {
       row[headers[j]] = values[i][j];
     }
     result.push(row);

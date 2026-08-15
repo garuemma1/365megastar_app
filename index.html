@@ -128,6 +128,19 @@
           <span id="sheet-sync-status-text">📊 구글 시트 연동 설정</span>
         </div>
       </div>
+
+
+      <!-- 개발자 서명 및 저작권 표시 -->
+      <div style="padding: 16px 20px; text-align: center; border-top: 1px solid #e2e8f0; background: #f8fafc; margin-top: auto;">
+        <div style="font-size: 11.5px; color: #64748b; font-weight: 700; letter-spacing: 0.5px;">
+          Crafted with 💊 by <strong style="color: #0f172a; font-family: 'Outfit', sans-serif;">MSD</strong>
+        </div>
+        <div style="font-size: 10px; color: #94a3b8; margin-top: 4px;">
+          ⓒ 2026 MSD. All rights reserved.
+        </div>
+      </div>
+
+    </aside>
     </aside>
 
     <!-- 2. 메인 화면 영역 (Main Viewport) -->
@@ -154,10 +167,7 @@
             <!-- JS 동적 생성 (로그인 상태에 따라 로그인/계정선택 또는 프로필+로그아웃+비번변경 렌더링) -->
           </div>
 
-          <button class="header-btn hide-on-mobile" onclick="App.openSheetModal()" title="구글 스프레드시트 100% 양방향 실시간 동기화 설정" style="border-radius:20px; font-size:12px; font-weight:700; padding:6px 14px; background:#eff6ff; border:1.5px solid #3b82f6; color:#1d4ed8; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 6px rgba(37,99,235,0.15);">
-            <i class="fas fa-table text-success" style="font-size:14px;"></i>
-            <span>구글 시트 연동 설정</span>
-          </button>
+        
 
           <button class="header-btn" onclick="App.toggleTheme()" title="다크/라이트 테마 전환" style="border-radius:50%; width:34px; height:34px; padding:0; display:inline-flex; justify-content:center; align-items:center; background:#ffffff; border:1px solid #cbd5e1; box-shadow:0 1px 3px rgba(0,0,0,0.05); color:#334155;">
             <i class="fas fa-moon" id="theme-toggle-icon"></i>
@@ -556,6 +566,9 @@
           <button type="button" class="btn btn-secondary" onclick="document.getElementById('perm-modal').style.display='none'">취소</button>
           <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> 권한 저장하기</button>
         </div>
+      </form>
+    </div>
+  </div>
   <!-- 3-B. 약국장 전용 직원별 세후 급여 & 사진 1장 등록 팝업 모달 -->
   <div class="modal-overlay" id="paystub-upload-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.65); z-index:999999; justify-content:center; align-items:center;">
     <div class="modal-card" style="background:#fff; border-radius:20px; max-width:640px; width:94%; padding:28px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.3); position:relative; max-height:92vh; overflow-y:auto;">

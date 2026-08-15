@@ -114,34 +114,32 @@ window.SheetsSync = (function () {
     ]
   };
 
-  // 신규: 약국 정산 시스템 초기 데이터 (Director Only)
+ // 신규: 약국 정산 시스템 초기 데이터 (Director Only) - 10년 노하우 양식 반영
   function generateInitialDailyLogs() {
     const logs = [];
-    const days = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-    const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
     for (let d = 1; d <= 31; d++) {
       const dateStr = `2026-08-${String(d).padStart(2, '0')}`;
       const dayIdx = new Date(dateStr).getDay();
       const isSun = dayIdx === 0;
       const isSat = dayIdx === 6;
       
+      // 가상의 매출 데이터 생성
       const disp = isSun ? 350000 : (isSat ? 1100000 : 1650000 + (d * 12000) % 250000);
       const pos = isSun ? 280000 : (isSat ? 750000 : 820000 + (d * 8000) % 180000);
-      const cardRatio = isSun ? 90 : 85;
-      const cardPay = Math.round((disp + pos) * (cardRatio / 100));
+      const cardPay = Math.round((disp + pos) * (isSun ? 0.9 : 0.85));
       const cashPay = (disp + pos) - cardPay;
-      const dailyExp = isSun ? 0 : (d % 3 === 0 ? 35000 : 12000);
       
       logs.push({
+        id: 'stl_' + dateStr.replace(/-/g, ''),
         date: dateStr,
-        dayOfWeek: dayNames[dayIdx],
-        dispensingRevenue: disp,
-        posRevenue: pos,
-        totalRevenue: disp + pos,
-        cardPay,
-        cashPay,
-        dailyExpense: dailyExp,
-        note: isSun ? '휴일 조제 지정 운영' : (d === 15 ? '광복절 공휴일' : '정상 조제/POS 정산')
+        manager: isSun ? '문성도' : '김제희',
+        expFood: isSun ? 0 : (d % 3 === 0 ? 25000 : 12000), // 식대
+        expDrink: d % 5 === 0 ? 11000 : 0,                   // 박카스
+        expBag: d % 7 === 0 ? 15000 : 0,                     // 봉투/종량제
+        expEtc: 0,                                           // 기타잡비
+        incCarryover: 790000,                                // 이월시재
+        incCash: cashPay,                                    // 현금 잔고
+        incCard: cardPay                                     // 카드 결제액
       });
     }
     return logs;

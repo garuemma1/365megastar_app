@@ -655,23 +655,53 @@ window.StaffDirectoryModule = (function () {
 
     modal.style.display = 'flex';
   }
+function saveStaffPermissions(e) {
+  e.preventDefault();
+  const empId = document.getElementById('perm-emp-id').value;
+  const modal = document.getElementById('perm-modal');
+  if (!modal) return;
 
-  function saveStaffPermissions(e) {
-    e.preventDefault();
-    const empId = document.getElementById('perm-emp-id').value;
-    const modal = document.getElementById('perm-modal');
-    const tabCheckboxes = modal.querySelectorAll('.perm-tab-cb');
+  const tabCheckboxes = modal.querySelectorAll('.perm-tab-cb');
+  const newAllowed = [];
+  tabCheckboxes.forEach(cb => {
+    if (cb.checked) newAllowed.push(cb.value);
+  });
 
-    const newAllowed = [];
-    tabCheckboxes.forEach(cb => {
-      if (cb.checked) newAllowed.push(cb.value);
-    });
-
-    window.SheetsSync.updateStaffPermissions(empId, newAllowed);
-    modal.style.display = 'none';
-    alert('⚙️ 해당 직원의 메뉴 탭 맞춤 권한이 성공적으로 저장되었습니다!');
-    render('module-content');
+  if (!empId) {
+    alert('❌ 직원 ID를 찾을 수 없습니다. 모달을 다시 열어 시도해주세요.');
+    return;
   }
+
+  // --- 수정된 부분 시작: 데이터를 직접 찾아 덮어쓰기 ---
+  const emps = window.SheetsSync.getEmployees() || [];
+  const targetIndex = emps.findIndex(emp => emp.id === empId);
+
+  if (targetIndex === -1) {
+    alert('❌ 직원 정보를 찾을 수 없어 권한 저장에 실패했습니다.');
+    return;
+  }
+
+  // 1. 해당 직원의 allowedTabs 권한 배열을 새로 체크한 배열로 교체
+  emps[targetIndex].allowedTabs = newAllowed;
+
+  // 2. 전체 직원 데이터를 다시 저장 (가장 확실한 방법)
+  window.SheetsSync.saveEmployees(emps);
+  // --- 수정된 부분 끝 ---
+
+  modal.style.display = 'none';
+
+  // 사이드바 네비게이션 즉시 재렌더링 (현재 로그인 유저가 해당 직원이면 바로 반영)
+  if (window.App && typeof window.App.renderSidebarNavigation === 'function') {
+    window.App.renderSidebarNavigation();
+  }
+  if (window.App && typeof window.App.renderUserHeader === 'function') {
+    window.App.renderUserHeader();
+  }
+
+  render('module-content');
+  alert('✅ 탭 접근 권한이 저장되었습니다!');
+}
+ 
 
   function editPayCondition(empId) {
     const emps = window.SheetsSync.getEmployees();

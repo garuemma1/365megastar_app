@@ -125,19 +125,11 @@ window.WorklogModule = (function () {
           <div style="font-size:20px; font-weight:800; color:#d97706; font-family:'Outfit',sans-serif;">${bCount}<span style="font-size:12px;"> 건 (${bPct}%)</span></div>
           <div style="font-size:10.5px; color:#b45309;">마감조</div>
         </div>
-        <div class="kpi-summary-card p-3" style="border-radius:16px; border:1.5px solid #a5b4fc; background:#eef2ff; display:flex; flex-direction:column; justify-content:space-between;">
-          <div class="d-flex justify-content-between align-items-center mb-1">
-            <span style="font-size:12px; font-weight:800; color:#4338ca;">FULL 조</span>
-            <div style="width:24px; height:24px; border-radius:6px; background:#e0e7ff; color:#3730a3; display:flex; align-items:center; justify-content:center; font-size:12px;"><i class="fas fa-circle"></i></div>
-          </div>
-          <div style="font-size:20px; font-weight:800; color:#4338ca; font-family:'Outfit',sans-serif;">${fullCount}<span style="font-size:12px;"> 건 (${fullPct}%)</span></div>
-          <div style="font-size:10.5px; color:#4c51bf;">전체 교대</div>
-        </div>
-      </div>
+   </div>
 
-      <!-- 📊 Charts Row -->
+      <!-- 📊 Charts Row (도넛 차트 삭제 및 바 차트 전체화면으로 확장) -->
       <div class="row">
-        <div class="col-md-8">
+        <div class="col-md-12">
           <div class="card mb-4 shadow-sm" style="border-radius:16px; border:1.5px solid #cbd5e1; overflow:hidden;">
             <div class="card-header d-flex justify-content-between align-items-center" style="background:#f8fafc; border-bottom:1.5px solid #e2e8f0; padding:12px 18px;">
               <h4 style="font-size:14px; font-weight:800; color:#0f172a; margin:0;"><i class="fas fa-chart-bar text-primary me-2"></i>📊 월별 업무일지 작성 추세 (Bar)</h4>
@@ -147,18 +139,7 @@ window.WorklogModule = (function () {
             </div>
           </div>
         </div>
-        <div class="col-md-4">
-          <div class="card mb-4 shadow-sm" style="border-radius:16px; border:1.5px solid #cbd5e1; overflow:hidden;">
-            <div class="card-header d-flex justify-content-between align-items-center" style="background:#f8fafc; border-bottom:1.5px solid #e2e8f0; padding:12px 18px;">
-              <h4 style="font-size:14px; font-weight:800; color:#0f172a; margin:0;"><i class="fas fa-chart-pie text-primary me-2"></i>🔸 교대조 비중 (Donut)</h4>
-            </div>
-            <div style="position:relative; height:200px; width:100%; padding:12px;">
-              <canvas id="shiftDonutCanvas"></canvas>
-            </div>
-          </div>
-        </div>
       </div>
-
       <!-- 1. 상단배치 월별 업무일지 인수인계 달력 섹션 (날짜 누르면 팝업 출력 & 달력 접기/펼치기) -->
       <div class="card shadow-sm mb-4" style="border-radius:20px; border:1px solid #cbd5e1; background:#ffffff; overflow:hidden;">
         <div class="card-header d-flex justify-content-between align-items-center" style="background:linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color:#ffffff; padding:16px 24px;">
@@ -201,11 +182,8 @@ window.WorklogModule = (function () {
                 <button type="button" class="btn btn-sm ${activeShiftFilter === 'A조' ? 'btn-primary' : 'btn-outline-secondary'}" onclick="WorklogModule.setShiftFilter('A조')" style="font-size:13px; padding:5px 14px; font-weight:600;">
                   🟢 A조 (오프닝)
                 </button>
-                <button type="button" class="btn btn-sm ${activeShiftFilter === 'B조' ? 'btn-warning text-dark font-bold' : 'btn-outline-secondary'}" onclick="WorklogModule.setShiftFilter('B조')" style="font-size:13px; padding:5px 14px;">
+      <button type="button" class="btn btn-sm ${activeShiftFilter === 'B조' ? 'btn-warning text-dark font-bold' : 'btn-outline-secondary'}" onclick="WorklogModule.setShiftFilter('B조')" style="border-radius:0 20px 20px 0; font-size:13px; padding:5px 14px;">
                   🟡 B조 (마감)
-                </button>
-                <button type="button" class="btn btn-sm ${activeShiftFilter === 'FULL' ? 'btn-success' : 'btn-outline-secondary'}" onclick="WorklogModule.setShiftFilter('FULL')" style="border-radius:0 20px 20px 0; font-size:13px; padding:5px 14px; font-weight:600;">
-                  🟣 FULL 조
                 </button>
               </div>
             </div>
@@ -361,12 +339,11 @@ window.WorklogModule = (function () {
                 <label class="form-label" style="font-size:13px; font-weight:bold; color:#334155;">작성일자</label>
                 <input type="date" id="wl-date" class="form-control" value="${new Date().toISOString().split('T')[0]}" required>
               </div>
-              <div class="col-md-6">
+      <div class="col-md-6">
                 <label class="form-label" style="font-size:13px; font-weight:bold; color:#334155;">근무 교대조</label>
                 <select id="wl-shift" class="form-select" required>
                   <option value="A조 오프닝 (09:00~17:30)">🟢 A조 오프닝 (09:00~17:30)</option>
                   <option value="B조 마감 (13:30~22:00)">🟡 B조 마감 (13:30~22:00)</option>
-                  <option value="FULL 조 (09:00~22:00)">🟣 FULL 조 (09:00~22:00)</option>
                 </select>
               </div>
             </div>
