@@ -50,7 +50,6 @@ window.App = (function () {
 
     renderActiveModule();
   }
-
 function setupEventListeners() {
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
@@ -76,17 +75,34 @@ function setupEventListeners() {
       }
     });
 
-    // ★ 모바일 UX 개선: 사이드바 바깥(어두운 배경 영역) 클릭 시 사이드바 부드럽게 닫기
+    // 1. 기존에 추가했던 '바깥 어두운 배경(오버레이)' 터치 시 닫기
     const overlay = document.getElementById('drawer-overlay');
     if (overlay) {
       overlay.addEventListener('click', () => {
-        // 모바일(화면 너비 900px 이하) 환경에서만 작동하도록 안전장치 적용
         if (window.innerWidth <= 900) {
           closeDrawer();
         }
       });
     }
+
+    // 2. ★ 대표님 요청 기능: 사이드바 내부의 까만 '빈 공간' 터치 시 닫기
+    const drawer = document.getElementById('app-drawer');
+    if (drawer) {
+      drawer.addEventListener('click', (e) => {
+        // 스마트폰(모바일) 화면 크기일 때만 작동
+        if (window.innerWidth <= 900) {
+          // 터치한 곳이 버튼이나 하단 서명란인지 확인
+          const isButtonOrFooter = e.target.closest('button') || e.target.closest('.drawer-footer');
+          
+          // 버튼이나 서명란이 아닌, 사진에 동그라미 치신 진짜 '빈 공간'을 터치했을 때만 사이드바 닫기
+          if (!isButtonOrFooter) {
+            closeDrawer();
+          }
+        }
+      });
+    }
   }
+
 
   function renderSidebarNavigation() {
     const nav = document.querySelector('.drawer-menu');
