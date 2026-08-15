@@ -205,104 +205,88 @@ window.WorklogModule = (function () {
         ` : filteredLogs.slice(0, 5).map(log => {
           const isShiftA = log.shift && log.shift.includes('A조');
           const isShiftB = log.shift && log.shift.includes('B조');
-          const badgeClass = isShiftA ? 'bg-primary' : isShiftB ? 'bg-warning text-dark' : 'bg-success';
           const dateWithDay = getFormattedDateWithDay(log.date);
 
           return `
-            <div class="card mb-4 shadow-sm" style="border-radius:18px; border:1px solid #cbd5e1; overflow:hidden; background:#ffffff;">
-              <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2" style="background:#f8fafc; padding:16px 24px; border-bottom:1px solid #e2e8f0;">
-                <div class="d-flex align-items-center gap-3">
-                  <span class="badge ${badgeClass}" style="font-size:14px; padding:8px 14px; border-radius:20px; font-weight:bold;">
+            <div class="card mb-4 shadow-sm" style="border-radius:18px; border:1px solid #e2e8f0; overflow:hidden; background:#ffffff;">
+              <!-- 카드 헤더 -->
+              <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%); padding:14px 20px;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                  <span style="background:${isShiftA?'#3b82f6':isShiftB?'#f59e0b':'#10b981'}; color:#fff; font-size:12px; font-weight:800; padding:5px 12px; border-radius:20px; letter-spacing:0.3px;">
                     ${log.shift || '교대일지'}
                   </span>
-                  <h3 style="font-size:18px; font-weight:bold; margin:0; color:#0f172a;">
-                    📅 ${dateWithDay} 약국 업무일지
-                  </h3>
+                  <span style="font-size:15px; font-weight:800; color:#ffffff; letter-spacing:-0.3px;">
+                    📅 ${dateWithDay}
+                  </span>
                 </div>
-                <div class="d-flex align-items-center gap-3" style="font-size:13px; color:#64748b;">
-                  <span>👤 작성자: <strong style="color:#0f172a;">${log.authorName}</strong> (${log.authorRole || '약국직원'})</span>
-                  <button type="button" class="btn btn-sm btn-outline-primary" onclick="WorklogModule.openDayDetailModal('${log.date}')" style="border-radius:20px; font-size:12px; padding:4px 12px;">
-                    <i class="fas fa-expand-alt"></i> 당일 상세 팝업
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <span style="font-size:12px; color:#94a3b8;">👤 <strong style="color:#e2e8f0;">${log.authorName}</strong></span>
+                  <button type="button" onclick="WorklogModule.openDayDetailModal('${log.date}')" style="background:rgba(255,255,255,0.12); color:#e2e8f0; border:1px solid rgba(255,255,255,0.2); border-radius:16px; padding:4px 12px; font-size:11.5px; font-weight:600; cursor:pointer;">
+                    <i class="fas fa-expand-alt"></i> 상세보기
                   </button>
                 </div>
               </div>
 
-              <div class="card-body" style="padding:24px;">
-                <div class="row g-3">
-                  <div class="col-md-6">
-                    <div class="p-3 h-100" style="background:#eff6ff; border-radius:12px; border-left:5px solid #2563eb; border:1px solid #bfdbfe; border-left-width:5px;">
-                      <div class="d-flex align-items-center gap-2 mb-2">
-                        <div style="width:26px; height:26px; border-radius:50%; background:#2563eb; color:#fff; display:flex; justify-content:center; align-items:center; font-size:12px;">
-                          <i class="fas fa-pills"></i>
-                        </div>
-                        <h4 style="font-size:14px; font-weight:bold; color:#1e40af; margin:0;">1. 💊 특이 처방 & 품절 의약품</h4>
-                      </div>
-                      <div style="font-size:13.5px; color:#1e293b; line-height:1.6; white-space:pre-wrap; background:#ffffff; padding:10px; border-radius:8px; border:1px solid #dbeafe;">
-                        ${log.contentRx ? log.contentRx : '<span class="text-muted">특이사항 없음</span>'}
-                      </div>
-                    </div>
-                  </div>
+              <div style="padding:16px 18px; display:flex; flex-direction:column; gap:10px;">
 
-                  <div class="col-md-6">
-                    <div class="p-3 h-100" style="background:#f0fdf4; border-radius:12px; border-left:5px solid #16a34a; border:1px solid #bbf7d0; border-left-width:5px;">
-                      <div class="d-flex align-items-center gap-2 mb-2">
-                        <div style="width:26px; height:26px; border-radius:50%; background:#16a34a; color:#fff; display:flex; justify-content:center; align-items:center; font-size:12px;">
-                          <i class="fas fa-desktop"></i>
-                        </div>
-                        <h4 style="font-size:14px; font-weight:bold; color:#166534; margin:0;">2. 🛒 매장 POS & 조제장비 특이사항</h4>
-                      </div>
-                      <div style="font-size:13.5px; color:#1e293b; line-height:1.6; white-space:pre-wrap; background:#ffffff; padding:10px; border-radius:8px; border:1px solid #dcfce7;">
-                        ${log.contentPos ? log.contentPos : '<span class="text-muted">특이사항 없음</span>'}
-                      </div>
+                <!-- 섹션1: 특이처방 -->
+                <div style="border-radius:12px; border:1px solid #bfdbfe; overflow:hidden;">
+                  <div style="display:flex; align-items:center; gap:9px; padding:9px 13px; background:#eff6ff;">
+                    <div style="width:26px; height:26px; border-radius:7px; background:#2563eb; color:#fff; display:flex; justify-content:center; align-items:center; font-size:12px; flex-shrink:0;">
+                      <i class="fas fa-pills"></i>
                     </div>
+                    <span style="font-size:12.5px; font-weight:700; color:#1e40af;">1. 💊 특이 처방 &amp; 품절 의약품</span>
                   </div>
-
-                  <div class="col-md-6">
-                    <div class="p-3 h-100" style="background:#fffbeb; border-radius:12px; border-left:5px solid #d97706; border:1px solid #fde68a; border-left-width:5px;">
-                      <div class="d-flex align-items-center gap-2 mb-2">
-                        <div style="width:26px; height:26px; border-radius:50%; background:#d97706; color:#fff; display:flex; justify-content:center; align-items:center; font-size:12px;">
-                          <i class="fas fa-truck"></i>
-                        </div>
-                        <h4 style="font-size:14px; font-weight:bold; color:#92400e; margin:0;">3. 📦 도매상 입고 검수 완료건</h4>
-                      </div>
-                      <div style="font-size:13.5px; color:#1e293b; line-height:1.6; white-space:pre-wrap; background:#ffffff; padding:10px; border-radius:8px; border:1px solid #fef3c7;">
-                        ${log.contentDelivery ? log.contentDelivery : '<span class="text-muted">특이사항 없음</span>'}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div class="col-md-6">
-                    <div class="p-3 h-100" style="background:#faf5ff; border-radius:12px; border-left:5px solid #9333ea; border:1px solid #e9d5ff; border-left-width:5px;">
-                      <div class="d-flex align-items-center gap-2 mb-2">
-                        <div style="width:26px; height:26px; border-radius:50%; background:#9333ea; color:#fff; display:flex; justify-content:center; align-items:center; font-size:12px;">
-                          <i class="fas fa-bullhorn"></i>
-                        </div>
-                        <h4 style="font-size:14px; font-weight:bold; color:#6b21a8; margin:0;">4. 💡 다음 교대조 전달사항</h4>
-                      </div>
-                      <div style="font-size:13.5px; color:#1e293b; line-height:1.6; white-space:pre-wrap; background:#ffffff; padding:10px; border-radius:8px; border:1px solid #f3e8ff; font-weight:600;">
-                        ${log.note ? log.note : '<span class="text-muted">전달사항 없음</span>'}
-                      </div>
-                    </div>
+                  <div style="padding:11px 14px; font-size:13.5px; color:#1e293b; line-height:1.8; word-break:keep-all; word-wrap:break-word; background:#f8fbff;">
+                    ${log.contentRx ? log.contentRx.replace(/\n/g,'<br>') : '<span style="color:#94a3b8; font-style:italic; font-size:13px;">특이사항 없음</span>'}
                   </div>
                 </div>
 
-                <div class="mt-3 pt-3 border-top d-flex justify-content-between align-items-center flex-wrap gap-2" style="background:#f8fafc; padding:10px 16px; border-radius:10px; border:1px solid #e2e8f0;">
-                  <div class="d-flex align-items-center gap-2 flex-wrap">
-                    <span style="font-size:12.5px; font-weight:bold; color:#475569;">
-                      <i class="fas fa-user-check text-success"></i> 확인(확답) 완료한 직원:
+                <!-- 섹션2: POS/조제장비 -->
+                <div style="border-radius:12px; border:1px solid #bbf7d0; overflow:hidden;">
+                  <div style="display:flex; align-items:center; gap:9px; padding:9px 13px; background:#f0fdf4;">
+                    <div style="width:26px; height:26px; border-radius:7px; background:#16a34a; color:#fff; display:flex; justify-content:center; align-items:center; font-size:12px; flex-shrink:0;">
+                      <i class="fas fa-desktop"></i>
+                    </div>
+                    <span style="font-size:12.5px; font-weight:700; color:#166534;">2. 🛒 매장 POS &amp; 조제장비 특이사항</span>
+                  </div>
+                  <div style="padding:11px 14px; font-size:13.5px; color:#1e293b; line-height:1.8; word-break:keep-all; word-wrap:break-word; background:#f8fffe;">
+                    ${log.contentPos ? log.contentPos.replace(/\n/g,'<br>') : '<span style="color:#94a3b8; font-style:italic; font-size:13px;">특이사항 없음</span>'}
+                  </div>
+                </div>
+
+                <!-- 섹션3: 도매상 입고 -->
+                <div style="border-radius:12px; border:1px solid #fde68a; overflow:hidden;">
+                  <div style="display:flex; align-items:center; gap:9px; padding:9px 13px; background:#fffbeb;">
+                    <div style="width:26px; height:26px; border-radius:7px; background:#d97706; color:#fff; display:flex; justify-content:center; align-items:center; font-size:12px; flex-shrink:0;">
+                      <i class="fas fa-truck"></i>
+                    </div>
+                    <span style="font-size:12.5px; font-weight:700; color:#92400e;">3. 📦 도매상 입고 검수 완료건</span>
+                  </div>
+                  <div style="padding:11px 14px; font-size:13.5px; color:#1e293b; line-height:1.8; word-break:keep-all; word-wrap:break-word; background:#fffef8;">
+                    ${log.contentDelivery ? log.contentDelivery.replace(/\n/g,'<br>') : '<span style="color:#94a3b8; font-style:italic; font-size:13px;">특이사항 없음</span>'}
+                  </div>
+                </div>
+
+                <!-- 섹션4: 다음 교대조 전달사항 -->
+                <div style="border-radius:12px; border:1px solid #e9d5ff; overflow:hidden;">
+                  <div style="display:flex; align-items:center; gap:9px; padding:9px 13px; background:#faf5ff;">
+                    <div style="width:26px; height:26px; border-radius:7px; background:#9333ea; color:#fff; display:flex; justify-content:center; align-items:center; font-size:12px; flex-shrink:0;">
+                      <i class="fas fa-bullhorn"></i>
+                    </div>
+                    <span style="font-size:12.5px; font-weight:700; color:#6b21a8;">4. 💡 다음 교대조 전달사항</span>
+                  </div>
+                  <div style="padding:11px 14px; font-size:13.5px; color:#1e293b; line-height:1.8; font-weight:600; word-break:keep-all; word-wrap:break-word; background:#fdfaff;">
+                    ${log.note ? log.note.replace(/\n/g,'<br>') : '<span style="color:#94a3b8; font-style:italic; font-weight:400; font-size:13px;">전달사항 없음</span>'}
+                  </div>
+                </div>
+
+                <!-- 하단 확인 바 -->
+                <div style="padding:11px 14px; background:#f8fafc; border-radius:10px; border:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                  <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                    <span style="font-size:11.5px; font-weight:700; color:#475569; white-space:nowrap;">
+                      <i class="fas fa-user-check" style="color:#16a34a;"></i> 확인 완료:
                     </span>
-                    ${(log.checkedBy && log.checkedBy.length > 0) ? log.checkedBy.map(name => `
-                      <span class="badge bg-success" style="font-size:11.5px; padding:5px 10px; border-radius:20px; font-weight:normal;">
-                        ✓ ${name}
-                      </span>
-                    `).join('') : '<span class="text-muted" style="font-size:12px;">아직 인수 확인한 직원이 없습니다.</span>'}
-                  </div>
-                  <button type="button" class="btn btn-sm btn-success font-bold" onclick="WorklogModule.checkAck('${log.id}')" style="border-radius:20px; padding:6px 14px; font-size:12.5px;">
-                    <i class="fas fa-check-circle"></i> [ ✅ 본인 확인완료 체크 ]
-                  </button>
-                </div>
-              </div>
-            </div>
           `;
         }).join('')}
       </div>
