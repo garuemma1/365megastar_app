@@ -207,6 +207,32 @@ window.BuildingRentalModule = (function () {
         </div>
       </div>
 
+      <!-- 📊 Chart.js 시각화: 호실별 월세 vs 이자 & 순수익 구조 -->
+      <div class="row g-3 mb-4">
+        <div class="col-md-7">
+          <div class="card shadow-sm" style="border-radius:16px; border:1.5px solid #cbd5e1; overflow:hidden;">
+            <div class="card-header d-flex justify-content-between align-items-center" style="background:#f8fafc; border-bottom:1.5px solid #e2e8f0; padding:12px 18px;">
+              <h4 style="font-size:14px; font-weight:800; color:#0f172a; margin:0;"><i class="fas fa-chart-bar text-success me-2"></i>📊 호실별 월세 수입 vs 대출 이자 비교</h4>
+              <span class="badge bg-success" style="font-size:11px; padding:4px 9px; border-radius:7px;">월간 Bar</span>
+            </div>
+            <div style="position:relative; height:220px; width:100%; padding:12px;">
+              <canvas id="rentalBarCanvas"></canvas>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-5">
+          <div class="card shadow-sm" style="border-radius:16px; border:1.5px solid #cbd5e1; overflow:hidden;">
+            <div class="card-header d-flex justify-content-between align-items-center" style="background:#f8fafc; border-bottom:1.5px solid #e2e8f0; padding:12px 18px;">
+              <h4 style="font-size:14px; font-weight:800; color:#0f172a; margin:0;"><i class="fas fa-chart-pie text-primary me-2"></i>🍩 지분별 순수익 구조</h4>
+              <span class="badge bg-primary" style="font-size:11px; padding:4px 9px; border-radius:7px;">Donut</span>
+            </div>
+            <div style="position:relative; height:220px; width:100%; padding:12px;">
+              <canvas id="rentalDonutCanvas"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- 📌 세부 서브 탭 네비게이션 -->
       <div class="d-flex gap-2 border-bottom pb-3 mb-4 flex-wrap">
         <button type="button" class="btn ${activeSubTab === 'ledger' ? 'btn-success font-bold' : 'btn-outline-secondary'}" onclick="BuildingRentalModule.setSubTab('ledger')" style="border-radius:10px; padding:10px 20px; font-size:14px;">
@@ -496,6 +522,10 @@ window.BuildingRentalModule = (function () {
     }
 
     container.innerHTML = html;
+
+    setTimeout(() => {
+      initRentalCharts(calculatedUnits);
+    }, 50);
   }
 
   // --- CRUD 기능 구현 (신규 등록 모달 / 수정 모달 / 삭제) ---
@@ -776,6 +806,71 @@ window.BuildingRentalModule = (function () {
       }
     };
     reader.readAsText(file, 'UTF-8');
+  }
+
+  let rentalChartInstances = {};
+
+  function initRentalCharts(units) {
+    if (typeof Chart === 'undefined') return;
+    const fmt2 = v => Math.round((v || 0) / 10000);
+
+    // 1. Bar: unit rent vs interest
+    const barCtx = document.getElementById('rentalBarCanvas');
+    if (barCtx) {
+      if (rentalChartInstances.bar) rentalChartInstances.bar.destroy();
+      const labels = units.map(u => (u.unit || u.buildingName || '').substring(0, 6));
+      rentalChartInstances.bar = new Chart(barCtx, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: '월세 수입 (만원)',
+              data: units.map(u => fmt2(u.rent)),
+              backgroundColor: 'rgba(16, 185, 129, 0.82)',
+              borderRadius: 5
+            },
+            {
+              label: '대출 이자 (만원)',
+              data: units.map(u => fmt2(u.mortgageInterest || 0)),
+              backgroundColor: 'rgba(239, 68, 68, 0.72)',
+              borderRadius: 5
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'top', labels: { boxWidth: 10, font: { size: 10 } } },
+            tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + ctx.raw.toLocaleString('ko-KR') + '만 원' } }
+          },
+          scales: { y: { ticks: { callback: v => v + '만' } } }
+        }
+      });
+    }
+
+    // 2. Donut: net share breakdown
+    const donutCtx = document.getElementById('rentalDonutCanvas');
+    if (donutCtx) {
+      if (rentalChartInstances.donut) rentalChartInstances.donut.destroy();
+      const positiveUnits = units.filter(u => u.myNetShare > 0);
+      rentalChartInstances.donut = new Chart(donutCtx, {
+        type: 'doughnut',
+        data: {
+          labels: positiveUnits.map(u => (u.unit || u.buildingName || '').substring(0, 6)),
+          datasets: [{
+            data: positiveUnits.map(u => fmt2(u.myNetShare)),
+            backgroundColor: ['#10b981','#3b82f6','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#f97316','#84cc16','#ec4899']
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { position: 'right', labels: { boxWidth: 10, font: { size: 10 } } } }
+        }
+      });
+    }
   }
 
   return {
