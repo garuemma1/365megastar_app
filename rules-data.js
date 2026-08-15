@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 365메가스타약국 취업규칙 데이터베이스 (365 Megastar Pharmacy Employment Regulations Data)
  * 시행일: 2027년 1월 1일
  */
