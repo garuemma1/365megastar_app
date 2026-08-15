@@ -106,10 +106,35 @@ window.PharmacySettlementModule = (function () {
 
     const totalFinancialCost = loanInterest + loanPrincipal + totalCustomFinancial;
 
-    // 6. 총지출 및 순이익
-    const totalExpenses = totalDrugCost + totalPayrollExpense + totalFixedOperating + totalFinancialCost;
-    const netProfit = totalRevenue - totalExpenses;
-    const marginRate = totalRevenue > 0 ? ((netProfit / totalRevenue) * 100).toFixed(1) : '0.0';
+    // 6. Lean-OPS 변동비 / 고정비 / 공헌이익 / 영업이익 연산
+    let parttimePayroll = 0;
+    let fulltimePayroll = 0;
+    payrollDetails.forEach(item => {
+      if ((item.emp.role || '').includes('약사')) {
+        parttimePayroll += item.payAmount;
+      } else {
+        fulltimePayroll += item.payAmount;
+      }
+    });
+
+    // 변동비: 약품 사입비 + 파트타임 약사 인건비 + POS/카드 수수료
+    const variableCosts = totalDrugCost + parttimePayroll + posFee;
+    const variableRate = totalRevenue > 0 ? ((variableCosts / totalRevenue) * 100).toFixed(1) : '0.0';
+
+    // 공헌이익 = 매출 - 변동비
+    const contributionMargin = totalRevenue - variableCosts;
+    const contributionMarginRate = totalRevenue > 0 ? ((contributionMargin / totalRevenue) * 100).toFixed(1) : '0.0';
+
+    // 고정비 = 임차료 + 건물관리비 + 정직원 인건비 + 4대보험 + 세무사 기장료 + 동적 고정비 + 금융비용
+    const fixedCosts = rentExp + maintExp + fulltimePayroll + ins4Cost + taxFee + totalCustomOperating + totalFinancialCost;
+    const fixedRate = totalRevenue > 0 ? ((fixedCosts / totalRevenue) * 100).toFixed(1) : '0.0';
+
+    // 영업이익 = 공헌이익 - 고정비
+    const operatingProfit = contributionMargin - fixedCosts;
+    const operatingProfitRate = totalRevenue > 0 ? ((operatingProfit / totalRevenue) * 100).toFixed(1) : '0.0';
+
+    const totalExpenses = variableCosts + fixedCosts;
+    const netProfit = operatingProfit;
 
     // 일평균 매출
     const dailyAvgRev = Math.round(totalRevenue / 31);
@@ -120,7 +145,7 @@ window.PharmacySettlementModule = (function () {
       <div class="module-header d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
         <div>
           <h2 style="font-size:22px; font-weight:800; color:#0f172a; margin:0;"><i class="fas fa-calculator text-primary me-2"></i> 📊 365메가스타약국 스마트 정산 대시보드</h2>
-          <p class="subtitle" style="font-size:13px; color:#64748b; margin:4px 0 0 0;">약국장 전용: 일일결산 31일 세부 수정/추가, P&L 거래처·고정비·금융비용 개별 CRUD 및 구글 시트 100% 양방향 연동</p>
+          <p class="subtitle" style="font-size:13px; color:#64748b; margin:4px 0 0 0;">약국장 전용: Lean-OPS 경영 대시보드 (매출·변동비·공헌이익·고정비·영업이익 5대 파이프라인 연동)</p>
         </div>
         <div class="d-flex align-items-center gap-2">
           <button type="button" class="btn btn-outline-success font-bold" onclick="PharmacySettlementModule.openImportModal()" style="border-radius:10px; padding:7px 14px; font-size:13px; box-shadow:0 2px 6px rgba(16,185,129,0.15);">
@@ -133,73 +158,89 @@ window.PharmacySettlementModule = (function () {
         </div>
       </div>
 
-      <!-- 💡 상단 핵심 KPI 요약 카드 (Executive Summary KPI Cards) -->
-      <div class="row g-3 mb-4">
-        <div class="col-md-3 col-6">
-          <div class="kpi-summary-card">
-            <div class="kpi-header-row">
-              <span class="kpi-title-text">당월 약국 총 수입</span>
-              <div class="kpi-icon-avatar kpi-avatar-blue">
-                <i class="fas fa-wallet"></i>
-              </div>
-            </div>
-            <div class="kpi-number-display text-primary">
-              ${fmt(totalRevenue)} <span class="currency-unit" style="font-size:14px; font-weight:700;">원</span>
-            </div>
-            <div class="kpi-subtitle-text">
-              조제료 ${fmt(dispensingFee + patientCopay + nhisClaim)}원 · 일반매출 ${fmt(generalRevenue)}원
-            </div>
-          </div>
-        </div>
-
-        <div class="col-md-3 col-6">
-          <div class="kpi-summary-card">
-            <div class="kpi-header-row">
-              <span class="kpi-title-text">당월 약국 총 지출</span>
-              <div class="kpi-icon-avatar kpi-avatar-red">
-                <i class="fas fa-file-invoice-dollar"></i>
-              </div>
-            </div>
-            <div class="kpi-number-display text-danger">
-              ${fmt(totalExpenses)} <span class="currency-unit" style="font-size:14px; font-weight:700;">원</span>
-            </div>
-            <div class="kpi-subtitle-text">
-              약품비 ${fmt(totalDrugCost)}원 · 인건비 ${fmt(totalPayrollExpense)}원
-            </div>
-          </div>
-        </div>
-
-        <div class="col-md-3 col-6">
-          <div class="kpi-summary-card">
-            <div class="kpi-header-row">
-              <span class="kpi-title-text">당월 약국 순이익 (P&L)</span>
-              <div class="kpi-icon-avatar kpi-avatar-emerald">
+      <!-- 💡 Lean-OPS 스타일 5대 핵심 경영 KPI 카드 (Executive Financial Pipeline 5 Cards) -->
+      <div class="row g-2 mb-4">
+        <div class="col-md-2-4 col-sm-6 col-12" style="flex:0 0 auto; width:20%;">
+          <div class="kpi-summary-card p-3" style="border-radius:16px; border:1.5px solid #cbd5e1; background:#ffffff;">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span style="font-size:12.5px; font-weight:800; color:#475569;">매출</span>
+              <div style="width:28px; height:28px; border-radius:8px; background:#eff6ff; color:#2563eb; display:flex; align-items:center; justify-content:center; font-size:13px;">
                 <i class="fas fa-chart-line"></i>
               </div>
             </div>
-            <div class="kpi-number-display text-success">
-              ${fmt(netProfit)} <span class="currency-unit" style="font-size:14px; font-weight:700;">원</span>
+            <div style="font-size:19px; font-weight:800; color:#0f172a; font-family:'Outfit', sans-serif;">
+              ${(totalRevenue / 100000000).toFixed(1)}<span style="font-size:13px; font-weight:700;">억 원</span>
             </div>
-            <div class="kpi-subtitle-text d-flex align-items-center gap-1">
-              <span>손익 마진율:</span>
-              <span class="badge bg-success" style="font-size:11px; padding:3px 7px; border-radius:6px;">${marginRate}%</span>
+            <div style="font-size:11px; color:#64748b; margin-top:2px;">
+              ₩${fmt(totalRevenue)}
             </div>
           </div>
         </div>
 
-        <div class="col-md-3 col-6">
-          <div class="kpi-summary-card">
-            <div class="kpi-header-row">
-              <span class="kpi-title-text">일평균 매출액 (31일)</span>
-              <div class="kpi-icon-avatar kpi-avatar-amber">
-                <i class="fas fa-calendar-day"></i>
+        <div class="col-md-2-4 col-sm-6 col-12" style="flex:0 0 auto; width:20%;">
+          <div class="kpi-summary-card p-3" style="border-radius:16px; border:1.5px solid #fca5a5; background:#fff5f5;">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span style="font-size:12.5px; font-weight:800; color:#991b1b;">변동비</span>
+              <div style="width:28px; height:28px; border-radius:8px; background:#fee2e2; color:#dc2626; display:flex; align-items:center; justify-content:center; font-size:13px;">
+                <i class="fas fa-shopping-cart"></i>
               </div>
             </div>
-            <div class="kpi-number-display text-warning" style="color:#d97706 !important;">
-              ${fmt(dailyAvgRev)} <span class="currency-unit" style="font-size:14px; font-weight:700;">원</span>
+            <div style="font-size:19px; font-weight:800; color:#b91c1c; font-family:'Outfit', sans-serif;">
+              ${(variableCosts / 100000000).toFixed(1)}<span style="font-size:13px; font-weight:700;">억 원</span>
             </div>
-            <div class="kpi-subtitle-text">
-              매일 평균 조제 + 일반매출 자동 연동
+            <div style="font-size:11px; color:#ef4444; margin-top:2px; font-weight:700;">
+              매출 대비 ${variableRate}% (약품비·파트타임)
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-2-4 col-sm-6 col-12" style="flex:0 0 auto; width:20%;">
+          <div class="kpi-summary-card p-3" style="border-radius:16px; border:1.5px solid #bfdbfe; background:#eff6ff;">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span style="font-size:12.5px; font-weight:800; color:#1e40af;">공헌이익</span>
+              <div style="width:28px; height:28px; border-radius:8px; background:#dbeafe; color:#1d4ed8; display:flex; align-items:center; justify-content:center; font-size:13px;">
+                <i class="fas fa-percentage"></i>
+              </div>
+            </div>
+            <div style="font-size:19px; font-weight:800; color:#1d4ed8; font-family:'Outfit', sans-serif;">
+              ${(contributionMargin / 100000000).toFixed(1)}<span style="font-size:13px; font-weight:700;">억 원</span>
+            </div>
+            <div style="font-size:11px; color:#2563eb; margin-top:2px; font-weight:700;">
+              공헌이익률 ${contributionMarginRate}% (매출 - 변동비)
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-2-4 col-sm-6 col-12" style="flex:0 0 auto; width:20%;">
+          <div class="kpi-summary-card p-3" style="border-radius:16px; border:1.5px solid #fed7aa; background:#fff7ed;">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span style="font-size:12.5px; font-weight:800; color:#c2410c;">고정비</span>
+              <div style="width:28px; height:28px; border-radius:8px; background:#ffedd5; color:#ea580c; display:flex; align-items:center; justify-content:center; font-size:13px;">
+                <i class="fas fa-building"></i>
+              </div>
+            </div>
+            <div style="font-size:19px; font-weight:800; color:#c2410c; font-family:'Outfit', sans-serif;">
+              ${(fixedCosts / 100000000).toFixed(1)}<span style="font-size:13px; font-weight:700;">억 원</span>
+            </div>
+            <div style="font-size:11px; color:#ea580c; margin-top:2px; font-weight:700;">
+              매출 대비 ${fixedRate}% (임대료·정직원)
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-2-4 col-sm-6 col-12" style="flex:0 0 auto; width:20%;">
+          <div class="kpi-summary-card p-3" style="border-radius:16px; border:1.5px solid #a7f3d0; background:#f0fdf4;">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span style="font-size:12.5px; font-weight:800; color:#15803d;">영업이익 (순이익)</span>
+              <div style="width:28px; height:28px; border-radius:8px; background:#dcfce7; color:#16a34a; display:flex; align-items:center; justify-content:center; font-size:13px;">
+                <i class="fas fa-trophy"></i>
+              </div>
+            </div>
+            <div style="font-size:19px; font-weight:800; color:#15803d; font-family:'Outfit', sans-serif;">
+              ${fmt(operatingProfit)}<span style="font-size:13px; font-weight:700;">원</span>
+            </div>
+            <div style="font-size:11px; color:#16a34a; margin-top:2px; font-weight:700;">
+              영업이익률 ${operatingProfitRate}% (공헌이익 - 고정비)
             </div>
           </div>
         </div>
