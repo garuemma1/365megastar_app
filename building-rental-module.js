@@ -130,89 +130,79 @@ window.BuildingRentalModule = (function () {
       </div>
 
       <!-- 💡 Lean-OPS 스타일 건물 임대업 5대 핵심 경영 KPI 카드 (Executive Asset Pipeline 5 Cards) -->
-      <div class="d-flex gap-2 mb-4 flex-wrap" style="align-items:stretch;">
-        <div style="flex:1 1 170px; min-width:160px;">
-          <div class="kpi-summary-card p-3 h-100" style="border-radius:16px; border:1.5px solid #cbd5e1; background:#ffffff;">
-            <div class="d-flex justify-content-between align-items-center mb-1">
-              <span style="font-size:12.5px; font-weight:800; color:#475569;">총 임대료 수입</span>
-              <div style="width:28px; height:28px; border-radius:8px; background:#eff6ff; color:#2563eb; display:flex; align-items:center; justify-content:center; font-size:13px;">
-                <i class="fas fa-building"></i>
-              </div>
+      <div class="mb-4" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(135px, 1fr)); gap:10px;">
+        <div class="kpi-summary-card p-3" style="border-radius:16px; border:1.5px solid #cbd5e1; background:#ffffff; display:flex; flex-direction:column; justify-content:space-between;">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span style="font-size:12px; font-weight:800; color:#475569;">총 임대료 수입</span>
+            <div style="width:24px; height:24px; border-radius:6px; background:#eff6ff; color:#2563eb; display:flex; align-items:center; justify-content:center; font-size:12px;">
+              <i class="fas fa-building"></i>
             </div>
-            <div style="font-size:19px; font-weight:800; color:#0f172a; font-family:'Outfit', sans-serif;">
-              ${fmt(totalMonthlyRent)}<span style="font-size:13px; font-weight:700;">원/월</span>
-            </div>
-            <div style="font-size:11px; color:#64748b; margin-top:2px;">
-              보유 사업장 ${calculatedUnits.length}개 호실
-            </div>
+          </div>
+          <div style="font-size:18px; font-weight:800; color:#0f172a; font-family:'Outfit', sans-serif;">
+            ${fmt(totalMonthlyRent)}<span style="font-size:12px; font-weight:700;">원/월</span>
+          </div>
+          <div style="font-size:10.5px; color:#64748b; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+            보유 ${calculatedUnits.length}개 호실
           </div>
         </div>
 
-        <div style="flex:1 1 170px; min-width:160px;">
-          <div class="kpi-summary-card p-3 h-100" style="border-radius:16px; border:1.5px solid #fed7aa; background:#fff7ed;">
-            <div class="d-flex justify-content-between align-items-center mb-1">
-              <span style="font-size:12.5px; font-weight:800; color:#c2410c;">운영 관리비</span>
-              <div style="width:28px; height:28px; border-radius:8px; background:#ffedd5; color:#ea580c; display:flex; align-items:center; justify-content:center; font-size:13px;">
-                <i class="fas fa-tools"></i>
-              </div>
+        <div class="kpi-summary-card p-3" style="border-radius:16px; border:1.5px solid #fed7aa; background:#fff7ed; display:flex; flex-direction:column; justify-content:space-between;">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span style="font-size:12px; font-weight:800; color:#c2410c;">운영 관리비</span>
+            <div style="width:24px; height:24px; border-radius:6px; background:#ffedd5; color:#ea580c; display:flex; align-items:center; justify-content:center; font-size:12px;">
+              <i class="fas fa-tools"></i>
             </div>
-            <div style="font-size:19px; font-weight:800; color:#c2410c; font-family:'Outfit', sans-serif;">
-              ${fmt(totalMonthlyMaint)}<span style="font-size:13px; font-weight:700;">원/월</span>
-            </div>
-            <div style="font-size:11px; color:#ea580c; margin-top:2px; font-weight:700;">
-              건물 유지·보수·전기수도
-            </div>
+          </div>
+          <div style="font-size:18px; font-weight:800; color:#c2410c; font-family:'Outfit', sans-serif;">
+            ${fmt(totalMonthlyMaint)}<span style="font-size:12px; font-weight:700;">원/월</span>
+          </div>
+          <div style="font-size:10.5px; color:#ea580c; margin-top:2px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+            유지보수·전기수도
           </div>
         </div>
 
-        <div style="flex:1 1 170px; min-width:160px;">
-          <div class="kpi-summary-card p-3 h-100" style="border-radius:16px; border:1.5px solid #bfdbfe; background:#eff6ff;">
-            <div class="d-flex justify-content-between align-items-center mb-1">
-              <span style="font-size:12.5px; font-weight:800; color:#1e40af;">공헌 수입</span>
-              <div style="width:28px; height:28px; border-radius:8px; background:#dbeafe; color:#1d4ed8; display:flex; align-items:center; justify-content:center; font-size:13px;">
-                <i class="fas fa-percentage"></i>
-              </div>
+        <div class="kpi-summary-card p-3" style="border-radius:16px; border:1.5px solid #bfdbfe; background:#eff6ff; display:flex; flex-direction:column; justify-content:space-between;">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span style="font-size:12px; font-weight:800; color:#1e40af;">공헌 수입</span>
+            <div style="width:24px; height:24px; border-radius:6px; background:#dbeafe; color:#1d4ed8; display:flex; align-items:center; justify-content:center; font-size:12px;">
+              <i class="fas fa-percentage"></i>
             </div>
-            <div style="font-size:19px; font-weight:800; color:#1d4ed8; font-family:'Outfit', sans-serif;">
-              ${fmt(totalMonthlyRent - totalMonthlyMaint)}<span style="font-size:13px; font-weight:700;">원/월</span>
-            </div>
-            <div style="font-size:11px; color:#2563eb; margin-top:2px; font-weight:700;">
-              수입 - 관리비 (공헌 마진)
-            </div>
+          </div>
+          <div style="font-size:18px; font-weight:800; color:#1d4ed8; font-family:'Outfit', sans-serif;">
+            ${fmt(totalMonthlyRent - totalMonthlyMaint)}<span style="font-size:12px; font-weight:700;">원/월</span>
+          </div>
+          <div style="font-size:10.5px; color:#2563eb; margin-top:2px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+            수입 - 관리비
           </div>
         </div>
 
-        <div style="flex:1 1 170px; min-width:160px;">
-          <div class="kpi-summary-card p-3 h-100" style="border-radius:16px; border:1.5px solid #fca5a5; background:#fff5f5;">
-            <div class="d-flex justify-content-between align-items-center mb-1">
-              <span style="font-size:12.5px; font-weight:800; color:#991b1b;">대출 금융이자</span>
-              <div style="width:28px; height:28px; border-radius:8px; background:#fee2e2; color:#dc2626; display:flex; align-items:center; justify-content:center; font-size:13px;">
-                <i class="fas fa-receipt"></i>
-              </div>
+        <div class="kpi-summary-card p-3" style="border-radius:16px; border:1.5px solid #fca5a5; background:#fff5f5; display:flex; flex-direction:column; justify-content:space-between;">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span style="font-size:12px; font-weight:800; color:#991b1b;">대출 금융이자</span>
+            <div style="width:24px; height:24px; border-radius:6px; background:#fee2e2; color:#dc2626; display:flex; align-items:center; justify-content:center; font-size:12px;">
+              <i class="fas fa-receipt"></i>
             </div>
-            <div style="font-size:19px; font-weight:800; color:#b91c1c; font-family:'Outfit', sans-serif;">
-              ${fmt(totalMonthlyInterest)}<span style="font-size:13px; font-weight:700;">원/월</span>
-            </div>
-            <div style="font-size:11px; color:#ef4444; margin-top:2px; font-weight:700;">
-              내 실부담: ${fmt(myMonthlyInterest)}원
-            </div>
+          </div>
+          <div style="font-size:18px; font-weight:800; color:#b91c1c; font-family:'Outfit', sans-serif;">
+            ${fmt(totalMonthlyInterest)}<span style="font-size:12px; font-weight:700;">원/월</span>
+          </div>
+          <div style="font-size:10.5px; color:#ef4444; margin-top:2px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+            내 부담 ₩${fmt(myMonthlyInterest)}
           </div>
         </div>
 
-        <div style="flex:1 1 170px; min-width:160px;">
-          <div class="kpi-summary-card p-3 h-100" style="border-radius:16px; border:2px solid #10b981; background:#f0fdf4;">
-            <div class="d-flex justify-content-between align-items-center mb-1">
-              <span style="font-size:12.5px; font-weight:800; color:#15803d;">★ 내지분 실수취 순수익</span>
-              <div style="width:28px; height:28px; border-radius:8px; background:#10b981; color:#ffffff; display:flex; align-items:center; justify-content:center; font-size:13px;">
-                <i class="fas fa-coins"></i>
-              </div>
+        <div class="kpi-summary-card p-3" style="border-radius:16px; border:2px solid #10b981; background:#f0fdf4; display:flex; flex-direction:column; justify-content:space-between;">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span style="font-size:12px; font-weight:800; color:#15803d;">★ 실수취 순수익</span>
+            <div style="width:24px; height:24px; border-radius:6px; background:#10b981; color:#ffffff; display:flex; align-items:center; justify-content:center; font-size:12px;">
+              <i class="fas fa-coins"></i>
             </div>
-            <div style="font-size:19px; font-weight:800; color:#15803d; font-family:'Outfit', sans-serif;">
-              ${fmt(myNetProfit)}<span style="font-size:13px; font-weight:700;">원/월</span>
-            </div>
-            <div style="font-size:11px; color:#047857; margin-top:2px; font-weight:700;">
-              연간 예상: ${fmt(myAnnualNetProfit)}원
-            </div>
+          </div>
+          <div style="font-size:18px; font-weight:800; color:#15803d; font-family:'Outfit', sans-serif;">
+            ${fmt(myNetProfit)}<span style="font-size:12px; font-weight:700;">원/월</span>
+          </div>
+          <div style="font-size:10.5px; color:#047857; margin-top:2px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+            연간 ₩${fmt(myAnnualNetProfit)}
           </div>
         </div>
       </div>
