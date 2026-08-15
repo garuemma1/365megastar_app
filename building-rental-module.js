@@ -250,111 +250,133 @@ window.BuildingRentalModule = (function () {
     // 1. [상가별 임대차 관리 마스터 테이블 (세금계산서 & 수지 분석)]
     if (activeSubTab === 'ledger') {
       html += `
-        <div class="card mb-4 shadow-sm" style="border-radius:18px; border:1.5px solid #cbd5e1; overflow:hidden;">
-          <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2" style="background:#0f172a; color:#ffffff; padding:16px 20px;">
-            <h3 style="font-size:16.5px; font-weight:800; margin:0; color:#ffffff;"><i class="fas fa-table me-2 text-success"></i> 상가/건물 임대차 대장 & 공동투자 지분별 정산표</h3>
+        <div class="card mb-3 shadow-sm" style="border-radius:18px; border:1px solid #e2e8f0; overflow:hidden;">
+          <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2" style="background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%); color:#ffffff; padding:14px 18px;">
+            <h3 style="font-size:15px; font-weight:800; margin:0; color:#ffffff; letter-spacing:-0.3px;"><i class="fas fa-table me-2" style="color:#34d399;"></i> 임대차 대장 &amp; 지분별 정산표</h3>
             <div class="d-flex align-items-center gap-2">
-              <button type="button" class="btn btn-sm btn-success font-bold" onclick="BuildingRentalModule.openAddModal()">
+              <button type="button" class="btn btn-sm font-bold" onclick="BuildingRentalModule.openAddModal()" style="background:#10b981;color:#fff;border:none;border-radius:8px;padding:5px 12px;font-size:12px;">
                 <i class="fas fa-plus me-1"></i> 신규 등록
               </button>
-              <span style="font-size:12px; color:#cbd5e1;">전체 ${calculatedUnits.length}개 사업장 (수정/삭제 실시간 반영)</span>
+              <span style="font-size:11px; color:#94a3b8;">총 ${calculatedUnits.length}개 사업장</span>
             </div>
           </div>
           <div class="card-body p-0">
-            <div class="table-responsive">
-              <table class="table table-striped table-hover align-middle mb-0" style="font-size:13px;">
-                <thead style="background:#f1f5f9; color:#334155;">
+            <div class="table-responsive" style="-webkit-overflow-scrolling:touch;">
+              <table class="table align-middle mb-0" style="font-size:12.5px; min-width:700px;">
+                <thead style="background:#f8fafc; color:#475569; border-bottom:2px solid #e2e8f0;">
                   <tr>
-                    <th style="padding:12px 14px;">상호 / 호실명</th>
-                    <th style="padding:12px 10px;">명의 및 지분율</th>
-                    <th style="padding:12px 10px;">소재지 / 사업자번호</th>
-                    <th style="text-align:right; padding:12px 10px;">보증금</th>
-                    <th style="text-align:right; padding:12px 10px;">월세 (VAT별도)</th>
-                    <th style="text-align:right; padding:12px 10px;">월 대출이자</th>
-                    <th style="text-align:right; padding:12px 10px;">전체 순수익</th>
-                    <th style="text-align:right; padding:12px 14px; background:#e6f4ea; color:#137333;">★ 내 지분 순수익(월)</th>
-                    <th style="text-align:center; padding:12px 10px; width:130px;">계약만료 / D-Day</th>
-                    <th style="text-align:center; padding:12px 10px; width:120px;">관리</th>
+                    <th style="padding:11px 12px; font-weight:700; font-size:11.5px; white-space:nowrap;">상호 / 호실</th>
+                    <th style="padding:11px 8px; font-weight:700; font-size:11.5px;">지분</th>
+                    <th style="padding:11px 8px; font-weight:700; font-size:11.5px;">소재지</th>
+                    <th style="text-align:right; padding:11px 8px; font-weight:700; font-size:11.5px; white-space:nowrap;">월세</th>
+                    <th style="text-align:right; padding:11px 8px; font-weight:700; font-size:11.5px; white-space:nowrap;">대출이자</th>
+                    <th style="text-align:right; padding:11px 8px; font-weight:700; font-size:11.5px; white-space:nowrap;">순수익</th>
+                    <th style="text-align:right; padding:11px 12px; font-weight:700; font-size:11.5px; white-space:nowrap; background:#ecfdf5; color:#065f46;">★ 내 지분</th>
+                    <th style="text-align:center; padding:11px 8px; font-weight:700; font-size:11.5px; white-space:nowrap;">만료 D-Day</th>
+                    <th style="text-align:center; padding:11px 8px; font-weight:700; font-size:11.5px;">관리</th>
                   </tr>
                 </thead>
                 <tbody>
                   ${calculatedUnits.map((u, idx) => {
                     const dday = calculateDDay(u.endDate);
                     const isWarning = dday.days <= 90;
-
+                    const isEven = idx % 2 === 0;
                     return `
-                      <tr>
-                        <td style="padding:12px 14px;">
-                          <strong style="font-size:14px; color:#0f172a;">${u.buildingName}</strong><br>
-                          <small class="text-muted">${u.unit} (${u.tenantName})</small>
+                      <tr style="background:${isEven ? '#ffffff' : '#f8fafc'}; border-bottom:1px solid #f1f5f9;">
+                        <td style="padding:11px 12px;">
+                          <div style="font-size:13px; font-weight:700; color:#0f172a; line-height:1.3;">${u.buildingName}</div>
+                          <div style="font-size:11px; color:#94a3b8; margin-top:2px;">${u.unit}</div>
                         </td>
-                        <td style="padding:12px 10px;">
-                          <span class="badge ${u.shareRate === 100 ? 'bg-success' : 'bg-primary'}" style="font-size:11.5px; padding:4px 8px;">
+                        <td style="padding:11px 8px;">
+                          <span style="display:inline-block; background:${u.shareRate===100?'#dcfce7':'#dbeafe'}; color:${u.shareRate===100?'#166534':'#1e40af'}; font-size:11px; font-weight:700; padding:3px 7px; border-radius:6px;">
                             ${u.ownerLabel || (u.shareRate + '%')}
                           </span>
                         </td>
-                        <td style="padding:12px 10px; font-size:12px;">
-                          <div style="color:#334155; font-weight:600;">${u.location || '소재지 정보'}</div>
-                          <small class="text-muted">사업자: ${u.bizNo || '미등록'}</small>
+                        <td style="padding:11px 8px; font-size:11.5px;">
+                          <div style="color:#334155; font-weight:600; line-height:1.3;">${(u.location||'').split(' ').slice(0,3).join(' ')}</div>
+                          <div style="color:#94a3b8; font-size:10.5px;">${u.bizNo || ''}</div>
                         </td>
-                        <td style="text-align:right; padding:12px 10px; font-weight:700; font-family:'Outfit', sans-serif;">
-                          ${fmt(u.deposit)} 원
+                        <td style="text-align:right; padding:11px 8px; font-weight:700; color:#1d4ed8; font-family:'Outfit',sans-serif; white-space:nowrap;">
+                          ${fmt(u.rent)}<span style="font-size:10px;color:#94a3b8;">원</span>
+                          ${u.vatType==='TAX_EXEMPT'?'<span style="display:block;font-size:10px;color:#059669;">(면세)</span>':''}
                         </td>
-                        <td style="text-align:right; padding:12px 10px; font-weight:800; color:#2563eb; font-family:'Outfit', sans-serif;">
-                          ${fmt(u.rent)} 원
-                          ${u.vatType === 'TAX_EXEMPT' ? '<br><small class="text-success">(면세)</small>' : ''}
+                        <td style="text-align:right; padding:11px 8px; font-weight:700; color:#dc2626; font-family:'Outfit',sans-serif; white-space:nowrap;">
+                          ${fmt(u.mortgageInterest)}<span style="font-size:10px;color:#94a3b8;">원</span>
                         </td>
-                        <td style="text-align:right; padding:12px 10px; font-weight:700; color:#dc2626; font-family:'Outfit', sans-serif;">
-                          ${fmt(u.mortgageInterest)} 원
+                        <td style="text-align:right; padding:11px 8px; font-weight:700; color:#0f172a; font-family:'Outfit',sans-serif; white-space:nowrap;">
+                          ${fmt(u.totalNet)}<span style="font-size:10px;color:#94a3b8;">원</span>
                         </td>
-                        <td style="text-align:right; padding:12px 10px; font-weight:700; color:#0f172a; font-family:'Outfit', sans-serif;">
-                          ${fmt(u.totalNet)} 원
+                        <td style="text-align:right; padding:11px 12px; font-weight:800; color:#059669; font-size:13.5px; background:#f0fdf4; font-family:'Outfit',sans-serif; white-space:nowrap;">
+                          ${fmt(u.myNetShare)}<span style="font-size:10px;color:#6ee7b7;">원</span>
                         </td>
-                        <td style="text-align:right; padding:12px 14px; font-weight:800; color:#15803d; font-size:14.5px; background:#f0fdf4; font-family:'Outfit', sans-serif;">
-                          ${fmt(u.myNetShare)} 원
-                        </td>
-                        <td style="text-align:center; padding:12px 10px; font-size:12px;">
-                          <div>${u.endDate}</div>
-                          <span class="badge ${isWarning ? 'bg-danger' : 'bg-secondary'}" style="font-size:11px; margin-top:2px;">
+                        <td style="text-align:center; padding:11px 8px;">
+                          <div style="font-size:11px; color:#64748b;">${u.endDate}</div>
+                          <span style="display:inline-block;margin-top:3px;padding:2px 7px;border-radius:5px;font-size:10.5px;font-weight:700;background:${isWarning?'#fee2e2':'#f1f5f9'};color:${isWarning?'#dc2626':'#64748b'};">
                             ${dday.label}
                           </span>
                         </td>
-                        <td style="text-align:center; padding:12px 10px;">
-                          <div class="d-flex justify-content-center gap-1">
-                            <button type="button" class="btn btn-xs btn-outline-primary font-bold" onclick="BuildingRentalModule.openEditModal(${idx})" style="padding:3px 8px; font-size:11.5px;">
-                              ✏️ 수정
-                            </button>
-                            <button type="button" class="btn btn-xs btn-outline-danger font-bold" onclick="BuildingRentalModule.deleteProperty(${idx})" style="padding:3px 8px; font-size:11.5px;">
-                              🗑️ 삭제
-                            </button>
+                        <td style="text-align:center; padding:11px 8px;">
+                          <div style="display:flex; flex-direction:column; gap:3px; align-items:center;">
+                            <button type="button" onclick="BuildingRentalModule.openEditModal(${idx})" style="background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe;border-radius:6px;padding:3px 9px;font-size:11px;font-weight:700;cursor:pointer;">✏️ 수정</button>
+                            <button type="button" onclick="BuildingRentalModule.deleteProperty(${idx})" style="background:#fff5f5;color:#dc2626;border:1px solid #fecaca;border-radius:6px;padding:3px 9px;font-size:11px;font-weight:700;cursor:pointer;">🗑️ 삭제</button>
                           </div>
                         </td>
                       </tr>
                     `;
                   }).join('')}
                 </tbody>
-                <!-- 하단 포트폴리오 합계 대조 행 (Total Row) -->
-                <tfoot style="background:#0f172a; color:#ffffff; font-weight:800;">
-                  <tr>
-                    <td colspan="3" style="padding:14px; font-size:14.5px;">🏢 전체 포트폴리오 총액 합계</td>
-                    <td style="text-align:right; padding:14px; font-family:'Outfit', sans-serif;">${fmt(totalDeposit)} 원</td>
-                    <td style="text-align:right; padding:14px; color:#93c5fd; font-family:'Outfit', sans-serif;">${fmt(totalMonthlyRent)} 원</td>
-                    <td style="text-align:right; padding:14px; color:#fca5a5; font-family:'Outfit', sans-serif;">${fmt(totalMonthlyInterest)} 원</td>
-                    <td style="text-align:right; padding:14px; font-family:'Outfit', sans-serif;">${fmt(totalNetProfit)} 원</td>
-                    <td style="text-align:right; padding:14px; color:#4ade80; font-size:16px; background:#064e3b; font-family:'Outfit', sans-serif;">-</td>
-                    <td colspan="2">-</td>
-                  </tr>
-                  <tr style="background:#15803d; color:#ffffff; font-weight:800;">
-                    <td colspan="3" style="padding:14px; font-size:15px;">★ 약국장(문성도) 지분율 실수익 합계</td>
-                    <td style="text-align:right; padding:14px; font-family:'Outfit', sans-serif;">${fmt(myDeposit)} 원</td>
-                    <td style="text-align:right; padding:14px; font-family:'Outfit', sans-serif;">${fmt(myMonthlyRent)} 원</td>
-                    <td style="text-align:right; padding:14px; font-family:'Outfit', sans-serif;">${fmt(myMonthlyInterest)} 원</td>
-                    <td style="text-align:right; padding:14px; font-family:'Outfit', sans-serif;">-</td>
-                    <td style="text-align:right; padding:14px; font-size:17px; color:#ffffff; background:#166534; font-family:'Outfit', sans-serif;">${fmt(myNetProfit)} 원/월</td>
-                    <td colspan="2" style="font-size:13px; text-align:center;">(연간 ${fmt(myAnnualNetProfit)}원)</td>
-                  </tr>
-                </tfoot>
               </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ✅ 합계 카드 - 테이블 밖 별도 배치 (모바일에서 항상 보임) -->
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:20px;">
+          <!-- 전체 포트폴리오 합계 -->
+          <div style="background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%); border-radius:16px; padding:18px 20px; color:#fff;">
+            <div style="font-size:11px; font-weight:700; color:#94a3b8; letter-spacing:0.5px; margin-bottom:10px;">🏢 전체 포트폴리오 합계</div>
+            <div style="display:flex; flex-direction:column; gap:7px;">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-size:11.5px; color:#94a3b8;">총 보증금</span>
+                <span style="font-size:13px; font-weight:700; font-family:'Outfit',sans-serif;">${fmt(totalDeposit)}<small style="font-size:10px;color:#64748b;"> 원</small></span>
+              </div>
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-size:11.5px; color:#94a3b8;">총 월세 수입</span>
+                <span style="font-size:13px; font-weight:700; color:#93c5fd; font-family:'Outfit',sans-serif;">${fmt(totalMonthlyRent)}<small style="font-size:10px;color:#64748b;"> 원</small></span>
+              </div>
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-size:11.5px; color:#94a3b8;">총 대출이자</span>
+                <span style="font-size:13px; font-weight:700; color:#fca5a5; font-family:'Outfit',sans-serif;">${fmt(totalMonthlyInterest)}<small style="font-size:10px;color:#64748b;"> 원</small></span>
+              </div>
+              <div style="border-top:1px solid #334155; padding-top:7px; display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-size:12px; font-weight:700; color:#e2e8f0;">전체 순수익</span>
+                <span style="font-size:15px; font-weight:800; color:#4ade80; font-family:'Outfit',sans-serif;">${fmt(totalNetProfit)}<small style="font-size:10px;color:#86efac;"> 원/월</small></span>
+              </div>
+            </div>
+          </div>
+          <!-- 내 지분 실수익 합계 -->
+          <div style="background:linear-gradient(135deg,#065f46 0%,#047857 100%); border-radius:16px; padding:18px 20px; color:#fff;">
+            <div style="font-size:11px; font-weight:700; color:#6ee7b7; letter-spacing:0.5px; margin-bottom:10px;">★ 약국장 지분 실수익</div>
+            <div style="display:flex; flex-direction:column; gap:7px;">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-size:11.5px; color:#a7f3d0;">지분 보증금</span>
+                <span style="font-size:13px; font-weight:700; font-family:'Outfit',sans-serif;">${fmt(myDeposit)}<small style="font-size:10px;color:#6ee7b7;"> 원</small></span>
+              </div>
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-size:11.5px; color:#a7f3d0;">지분 월세</span>
+                <span style="font-size:13px; font-weight:700; font-family:'Outfit',sans-serif;">${fmt(myMonthlyRent)}<small style="font-size:10px;color:#6ee7b7;"> 원</small></span>
+              </div>
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-size:11.5px; color:#a7f3d0;">지분 이자</span>
+                <span style="font-size:13px; font-weight:700; color:#fca5a5; font-family:'Outfit',sans-serif;">${fmt(myMonthlyInterest)}<small style="font-size:10px;color:#6ee7b7;"> 원</small></span>
+              </div>
+              <div style="border-top:1px solid #059669; padding-top:7px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                  <span style="font-size:12px; font-weight:700; color:#d1fae5;">★ 내 순수익</span>
+                  <span style="font-size:17px; font-weight:900; color:#ffffff; font-family:'Outfit',sans-serif;">${fmt(myNetProfit)}<small style="font-size:11px;"> 원/월</small></span>
+                </div>
+                <div style="text-align:right; font-size:11px; color:#6ee7b7;">연간 ${fmt(myAnnualNetProfit)} 원</div>
+              </div>
             </div>
           </div>
         </div>
