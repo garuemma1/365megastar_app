@@ -51,7 +51,7 @@ window.App = (function () {
     renderActiveModule();
   }
 
-  function setupEventListeners() {
+function setupEventListeners() {
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
         closeSheetModal();
@@ -75,6 +75,17 @@ window.App = (function () {
         openDrawer();
       }
     });
+
+    // ★ 모바일 UX 개선: 사이드바 바깥(어두운 배경 영역) 클릭 시 사이드바 부드럽게 닫기
+    const overlay = document.getElementById('drawer-overlay');
+    if (overlay) {
+      overlay.addEventListener('click', () => {
+        // 모바일(화면 너비 900px 이하) 환경에서만 작동하도록 안전장치 적용
+        if (window.innerWidth <= 900) {
+          closeDrawer();
+        }
+      });
+    }
   }
 
   function renderSidebarNavigation() {
