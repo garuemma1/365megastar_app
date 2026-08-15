@@ -19,7 +19,8 @@ window.SheetsSync = (function () {
     OVERTIME_ADJUSTMENTS: '365_overtime_adjustments_v1',
     CURRENT_USER: '365_current_user_v1',
     SHEET_URL: '365_sheet_url',
-    LAST_SYNC: '365_last_sync'
+    LAST_SYNC: '365_last_sync',
+    EMP_PERMISSIONS: '365_emp_permissions_v1'  // 직원별 탭 권한 별도 호합 저장소
   };
 
   const DEFAULT_SHEET_URL = "https://docs.google.com/spreadsheets/d/16yVS9f9bQs9Z2S1k2McnxhHGb9QjQguPa93MxZvNtP0/edit?gid=0#gid=0";
@@ -565,6 +566,15 @@ window.SheetsSync = (function () {
     target.allowedTabs = allowedTabs;
     saveEmployees(emps);
 
+    // 별도 권한 저장소에도 저장 (클라우드 pull시도 유지됨)
+    try {
+      let permMap = {};
+      const permRaw = safeGetItem(STORAGE_KEYS.EMP_PERMISSIONS);
+      if (permRaw) permMap = JSON.parse(permRaw);
+      permMap[empId] = allowedTabs;
+      safeSetItem(STORAGE_KEYS.EMP_PERMISSIONS, JSON.stringify(permMap));
+    } catch(e) {}
+
     // 현재 세션 유저 업데이트
     const curr = getCurrentUser();
     if (curr && curr.id === empId) {
@@ -576,9 +586,42 @@ window.SheetsSync = (function () {
 
   // --- 저장소 Getter & Setter 유틸리티 ---
   function getEmployees() {
-    // 영구 마스터 디폴트 9인 정식 명단(INITIAL_EMPLOYEES)을 PC/인터넷 환경 무관 100% 마스터 디폴트로 고정
-    safeSetItem(STORAGE_KEYS.EMPLOYEES, JSON.stringify(INITIAL_EMPLOYEES));
-    return INITIAL_EMPLOYEES;
+    // 권한 데이터 로드 (별도 키에 저장된 것 우선)
+    let permMap = {};
+    try {
+      const permRaw = safeGetItem(STORAGE_KEYS.EMP_PERMISSIONS);
+      if (permRaw) permMap = JSON.parse(permRaw);
+    } catch(e) {}
+
+    // 직원 기본 데이터 로드
+    let emps;
+    try {
+      const raw = safeGetItem(STORAGE_KEYS.EMPLOYEES);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          emps = parsed;
+        }
+      }
+    } catch(e) {}
+
+    if (!emps) {
+      // 저장된 값이 없을 때만 초기값 저장
+      emps = INITIAL_EMPLOYEES.map(e => ({ ...e }));
+      safeSetItem(STORAGE_KEYS.EMPLOYEES, JSON.stringify(emps));
+    }
+
+    // 별도 저장된 권한을 병합 (클라우드 덧써쓰더라도 유지)
+    if (Object.keys(permMap).length > 0) {
+      emps = emps.map(e => {
+        if (permMap[e.id]) {
+          return { ...e, allowedTabs: permMap[e.id] };
+        }
+        return e;
+      });
+    }
+
+    return emps;
   }
 
   function saveEmployees(data) {
@@ -740,7 +783,24 @@ window.SheetsSync = (function () {
           if (cloudData.scheduleStatus) { safeSetItem(STORAGE_KEYS.SCHEDULE_STATUS, JSON.stringify(cloudData.scheduleStatus)); updated = true; }
           if (cloudData.paystubs) { safeSetItem(STORAGE_KEYS.PAYSTUBS, JSON.stringify(cloudData.paystubs)); updated = true; }
           if (cloudData.overtimeAdjustments) { safeSetItem(STORAGE_KEYS.OVERTIME_ADJUSTMENTS, JSON.stringify(cloudData.overtimeAdjustments)); updated = true; }
-          if (cloudData.employees) { safeSetItem(STORAGE_KEYS.EMPLOYEES, JSON.stringify(cloudData.employees)); updated = true; }
+          if (cloudData.employees) {
+            // 클라우드 employees 로드 후 햤시 저장된 권한 병합
+            let cloudEmps = cloudData.employees;
+            try {
+              const permRaw = safeGetItem(STORAGE_KEYS.EMP_PERMISSIONS);
+              if (permRaw) {
+                const permMap = JSON.parse(permRaw);
+                if (Object.keys(permMap).length > 0) {
+                  cloudEmps = cloudEmps.map(e => {
+                    if (permMap[e.id]) return { ...e, allowedTabs: permMap[e.id] };
+                    return e;
+                  });
+                }
+              }
+            } catch(pe) {}
+            safeSetItem(STORAGE_KEYS.EMPLOYEES, JSON.stringify(cloudEmps));
+            updated = true;
+          }
           safeSetItem(STORAGE_KEYS.LAST_SYNC, new Date().toISOString());
           updateSyncStatusUI('success');
           if (updated) {
