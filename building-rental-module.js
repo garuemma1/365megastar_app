@@ -42,6 +42,9 @@ window.BuildingRentalModule = (function () {
     let totalMonthlyRent = 0;
     let myMonthlyRent = 0;
 
+    let totalMonthlyMaint = 0;
+    let myMonthlyMaint = 0;
+
     let totalMonthlyInterest = 0;
     let myMonthlyInterest = 0;
 
@@ -54,11 +57,13 @@ window.BuildingRentalModule = (function () {
     const calculatedUnits = units.map(u => {
       const dep = Number(u.deposit) || 0;
       const rent = Number(u.rent) || 0;
+      const maint = Number(u.maintenanceFee) || 0;
       const interest = Number(u.mortgageInterest) || 0;
       const shareRate = Number(u.mySharePercent) || (u.ownershipType === 'SOLE' ? 100 : (u.ownershipType === 'JOINT2' ? 50 : 25));
       
       const totalNet = rent - interest;
       const myRentShare = Math.round(rent * (shareRate / 100));
+      const myMaintShare = Math.round(maint * (shareRate / 100));
       const myInterestShare = Math.round(interest * (shareRate / 100));
       const myNetShare = Math.round(totalNet * (shareRate / 100));
       const myDepShare = Math.round(dep * (shareRate / 100));
@@ -68,6 +73,9 @@ window.BuildingRentalModule = (function () {
 
       totalMonthlyRent += rent;
       myMonthlyRent += myRentShare;
+
+      totalMonthlyMaint += maint;
+      myMonthlyMaint += myMaintShare;
 
       totalMonthlyInterest += interest;
       myMonthlyInterest += myInterestShare;
@@ -80,6 +88,7 @@ window.BuildingRentalModule = (function () {
         shareRate,
         totalNet,
         myRentShare,
+        myMaintShare,
         myInterestShare,
         myNetShare,
         myDepShare
@@ -121,9 +130,9 @@ window.BuildingRentalModule = (function () {
       </div>
 
       <!-- 💡 Lean-OPS 스타일 건물 임대업 5대 핵심 경영 KPI 카드 (Executive Asset Pipeline 5 Cards) -->
-      <div class="row g-2 mb-4">
-        <div class="col-md-2-4 col-sm-6 col-12" style="flex:0 0 auto; width:20%;">
-          <div class="kpi-summary-card p-3" style="border-radius:16px; border:1.5px solid #cbd5e1; background:#ffffff;">
+      <div class="d-flex gap-2 mb-4 flex-wrap" style="align-items:stretch;">
+        <div style="flex:1 1 170px; min-width:160px;">
+          <div class="kpi-summary-card p-3 h-100" style="border-radius:16px; border:1.5px solid #cbd5e1; background:#ffffff;">
             <div class="d-flex justify-content-between align-items-center mb-1">
               <span style="font-size:12.5px; font-weight:800; color:#475569;">총 임대료 수입</span>
               <div style="width:28px; height:28px; border-radius:8px; background:#eff6ff; color:#2563eb; display:flex; align-items:center; justify-content:center; font-size:13px;">
@@ -139,8 +148,8 @@ window.BuildingRentalModule = (function () {
           </div>
         </div>
 
-        <div class="col-md-2-4 col-sm-6 col-12" style="flex:0 0 auto; width:20%;">
-          <div class="kpi-summary-card p-3" style="border-radius:16px; border:1.5px solid #fed7aa; background:#fff7ed;">
+        <div style="flex:1 1 170px; min-width:160px;">
+          <div class="kpi-summary-card p-3 h-100" style="border-radius:16px; border:1.5px solid #fed7aa; background:#fff7ed;">
             <div class="d-flex justify-content-between align-items-center mb-1">
               <span style="font-size:12.5px; font-weight:800; color:#c2410c;">운영 관리비</span>
               <div style="width:28px; height:28px; border-radius:8px; background:#ffedd5; color:#ea580c; display:flex; align-items:center; justify-content:center; font-size:13px;">
@@ -156,8 +165,8 @@ window.BuildingRentalModule = (function () {
           </div>
         </div>
 
-        <div class="col-md-2-4 col-sm-6 col-12" style="flex:0 0 auto; width:20%;">
-          <div class="kpi-summary-card p-3" style="border-radius:16px; border:1.5px solid #bfdbfe; background:#eff6ff;">
+        <div style="flex:1 1 170px; min-width:160px;">
+          <div class="kpi-summary-card p-3 h-100" style="border-radius:16px; border:1.5px solid #bfdbfe; background:#eff6ff;">
             <div class="d-flex justify-content-between align-items-center mb-1">
               <span style="font-size:12.5px; font-weight:800; color:#1e40af;">공헌 수입</span>
               <div style="width:28px; height:28px; border-radius:8px; background:#dbeafe; color:#1d4ed8; display:flex; align-items:center; justify-content:center; font-size:13px;">
@@ -173,8 +182,8 @@ window.BuildingRentalModule = (function () {
           </div>
         </div>
 
-        <div class="col-md-2-4 col-sm-6 col-12" style="flex:0 0 auto; width:20%;">
-          <div class="kpi-summary-card p-3" style="border-radius:16px; border:1.5px solid #fca5a5; background:#fff5f5;">
+        <div style="flex:1 1 170px; min-width:160px;">
+          <div class="kpi-summary-card p-3 h-100" style="border-radius:16px; border:1.5px solid #fca5a5; background:#fff5f5;">
             <div class="d-flex justify-content-between align-items-center mb-1">
               <span style="font-size:12.5px; font-weight:800; color:#991b1b;">대출 금융이자</span>
               <div style="width:28px; height:28px; border-radius:8px; background:#fee2e2; color:#dc2626; display:flex; align-items:center; justify-content:center; font-size:13px;">
@@ -190,8 +199,8 @@ window.BuildingRentalModule = (function () {
           </div>
         </div>
 
-        <div class="col-md-2-4 col-sm-6 col-12" style="flex:0 0 auto; width:20%;">
-          <div class="kpi-summary-card p-3" style="border-radius:16px; border:2px solid #10b981; background:#f0fdf4;">
+        <div style="flex:1 1 170px; min-width:160px;">
+          <div class="kpi-summary-card p-3 h-100" style="border-radius:16px; border:2px solid #10b981; background:#f0fdf4;">
             <div class="d-flex justify-content-between align-items-center mb-1">
               <span style="font-size:12.5px; font-weight:800; color:#15803d;">★ 내지분 실수취 순수익</span>
               <div style="width:28px; height:28px; border-radius:8px; background:#10b981; color:#ffffff; display:flex; align-items:center; justify-content:center; font-size:13px;">
