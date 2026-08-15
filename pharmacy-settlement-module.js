@@ -1,7 +1,7 @@
 /**
- * 10. 스마트약국 정산 시스템 모듈 컨트롤러 (Smart Pharmacy Financial Settlement Engine v33.0)
- * 약국장 전용: 3종 엑셀 데이터(일일결산 회계장부 1순위 / 월간손익 P&L 2순위 / 연도별 장기성장통계 3순위)
- * 일반매출, 카드/현금 수입 세분화 및 구글 시트 엑셀 실시간 연동
+ * 10. 스마트약국 정산 시스템 모듈 컨트롤러 (Smart Pharmacy Financial Settlement Engine v42.0)
+ * 약국장 전용: 일일결산 회계장부(31일 개별 수정/추가/삭제) 및 월간 손익계산서(P&L 수입/사입/고정비/금융비용 항목별 추가/수정/삭제)
+ * 구글 스프레드시트 100% 양방향 연동 지원
  */
 window.PharmacySettlementModule = (function () {
 
@@ -71,7 +71,7 @@ window.PharmacySettlementModule = (function () {
     const cardRevenue = Number(pData.cardRevenue) || Math.round(totalRevenue * 0.85);
     const cashRevenue = Number(pData.cashRevenue) || (totalRevenue - cardRevenue);
 
-    // 3. 약품 사입비 산출 (도매상 현금 + 제약사 카드)
+    // 3. 약품 사입비 산출 (도매상 및 제약사 현금 + 카드)
     const cashWholesaleObj = pData.cashWholesale || { '다우약품': 12400000, '산성호': 8500000, '백제약품': 7200000, '지오영': 6800000 };
     const cardPharmaObj = pData.cardPharma || { '대웅제약': 2400000, '동화약품': 1800000, '일양약품': 1200000, '비타민하우스': 950000, 'GC녹십자': 1050000 };
 
@@ -83,18 +83,28 @@ window.PharmacySettlementModule = (function () {
 
     const totalDrugCost = totalCashWholesale + totalCardPharma;
 
-    // 4. 공과금 및 고정비
+    // 4. 공과금 및 고정비 (동적 항목 포함)
+    const customOperatingObj = pData.customOperating || {};
     const rentExp = Number(pData.rentExpense) || 3500000;
     const maintExp = Number(pData.maintExpense) || 500000;
     const ins4Cost = Number(pData.insurance4Cost) || 1850000;
     const taxFee = Number(pData.taxAccountantFee) || 220000;
     const posFee = Number(pData.posCardFee) || 1120000;
-    const totalFixedOperating = rentExp + maintExp + ins4Cost + taxFee + posFee;
 
-    // 5. 금융비용
+    let totalCustomOperating = 0;
+    Object.values(customOperatingObj).forEach(v => totalCustomOperating += Number(v) || 0);
+
+    const totalFixedOperating = rentExp + maintExp + ins4Cost + taxFee + posFee + totalCustomOperating;
+
+    // 5. 금융비용 (동적 항목 포함)
+    const customFinancialObj = pData.customFinancial || {};
     const loanInterest = Number(pData.loanInterest) || 2150000;
     const loanPrincipal = Number(pData.loanPrincipal) || 1500000;
-    const totalFinancialCost = loanInterest + loanPrincipal;
+
+    let totalCustomFinancial = 0;
+    Object.values(customFinancialObj).forEach(v => totalCustomFinancial += Number(v) || 0);
+
+    const totalFinancialCost = loanInterest + loanPrincipal + totalCustomFinancial;
 
     // 6. 총지출 및 순이익
     const totalExpenses = totalDrugCost + totalPayrollExpense + totalFixedOperating + totalFinancialCost;
@@ -110,7 +120,7 @@ window.PharmacySettlementModule = (function () {
       <div class="module-header d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
         <div>
           <h2 style="font-size:22px; font-weight:800; color:#0f172a; margin:0;"><i class="fas fa-calculator text-primary me-2"></i> 📊 365메가스타약국 스마트 정산 대시보드</h2>
-          <p class="subtitle" style="font-size:13px; color:#64748b; margin:4px 0 0 0;">약국장 전용: 2026년 8월 일일결산 장부, 처방 조제·일반매출, 카드/현금 수입, 사입비 및 월 P&L 손익계산서</p>
+          <p class="subtitle" style="font-size:13px; color:#64748b; margin:4px 0 0 0;">약국장 전용: 일일결산 31일 세부 수정/추가, P&L 거래처·고정비·금융비용 개별 CRUD 및 구글 시트 100% 양방향 연동</p>
         </div>
         <div class="d-flex align-items-center gap-2">
           <button type="button" class="btn btn-outline-success font-bold" onclick="PharmacySettlementModule.openImportModal()" style="border-radius:10px; padding:7px 14px; font-size:13px; box-shadow:0 2px 6px rgba(16,185,129,0.15);">
@@ -195,7 +205,7 @@ window.PharmacySettlementModule = (function () {
         </div>
       </div>
 
-      <!-- 📌 세부 3대 서브 탭 네비게이션 (순서 개편: 1.일일결산 -> 2.월간손익 -> 3.장기통계) -->
+      <!-- 📌 세부 3대 서브 탭 네비게이션 -->
       <div class="d-flex gap-2 border-bottom pb-3 mb-4 flex-wrap">
         <button type="button" class="btn ${activeSubTab === 'daily' ? 'btn-primary font-bold' : 'btn-outline-secondary'}" onclick="PharmacySettlementModule.setSubTab('daily')" style="border-radius:10px; padding:10px 20px; font-size:14px;">
           <i class="fas fa-book me-1"></i> ① 일일 결산 & 회계 장부 (Daily Log)
@@ -209,7 +219,7 @@ window.PharmacySettlementModule = (function () {
       </div>
     `;
 
-    // 1순위 서브 탭: 일일 결산 & 회계 장부 (Daily Log)
+    // 1순위 서브 탭: 일일 결산 & 회계 장부 (Daily Log) - 일자별 개별 수정/추가/삭제
     if (activeSubTab === 'daily') {
       const dailyLogs = pData.dailyLogs || [];
 
@@ -218,10 +228,12 @@ window.PharmacySettlementModule = (function () {
           <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2" style="background:#0f172a; color:#ffffff; padding:16px 20px;">
             <h3 style="font-size:16.5px; font-weight:800; margin:0; color:#ffffff;"><i class="fas fa-book-open me-2 text-warning"></i> 2026년 8월 일일 결산 및 회계 장부 (Daily Log)</h3>
             <div class="d-flex align-items-center gap-2">
+              <button type="button" class="btn btn-sm btn-success font-bold" onclick="PharmacySettlementModule.openDailyLogEditModal()">
+                <i class="fas fa-plus-circle me-1"></i> ➕ 일일결산 내역 추가/등록
+              </button>
               <button type="button" class="btn btn-sm btn-outline-light font-bold" onclick="App.openSheetModal()">
                 <i class="fas fa-table text-success me-1"></i> 구글 시트 연동 설정
               </button>
-              <span style="font-size:12.5px; color:#cbd5e1;">전일 대비 증감 및 요일별 매출 추이</span>
             </div>
           </div>
           <div class="card-body p-0">
@@ -229,7 +241,7 @@ window.PharmacySettlementModule = (function () {
               <table class="table table-striped table-hover align-middle mb-0" style="font-size:13px;">
                 <thead style="background:#f1f5f9; color:#334155;">
                   <tr>
-                    <th style="text-align:center; padding:10px; width:110px;">일자</th>
+                    <th style="text-align:center; padding:10px; width:100px;">일자</th>
                     <th style="text-align:center; padding:10px; width:60px;">요일</th>
                     <th style="text-align:right; padding:10px;">조제 매출</th>
                     <th style="text-align:right; padding:10px;">일반 매출</th>
@@ -237,6 +249,7 @@ window.PharmacySettlementModule = (function () {
                     <th style="text-align:center; padding:10px; width:100px;">카드/현금 비중</th>
                     <th style="text-align:right; padding:10px;">일 소액지출</th>
                     <th style="padding:10px;">비고 및 특이사항</th>
+                    <th style="text-align:center; padding:10px; width:110px;">세부 관리</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -255,7 +268,17 @@ window.PharmacySettlementModule = (function () {
                         <span class="badge bg-light text-dark" style="border:1px solid #cbd5e1; font-size:11px;">카드 ${log.cardPay > 0 ? Math.round((log.cardPay/log.totalRevenue)*100) : 85}%</span>
                       </td>
                       <td style="text-align:right; color:#dc2626; font-weight:600; font-family:'Outfit', sans-serif;">${fmt(log.dailyExpense)} 원</td>
-                      <td style="color:#64748b; font-size:12px;">${log.note}</td>
+                      <td style="color:#64748b; font-size:12px;">${log.note || '-'}</td>
+                      <td style="text-align:center;">
+                        <div class="d-flex justify-content-center gap-1">
+                          <button type="button" class="btn btn-xs btn-outline-primary font-bold" onclick="PharmacySettlementModule.openDailyLogEditModal('${log.date}')" style="padding:2px 6px; font-size:11.5px;">
+                            ✏️ 수정
+                          </button>
+                          <button type="button" class="btn btn-xs btn-outline-danger font-bold" onclick="PharmacySettlementModule.deleteDailyLog('${log.date}')" style="padding:2px 6px; font-size:11.5px;">
+                            🗑️ 초기화
+                          </button>
+                        </div>
+                      </td>
                     </tr>
                   `).join('')}
                 </tbody>
@@ -266,10 +289,10 @@ window.PharmacySettlementModule = (function () {
       `;
     }
 
-    // 2순위 서브 탭: 월간 종합 손익계산서 (P&L View)
+    // 2순위 서브 탭: 월간 종합 손익계산서 (P&L View) - 세부 항목별 추가/수정/삭제
     else if (activeSubTab === 'pnl') {
       html += `
-        <!-- 1. 수입 세부 분석 (카드 수입 & 현금 수입 신규 추가 및 일반매출 용어 적용) -->
+        <!-- 1. 수입 세부 분석 -->
         <div class="card mb-4 shadow-sm" style="border-radius:18px; border:1.5px solid #cbd5e1; overflow:hidden;">
           <div class="card-header d-flex justify-content-between align-items-center" style="background:#eff6ff; border-bottom:1.5px solid #bfdbfe; padding:16px 20px;">
             <h3 style="font-size:16px; font-weight:800; color:#1e40af; margin:0;"><i class="fas fa-coins me-2"></i> 1. 수입 분석 (Revenue Breakdown)</h3>
@@ -345,12 +368,15 @@ window.PharmacySettlementModule = (function () {
           </div>
         </div>
 
-        <!-- 2. 약품 결제 분석 (도매상 및 제약사 현금결제 + 도매상 및 제약사 카드결제) -->
+        <!-- 2. 약품 결제 분석 (도매상/제약사 거래처 동적 추가/수정/삭제) -->
         <div class="row g-4 mb-4">
           <div class="col-md-6">
             <div class="card h-100 shadow-sm" style="border-radius:18px; border:1.5px solid #cbd5e1; overflow:hidden;">
-              <div class="card-header" style="background:#fef2f2; border-bottom:1.5px solid #fecaca; padding:16px 20px;">
+              <div class="card-header d-flex justify-content-between align-items-center" style="background:#fef2f2; border-bottom:1.5px solid #fecaca; padding:14px 20px;">
                 <h3 style="font-size:15.5px; font-weight:800; color:#991b1b; margin:0;"><i class="fas fa-truck-loading me-2"></i> 2-A. 도매상 및 제약사 현금결제</h3>
+                <button type="button" class="btn btn-xs btn-outline-danger font-bold" onclick="PharmacySettlementModule.openAddSubItemModal('도매상/제약사 현금결제 거래처', 'cashWholesale')" style="padding:4px 10px; border-radius:8px;">
+                  ➕ 거래처 추가
+                </button>
               </div>
               <div class="card-body p-0">
                 <table class="table align-middle mb-0" style="font-size:13px;">
@@ -359,7 +385,10 @@ window.PharmacySettlementModule = (function () {
                       <tr>
                         <td style="font-weight:700; color:#0f172a; padding:10px 16px;">🏢 ${name}</td>
                         <td style="text-align:right; padding:10px 16px;">
-                          <input type="number" class="form-control form-control-sm text-end font-bold text-danger" style="width:140px; display:inline-block; border-radius:8px; border:1.5px solid #fca5a5;" value="${val}" onchange="PharmacySettlementModule.updateSubField('cashWholesale', '${name}', this.value)">
+                          <div class="d-flex align-items-center justify-content-end gap-1">
+                            <input type="number" class="form-control form-control-sm text-end font-bold text-danger" style="width:130px; border-radius:8px; border:1.5px solid #fca5a5;" value="${val}" onchange="PharmacySettlementModule.updateSubField('cashWholesale', '${name}', this.value)">
+                            <button type="button" class="btn btn-xs btn-outline-secondary" onclick="PharmacySettlementModule.deleteSubField('cashWholesale', '${name}')" title="거래처 삭제">🗑️</button>
+                          </div>
                         </td>
                       </tr>
                     `).join('')}
@@ -375,8 +404,11 @@ window.PharmacySettlementModule = (function () {
 
           <div class="col-md-6">
             <div class="card h-100 shadow-sm" style="border-radius:18px; border:1.5px solid #cbd5e1; overflow:hidden;">
-              <div class="card-header" style="background:#fff7ed; border-bottom:1.5px solid #fed7aa; padding:16px 20px;">
+              <div class="card-header d-flex justify-content-between align-items-center" style="background:#fff7ed; border-bottom:1.5px solid #fed7aa; padding:14px 20px;">
                 <h3 style="font-size:15.5px; font-weight:800; color:#c2410c; margin:0;"><i class="fas fa-credit-card me-2"></i> 2-B. 도매상 및 제약사 카드결제</h3>
+                <button type="button" class="btn btn-xs btn-outline-warning font-bold text-dark" onclick="PharmacySettlementModule.openAddSubItemModal('도매상/제약사 카드결제 거래처', 'cardPharma')" style="padding:4px 10px; border-radius:8px;">
+                  ➕ 거래처 추가
+                </button>
               </div>
               <div class="card-body p-0">
                 <table class="table align-middle mb-0" style="font-size:13px;">
@@ -385,7 +417,10 @@ window.PharmacySettlementModule = (function () {
                       <tr>
                         <td style="font-weight:700; color:#0f172a; padding:10px 16px;">💊 ${name}</td>
                         <td style="text-align:right; padding:10px 16px;">
-                          <input type="number" class="form-control form-control-sm text-end font-bold text-danger" style="width:140px; display:inline-block; border-radius:8px; border:1.5px solid #fdba74;" value="${val}" onchange="PharmacySettlementModule.updateSubField('cardPharma', '${name}', this.value)">
+                          <div class="d-flex align-items-center justify-content-end gap-1">
+                            <input type="number" class="form-control form-control-sm text-end font-bold text-danger" style="width:130px; border-radius:8px; border:1.5px solid #fdba74;" value="${val}" onchange="PharmacySettlementModule.updateSubField('cardPharma', '${name}', this.value)">
+                            <button type="button" class="btn btn-xs btn-outline-secondary" onclick="PharmacySettlementModule.deleteSubField('cardPharma', '${name}')" title="거래처 삭제">🗑️</button>
+                          </div>
                         </td>
                       </tr>
                     `).join('')}
@@ -400,7 +435,7 @@ window.PharmacySettlementModule = (function () {
           </div>
         </div>
 
-        <!-- 3. 인건비 및 퇴직적립금 분석 (9인 직원 자동 연동) -->
+        <!-- 3. 인건비 및 퇴직적립금 분석 -->
         <div class="card mb-4 shadow-sm" style="border-radius:18px; border:1.5px solid #cbd5e1; overflow:hidden;">
           <div class="card-header d-flex justify-content-between align-items-center" style="background:#f0fdf4; border-bottom:1.5px solid #bbf7d0; padding:16px 20px;">
             <h3 style="font-size:16px; font-weight:800; color:#15803d; margin:0;"><i class="fas fa-users me-2"></i> 3. 인건비 및 퇴직적립금 분석 (Labor Cost Breakdown - 9인)</h3>
@@ -450,12 +485,15 @@ window.PharmacySettlementModule = (function () {
           </div>
         </div>
 
-        <!-- 4. 고정비 & 금융비용 -->
+        <!-- 4. 고정비 & 5. 금융비용 (항목별 동적 추가/수정/삭제 지원) -->
         <div class="row g-4 mb-4">
           <div class="col-md-6">
             <div class="card h-100 shadow-sm" style="border-radius:18px; border:1.5px solid #cbd5e1; overflow:hidden;">
-              <div class="card-header" style="background:#f8fafc; border-bottom:1.5px solid #e2e8f0; padding:16px 20px;">
+              <div class="card-header d-flex justify-content-between align-items-center" style="background:#f8fafc; border-bottom:1.5px solid #e2e8f0; padding:14px 20px;">
                 <h3 style="font-size:15.5px; font-weight:800; color:#334155; margin:0;"><i class="fas fa-building me-2"></i> 4. 공과금 및 고정 관리비</h3>
+                <button type="button" class="btn btn-xs btn-outline-primary font-bold" onclick="PharmacySettlementModule.openAddSubItemModal('고정 관리비 항목', 'customOperating')" style="padding:4px 10px; border-radius:8px;">
+                  ➕ 고정비 추가
+                </button>
               </div>
               <div class="card-body p-0">
                 <table class="table align-middle mb-0" style="font-size:13px;">
@@ -490,6 +528,17 @@ window.PharmacySettlementModule = (function () {
                         <input type="number" class="form-control form-control-sm text-end font-bold" style="width:140px; display:inline-block;" value="${posFee}" onchange="PharmacySettlementModule.updateField('posCardFee', this.value)">
                       </td>
                     </tr>
+                    ${Object.entries(customOperatingObj).map(([name, val]) => `
+                      <tr>
+                        <td style="font-weight:700; padding:10px 16px;">📌 ${name} (추가)</td>
+                        <td style="text-align:right; padding:10px 16px;">
+                          <div class="d-flex align-items-center justify-content-end gap-1">
+                            <input type="number" class="form-control form-control-sm text-end font-bold" style="width:130px;" value="${val}" onchange="PharmacySettlementModule.updateSubField('customOperating', '${name}', this.value)">
+                            <button type="button" class="btn btn-xs btn-outline-secondary" onclick="PharmacySettlementModule.deleteSubField('customOperating', '${name}')" title="항목 삭제">🗑️</button>
+                          </div>
+                        </td>
+                      </tr>
+                    `).join('')}
                     <tr style="background:#f8fafc; font-weight:800;">
                       <td style="padding:10px 16px;">고정 관리비 소계</td>
                       <td style="text-align:right; font-size:15px; color:#0f172a; padding:10px 16px; font-family:'Outfit', sans-serif;">${fmt(totalFixedOperating)} 원</td>
@@ -502,8 +551,11 @@ window.PharmacySettlementModule = (function () {
 
           <div class="col-md-6">
             <div class="card h-100 shadow-sm" style="border-radius:18px; border:1.5px solid #cbd5e1; overflow:hidden;">
-              <div class="card-header" style="background:#f8fafc; border-bottom:1.5px solid #e2e8f0; padding:16px 20px;">
+              <div class="card-header d-flex justify-content-between align-items-center" style="background:#f8fafc; border-bottom:1.5px solid #e2e8f0; padding:14px 20px;">
                 <h3 style="font-size:15.5px; font-weight:800; color:#334155; margin:0;"><i class="fas fa-university me-2"></i> 5. 금융비용 및 원리금 상환</h3>
+                <button type="button" class="btn btn-xs btn-outline-danger font-bold" onclick="PharmacySettlementModule.openAddSubItemModal('금융비용 항목', 'customFinancial')" style="padding:4px 10px; border-radius:8px;">
+                  ➕ 금융비용 추가
+                </button>
               </div>
               <div class="card-body p-0">
                 <table class="table align-middle mb-0" style="font-size:13px;">
@@ -520,6 +572,17 @@ window.PharmacySettlementModule = (function () {
                         <input type="number" class="form-control form-control-sm text-end font-bold text-danger" style="width:140px; display:inline-block;" value="${loanPrincipal}" onchange="PharmacySettlementModule.updateField('loanPrincipal', this.value)">
                       </td>
                     </tr>
+                    ${Object.entries(customFinancialObj).map(([name, val]) => `
+                      <tr>
+                        <td style="font-weight:700; padding:10px 16px;">📌 ${name} (추가)</td>
+                        <td style="text-align:right; padding:10px 16px;">
+                          <div class="d-flex align-items-center justify-content-end gap-1">
+                            <input type="number" class="form-control form-control-sm text-end font-bold text-danger" style="width:130px;" value="${val}" onchange="PharmacySettlementModule.updateSubField('customFinancial', '${name}', this.value)">
+                            <button type="button" class="btn btn-xs btn-outline-secondary" onclick="PharmacySettlementModule.deleteSubField('customFinancial', '${name}')" title="항목 삭제">🗑️</button>
+                          </div>
+                        </td>
+                      </tr>
+                    `).join('')}
                     <tr style="background:#f8fafc; font-weight:800;">
                       <td style="padding:10px 16px;">금융비용 소계</td>
                       <td style="text-align:right; font-size:15px; color:#be123c; padding:10px 16px; font-family:'Outfit', sans-serif;">${fmt(totalFinancialCost)} 원</td>
@@ -586,6 +649,8 @@ window.PharmacySettlementModule = (function () {
     container.innerHTML = html;
   }
 
+  // --- 기본 수치 업데이트 ---
+
   function updateField(field, val) {
     const data = window.SheetsSync.getPharmacySettlement();
     data[field] = Number(val) || 0;
@@ -600,6 +665,270 @@ window.PharmacySettlementModule = (function () {
     window.SheetsSync.savePharmacySettlement(data);
     render('module-content');
   }
+
+  function deleteSubField(category, key) {
+    const data = window.SheetsSync.getPharmacySettlement();
+    if (data[category] && data[category][key] !== undefined) {
+      if (confirm(`🗑️ 정말로 [${key}] 항목을 삭제하시겠습니까?`)) {
+        delete data[category][key];
+        window.SheetsSync.savePharmacySettlement(data);
+        render('module-content');
+        alert(`🗑️ [${key}] 항목이 삭제되었습니다.`);
+      }
+    }
+  }
+
+  // --- 세부 항목 동적 추가 모달 (현금/카드 거래처, 고정비, 금융비용) ---
+
+  function openAddSubItemModal(title, categoryKey) {
+    let modal = document.getElementById('ps-subitem-add-modal');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'ps-subitem-add-modal';
+      modal.className = 'modal-overlay';
+      modal.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:9999999; display:flex; justify-content:center; align-items:center;';
+      document.body.appendChild(modal);
+    }
+
+    modal.innerHTML = `
+      <div class="modal-card" style="background:#ffffff; border-radius:18px; max-width:480px; width:92%; padding:24px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.35); position:relative;">
+        <button type="button" class="close-btn" onclick="document.getElementById('ps-subitem-add-modal').style.display='none'" style="position:absolute; top:18px; right:20px; font-size:24px; background:none; border:none; color:#64748b; cursor:pointer;">&times;</button>
+        
+        <h4 style="font-size:17px; font-weight:800; color:#0f172a; margin-bottom:16px;">
+          ➕ 신규 ${title} 추가
+        </h4>
+
+        <form onsubmit="PharmacySettlementModule.saveSubItemSubmit(event, '${categoryKey}')">
+          <div class="mb-3">
+            <label class="form-label font-bold" style="font-size:13px; color:#334155;">업체명 / 항목 명칭 *</label>
+            <input type="text" class="form-control font-bold" id="psform-item-name" required placeholder="예: 신풍제약, 소독방역비, 리스이자">
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label font-bold" style="font-size:13px; color:#334155;">당월 결제/지출 금액 (원) *</label>
+            <input type="number" class="form-control font-bold text-danger" id="psform-item-val" required placeholder="예: 1500000" min="0">
+          </div>
+
+          <div class="d-flex justify-content-end gap-2 mt-4">
+            <button type="button" class="btn btn-secondary font-bold" onclick="document.getElementById('ps-subitem-add-modal').style.display='none'">취소</button>
+            <button type="submit" class="btn btn-primary font-bold px-4">
+              <i class="fas fa-check me-1"></i> 항목 추가 완료
+            </button>
+          </div>
+        </form>
+      </div>
+    `;
+
+    modal.style.display = 'flex';
+  }
+
+  function saveSubItemSubmit(e, categoryKey) {
+    e.preventDefault();
+    const data = window.SheetsSync.getPharmacySettlement();
+    if (!data[categoryKey]) data[categoryKey] = {};
+
+    const name = document.getElementById('psform-item-name').value.trim();
+    const val = Number(document.getElementById('psform-item-val').value) || 0;
+
+    if (name) {
+      data[categoryKey][name] = val;
+      window.SheetsSync.savePharmacySettlement(data);
+
+      const modal = document.getElementById('ps-subitem-add-modal');
+      if (modal) modal.style.display = 'none';
+
+      render('module-content');
+      alert(`🎉 [${name}] 항목이 성공적으로 추가 등록되었습니다!`);
+    }
+  }
+
+  // --- 일일 결산 31일 세부 수정 및 등록 모달 ---
+
+  function openDailyLogEditModal(targetDate = null) {
+    const data = window.SheetsSync.getPharmacySettlement();
+    if (!data.dailyLogs) data.dailyLogs = [];
+
+    const defaultDate = targetDate || '2026-08-15';
+    const logObj = data.dailyLogs.find(l => l.date === defaultDate) || {
+      date: defaultDate,
+      dayOfWeek: '토',
+      dispensingRevenue: 650000,
+      posRevenue: 850000,
+      totalRevenue: 1500000,
+      cardPay: 1275000,
+      cashPay: 225000,
+      dailyExpense: 35000,
+      note: '정상 조제/일반매출 정산'
+    };
+
+    let modal = document.getElementById('ps-dailylog-modal');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'ps-dailylog-modal';
+      modal.className = 'modal-overlay';
+      modal.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:9999999; display:flex; justify-content:center; align-items:center;';
+      document.body.appendChild(modal);
+    }
+
+    modal.innerHTML = `
+      <div class="modal-card" style="background:#ffffff; border-radius:20px; max-width:600px; width:95%; padding:26px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.35); position:relative; max-height:90vh; overflow-y:auto;">
+        <button type="button" class="close-btn" onclick="document.getElementById('ps-dailylog-modal').style.display='none'" style="position:absolute; top:20px; right:24px; font-size:26px; background:none; border:none; color:#64748b; cursor:pointer;">&times;</button>
+        
+        <h3 style="font-size:18px; font-weight:800; color:#0f172a; margin-bottom:18px;">
+          📅 일일 결산 & 회계 장부 세부 수정 / 등록
+        </h3>
+
+        <form onsubmit="PharmacySettlementModule.saveDailyLogSubmit(event)">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label font-bold" style="font-size:13px; color:#334155;">결산 일자 *</label>
+              <input type="date" class="form-control font-bold" id="dlform-date" value="${logObj.date}" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label font-bold" style="font-size:13px; color:#334155;">요일 구별</label>
+              <select class="form-select font-bold" id="dlform-dayOfWeek">
+                <option value="월" ${logObj.dayOfWeek === '월' ? 'selected' : ''}>월요일</option>
+                <option value="화" ${logObj.dayOfWeek === '화' ? 'selected' : ''}>화요일</option>
+                <option value="수" ${logObj.dayOfWeek === '수' ? 'selected' : ''}>수요일</option>
+                <option value="목" ${logObj.dayOfWeek === '목' ? 'selected' : ''}>목요일</option>
+                <option value="금" ${logObj.dayOfWeek === '금' ? 'selected' : ''}>금요일</option>
+                <option value="토" ${logObj.dayOfWeek === '토' ? 'selected' : ''}>토요일</option>
+                <option value="일" ${logObj.dayOfWeek === '일' ? 'selected' : ''}>일요일/공휴일</option>
+              </select>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label font-bold" style="font-size:13px; color:#334155;">처방 조제 매출 (원) *</label>
+              <input type="number" class="form-control font-bold text-primary" id="dlform-dispensingRevenue" value="${logObj.dispensingRevenue}" required min="0" oninput="PharmacySettlementModule.recalcDailyTotal()">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label font-bold" style="font-size:13px; color:#334155;">매장 일반 매출 (원) *</label>
+              <input type="number" class="form-control font-bold text-primary" id="dlform-posRevenue" value="${logObj.posRevenue}" required min="0" oninput="PharmacySettlementModule.recalcDailyTotal()">
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label font-bold" style="font-size:13px; color:#334155;">일 총 매출액 (자동연산)</label>
+              <input type="number" class="form-control font-bold text-success" id="dlform-totalRevenue" value="${logObj.totalRevenue}" readonly style="background:#f0fdf4;">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label font-bold" style="font-size:13px; color:#334155;">카드 결제 수입액 (원)</label>
+              <input type="number" class="form-control font-bold" id="dlform-cardPay" value="${logObj.cardPay}" min="0">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label font-bold" style="font-size:13px; color:#334155;">현금 결제 수입액 (원)</label>
+              <input type="number" class="form-control font-bold text-success" id="dlform-cashPay" value="${logObj.cashPay}" min="0">
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label font-bold" style="font-size:13px; color:#334155;">일 소액지출 금액 (원)</label>
+              <input type="number" class="form-control font-bold text-danger" id="dlform-dailyExpense" value="${logObj.dailyExpense}" min="0">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label font-bold" style="font-size:13px; color:#334155;">비고 및 특이사항</label>
+              <input type="text" class="form-control" id="dlform-note" value="${logObj.note || ''}" placeholder="예: 광복절 휴일 운영, 의원 휴진 등">
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-end gap-2 mt-4 pt-2 border-top">
+            <button type="button" class="btn btn-secondary font-bold" onclick="document.getElementById('ps-dailylog-modal').style.display='none'">취소</button>
+            <button type="submit" class="btn btn-primary font-bold px-4">
+              <i class="fas fa-save me-1"></i> 일일결산 저장 완료
+            </button>
+          </div>
+        </form>
+      </div>
+    `;
+
+    modal.style.display = 'flex';
+  }
+
+  function recalcDailyTotal() {
+    const disp = Number(document.getElementById('dlform-dispensingRevenue').value) || 0;
+    const pos = Number(document.getElementById('dlform-posRevenue').value) || 0;
+    const tot = disp + pos;
+    const totalElem = document.getElementById('dlform-totalRevenue');
+    const cardElem = document.getElementById('dlform-cardPay');
+    const cashElem = document.getElementById('dlform-cashPay');
+
+    if (totalElem) totalElem.value = tot;
+    if (cardElem && (!cardElem.value || Number(cardElem.value) === 0)) {
+      cardElem.value = Math.round(tot * 0.85);
+    }
+    if (cashElem && (!cashElem.value || Number(cashElem.value) === 0)) {
+      cashElem.value = tot - (Number(cardElem.value) || 0);
+    }
+  }
+
+  function saveDailyLogSubmit(e) {
+    e.preventDefault();
+    const data = window.SheetsSync.getPharmacySettlement();
+    if (!data.dailyLogs) data.dailyLogs = [];
+
+    const dateVal = document.getElementById('dlform-date').value;
+    const dayOfWeek = document.getElementById('dlform-dayOfWeek').value;
+    const dispensingRevenue = Number(document.getElementById('dlform-dispensingRevenue').value) || 0;
+    const posRevenue = Number(document.getElementById('dlform-posRevenue').value) || 0;
+    const totalRevenue = dispensingRevenue + posRevenue;
+    const cardPay = Number(document.getElementById('dlform-cardPay').value) || Math.round(totalRevenue * 0.85);
+    const cashPay = Number(document.getElementById('dlform-cashPay').value) || (totalRevenue - cardPay);
+    const dailyExpense = Number(document.getElementById('dlform-dailyExpense').value) || 0;
+    const note = document.getElementById('dlform-note').value.trim();
+
+    const newLogObj = {
+      date: dateVal,
+      dayOfWeek,
+      dispensingRevenue,
+      posRevenue,
+      totalRevenue,
+      cardPay,
+      cashPay,
+      dailyExpense,
+      note: note || '정상 조제/일반매출 정산'
+    };
+
+    const existingIdx = data.dailyLogs.findIndex(l => l.date === dateVal);
+    if (existingIdx >= 0) {
+      data.dailyLogs[existingIdx] = newLogObj;
+    } else {
+      data.dailyLogs.push(newLogObj);
+      data.dailyLogs.sort((a, b) => a.date.localeCompare(b.date));
+    }
+
+    window.SheetsSync.savePharmacySettlement(data);
+
+    const modal = document.getElementById('ps-dailylog-modal');
+    if (modal) modal.style.display = 'none';
+
+    render('module-content');
+    alert(`🎉 [${dateVal}] 일일 결산 내역이 성공적으로 저장 및 반영되었습니다!`);
+  }
+
+  function deleteDailyLog(dateVal) {
+    const data = window.SheetsSync.getPharmacySettlement();
+    if (!data.dailyLogs) return;
+
+    const targetIdx = data.dailyLogs.findIndex(l => l.date === dateVal);
+    if (targetIdx >= 0) {
+      if (confirm(`🗑️ 정말로 [${dateVal}] 일일 결산 내역을 초기화 삭제하시겠습니까?`)) {
+        data.dailyLogs[targetIdx] = {
+          date: dateVal,
+          dayOfWeek: data.dailyLogs[targetIdx].dayOfWeek,
+          dispensingRevenue: 0,
+          posRevenue: 0,
+          totalRevenue: 0,
+          cardPay: 0,
+          cashPay: 0,
+          dailyExpense: 0,
+          note: '미입력 / 결산 대기'
+        };
+        window.SheetsSync.savePharmacySettlement(data);
+        render('module-content');
+        alert(`🗑️ [${dateVal}] 일일 결산 내역이 초기화되었습니다.`);
+      }
+    }
+  }
+
+  // --- 구글 시트 CSV 파일 불러오기 연동 ---
 
   function openImportModal() {
     let input = document.getElementById('ps-csv-file-input');
@@ -695,6 +1024,13 @@ window.PharmacySettlementModule = (function () {
     setSubTab,
     updateField,
     updateSubField,
+    deleteSubField,
+    openAddSubItemModal,
+    saveSubItemSubmit,
+    openDailyLogEditModal,
+    saveDailyLogSubmit,
+    deleteDailyLog,
+    recalcDailyTotal,
     openImportModal
   };
 })();

@@ -740,12 +740,18 @@ window.App = (function () {
       rows.push(['4대보험 사업주 부담금', '직원 4대보험 부담금', Number(ps.insurance4Cost) || 1850000]);
       rows.push(['세무사 기장료', '세무사 기장/결산 수수료', Number(ps.taxAccountantFee) || 220000]);
       rows.push(['카드/통신 수수료', 'POS/카드 가맹점 수수료', Number(ps.posCardFee) || 1120000]);
+      Object.entries(ps.customOperating || {}).forEach(([k, v]) => {
+        rows.push([`${k} (추가)`, '사용자 추가 고정비', v]);
+      });
       rows.push([]);
 
       rows.push(['[ 4. 금융비용 및 원리금 상환 ]']);
       rows.push(['금융 항목', '산출 설명', '금액(원)']);
       rows.push(['담보대출 이자', '약국 담보/운전자금 이자', Number(ps.loanInterest) || 2150000]);
       rows.push(['대출 원리금 상환액', '원금 및 이자 상환액', Number(ps.loanPrincipal) || 1500000]);
+      Object.entries(ps.customFinancial || {}).forEach(([k, v]) => {
+        rows.push([`${k} (추가)`, '사용자 추가 금융비용', v]);
+      });
       rows.push([]);
 
       rows.push(['[ 5. 2026년 8월 일일 결산 회계 장부 (31일) ]']);
