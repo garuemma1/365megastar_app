@@ -101,35 +101,39 @@ window.AnnualLeaveModule = (function () {
         </div>
       ` : ''}
 
-      <!-- 고급 핵심 요약 스탯 카드 4열 Grid -->
-      <div class="stats-overview-grid mb-6">
-        <div class="stat-card">
-          <div class="stat-icon bg-emerald-light text-emerald"><i class="fas fa-users"></i></div>
-          <div class="stat-info">
-            <span class="stat-label">연차 부여 대상 직원</span>
-            <strong class="stat-value">${targetEmployees.length} <small>명 (약국장 제외)</small></strong>
+      <!-- 📊 Lean-OPS KPI 4카드 -->
+      <div class="mb-4" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(135px,1fr)); gap:10px;">
+        <div class="kpi-summary-card p-3" style="border-radius:16px; border:1.5px solid #cbd5e1; background:#ffffff; display:flex; flex-direction:column; justify-content:space-between;">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span style="font-size:12px; font-weight:800; color:#475569;">연차 대상</span>
+            <div style="width:24px;height:24px;border-radius:6px;background:#eff6ff;color:#2563eb;display:flex;align-items:center;justify-content:center;font-size:12px;"><i class="fas fa-users"></i></div>
           </div>
+          <div style="font-size:20px;font-weight:800;color:#0f172a;font-family:'Outfit',sans-serif;">${targetEmployees.length}<span style="font-size:12px;"> 명</span></div>
+          <div style="font-size:10.5px;color:#64748b;">약국장 제외</div>
         </div>
-        <div class="stat-card">
-          <div class="stat-icon bg-blue-light text-blue"><i class="fas fa-calendar-check"></i></div>
-          <div class="stat-info">
-            <span class="stat-label">총 법정 발생 연차</span>
-            <strong class="stat-value text-primary">${totalGrantedSum} <small>일</small></strong>
+        <div class="kpi-summary-card p-3" style="border-radius:16px; border:1.5px solid #bfdbfe; background:#eff6ff; display:flex; flex-direction:column; justify-content:space-between;">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span style="font-size:12px; font-weight:800; color:#1e40af;">총 발생 연차</span>
+            <div style="width:24px;height:24px;border-radius:6px;background:#dbeafe;color:#1d4ed8;display:flex;align-items:center;justify-content:center;font-size:12px;"><i class="fas fa-calendar-check"></i></div>
           </div>
+          <div style="font-size:20px;font-weight:800;color:#1d4ed8;font-family:'Outfit',sans-serif;">${totalGrantedSum}<span style="font-size:12px;"> 일</span></div>
+          <div style="font-size:10.5px;color:#2563eb;">전체 직원 합계</div>
         </div>
-        <div class="stat-card">
-          <div class="stat-icon bg-purple-light text-purple"><i class="fas fa-umbrella-beach"></i></div>
-          <div class="stat-info">
-            <span class="stat-label">총 사용 연차</span>
-            <strong class="stat-value text-muted">${totalUsedSum} <small>일</small></strong>
+        <div class="kpi-summary-card p-3" style="border-radius:16px; border:1.5px solid #fca5a5; background:#fff5f5; display:flex; flex-direction:column; justify-content:space-between;">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span style="font-size:12px; font-weight:800; color:#991b1b;">사용 연차</span>
+            <div style="width:24px;height:24px;border-radius:6px;background:#fee2e2;color:#dc2626;display:flex;align-items:center;justify-content:center;font-size:12px;"><i class="fas fa-umbrella-beach"></i></div>
           </div>
+          <div style="font-size:20px;font-weight:800;color:#b91c1c;font-family:'Outfit',sans-serif;">${totalUsedSum}<span style="font-size:12px;"> 일</span></div>
+          <div style="font-size:10.5px;color:#ef4444;">누적 사용 합계</div>
         </div>
-        <div class="stat-card">
-          <div class="stat-icon bg-amber-light text-amber"><i class="fas fa-clock"></i></div>
-          <div class="stat-info">
-            <span class="stat-label">약국장 결재 대기</span>
-            <strong class="stat-value ${pendingRequestsCount > 0 ? 'text-warning' : 'text-success'}">${pendingRequestsCount} <small>건</small></strong>
+        <div class="kpi-summary-card p-3" style="border-radius:16px; border:1.5px solid #fde68a; background:#fffbeb; display:flex; flex-direction:column; justify-content:space-between;">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span style="font-size:12px; font-weight:800; color:#92400e;">결재 대기</span>
+            <div style="width:24px;height:24px;border-radius:6px;background:#fef3c7;color:#d97706;display:flex;align-items:center;justify-content:center;font-size:12px;"><i class="fas fa-clock"></i></div>
           </div>
+          <div style="font-size:20px;font-weight:800;color:#d97706;font-family:'Outfit',sans-serif;">${pendingRequestsCount}<span style="font-size:12px;"> 건</span></div>
+          <div style="font-size:10.5px;color:#b45309;">승인 대기 중</div>
         </div>
       </div>
 
@@ -146,7 +150,30 @@ window.AnnualLeaveModule = (function () {
         </div>
       </div>
 
-      <!-- 1. 직원별 연차 현황 대장 표 -->
+      <!-- 📊 Chart.js: 직원별 잔여연차 Bar + 사용/잔여 비율 Donut -->
+      <div class="row g-3 mb-4">
+        <div class="col-md-7">
+          <div class="card shadow-sm" style="border-radius:16px; border:1.5px solid #cbd5e1; overflow:hidden;">
+            <div class="card-header d-flex justify-content-between align-items-center" style="background:#f8fafc; border-bottom:1.5px solid #e2e8f0; padding:12px 18px;">
+              <h4 style="font-size:14px; font-weight:800; color:#0f172a; margin:0;"><i class="fas fa-chart-bar text-success me-2"></i>🌴 직원별 잔여 연차일수</h4>
+            </div>
+            <div style="position:relative; height:200px; width:100%; padding:12px;">
+              <canvas id="leaveBarCanvas"></canvas>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-5">
+          <div class="card shadow-sm" style="border-radius:16px; border:1.5px solid #cbd5e1; overflow:hidden;">
+            <div class="card-header d-flex justify-content-between align-items-center" style="background:#f8fafc; border-bottom:1.5px solid #e2e8f0; padding:12px 18px;">
+              <h4 style="font-size:14px; font-weight:800; color:#0f172a; margin:0;"><i class="fas fa-chart-pie text-warning me-2"></i>🍩 연차 사용/잔여 비율</h4>
+            </div>
+            <div style="position:relative; height:200px; width:100%; padding:12px;">
+              <canvas id="leaveDonutCanvas"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="card-section mb-6">
         <div class="section-title-bar">
           <div>
@@ -231,6 +258,10 @@ window.AnnualLeaveModule = (function () {
     `;
 
     container.innerHTML = html;
+
+    setTimeout(() => {
+      initLeaveCharts(targetEmployees);
+    }, 50);
   }
 
   function toggleInlineLeaveForm(forceState) {
@@ -452,14 +483,14 @@ window.AnnualLeaveModule = (function () {
       if (isSaturday) numColor = '#2563eb';
 
       html += `
-        <div class="cal-cell" style="background:${cellBg}; min-height:110px; padding:8px 6px; display:flex; flex-direction:column; justify-content:space-between; border-right:1px solid #f1f5f9; border-bottom:1px solid #f1f5f9;">
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <span class="cal-num" style="font-weight:800; font-size:14px; color:${numColor}; font-family:'Outfit', sans-serif; ${isToday ? 'background:#2563eb; color:#ffffff; padding:2px 7px; border-radius:50%; font-size:12px;' : ''}">
+        <div class="cal-cell" style="background:${cellBg}; min-height:110px; padding:8px 4px; display:flex; flex-direction:column; justify-content:space-between; border-right:1px solid #f1f5f9; border-bottom:1px solid #f1f5f9; overflow:hidden;">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span class="cal-num" style="font-weight:800; font-size:14px; color:${numColor}; font-family:'Outfit', sans-serif; ${isToday ? 'background:#2563eb; color:#ffffff; padding:2px 6px; border-radius:50%; font-size:12px;' : ''}">
               ${day}
             </span>
-            ${isToday ? `<span style="font-size:10px; color:#2563eb; font-weight:700; background:#dbeafe; padding:1px 5px; border-radius:4px;">오늘</span>` : ''}
+            ${isToday ? `<span style="font-size:9px; color:#2563eb; font-weight:700; background:#dbeafe; padding:1px 4px; border-radius:4px;">오늘</span>` : ''}
           </div>
-          <div class="cal-leave-items" style="display:flex; flex-direction:column; gap:4px; flex:1; justify-content:flex-start;">
+          <div class="cal-leave-items" style="display:flex; flex-direction:column; gap:3px; flex:1; justify-content:flex-start;">
             ${dayLeaves.map(l => {
               const isApproved = l.status === 'APPROVED';
               const bgStyle = isApproved 
@@ -467,11 +498,11 @@ window.AnnualLeaveModule = (function () {
                 : 'background:linear-gradient(135deg, #d97706 0%, #b45309 100%); color:#ffffff; box-shadow:0 2px 5px rgba(217,119,6,0.25);';
 
               return `
-                <div class="leave-item-chip" style="${bgStyle} border-radius:8px; padding:4px 7px; font-size:11.5px; font-weight:700; display:flex; align-items:center; justify-content:space-between; gap:3px; cursor:pointer;" title="${l.empName} (${l.type} - ${l.reason})">
-                  <div style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:85px;">
-                    <i class="fas ${isApproved ? 'fa-umbrella-beach' : 'fa-clock'}" style="font-size:10px; margin-right:2px; opacity:0.9;"></i> ${l.empName}
+                <div class="leave-item-chip" style="${bgStyle} border-radius:6px; padding:3px 4px; font-size:10.5px; font-weight:700; display:flex; align-items:center; justify-content:space-between; gap:2px; cursor:pointer; width:100%; box-sizing:border-box; overflow:hidden;" title="${l.empName} (${l.type} - ${l.reason})">
+                  <div style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1; min-width:0;">
+                    <i class="fas ${isApproved ? 'fa-umbrella-beach' : 'fa-clock'}" style="font-size:9px; margin-right:1px; opacity:0.9;"></i> ${l.empName}
                   </div>
-                  <span style="font-size:9.5px; background:rgba(255,255,255,0.25); padding:1px 4px; border-radius:4px; white-space:nowrap;">
+                  <span style="font-size:9px; background:rgba(255,255,255,0.25); padding:1px 3px; border-radius:3px; white-space:nowrap; flex-shrink:0;">
                     ${l.type}
                   </span>
                 </div>
@@ -549,12 +580,73 @@ window.AnnualLeaveModule = (function () {
     render('module-content');
   }
 
+  let leaveChartInst = {};
+  function initLeaveCharts(targetEmployees) {
+    if (typeof Chart === 'undefined') return;
+
+    const barCtx = document.getElementById('leaveBarCanvas');
+    if (barCtx) {
+      if (leaveChartInst.bar) leaveChartInst.bar.destroy();
+      leaveChartInst.bar = new Chart(barCtx, {
+        type: 'bar',
+        indexAxis: 'y',
+        data: {
+          labels: targetEmployees.map(e => e.name),
+          datasets: [
+            {
+              label: '잔여연차',
+              data: targetEmployees.map(e => {
+                const calc = window.LaborCalculator.calculateStatutoryLeave(e.joinDate);
+                return Math.max(0, calc.totalGranted - (e.usedLeave || 0));
+              }),
+              backgroundColor: 'rgba(16,185,129,0.82)',
+              borderRadius: 4
+            },
+            {
+              label: '사용연차',
+              data: targetEmployees.map(e => e.usedLeave || 0),
+              backgroundColor: 'rgba(239,68,68,0.65)',
+              borderRadius: 4
+            }
+          ]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { position: 'top', labels: { boxWidth: 10, font: { size: 10 } } } },
+          scales: { x: { stacked: false, ticks: { stepSize: 1 } } }
+        }
+      });
+    }
+
+    const donutCtx = document.getElementById('leaveDonutCanvas');
+    if (donutCtx) {
+      if (leaveChartInst.donut) leaveChartInst.donut.destroy();
+      leaveChartInst.donut = new Chart(donutCtx, {
+        type: 'doughnut',
+        data: {
+          labels: ['잔여 연차 (마일)', '사용 연차 (마일)'],
+          datasets: [{
+            data: [
+              Math.max(0, targetEmployees.reduce((s,e) => { const c = window.LaborCalculator.calculateStatutoryLeave(e.joinDate); return s + c.totalGranted - (e.usedLeave||0); }, 0)),
+              targetEmployees.reduce((s,e) => s + (e.usedLeave||0), 0)
+            ],
+            backgroundColor: ['#10b981', '#ef4444']
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { position: 'right', labels: { boxWidth: 10, font: { size: 10 } } } }
+        }
+      });
+    }
+  }
+
   return {
     render,
     toggleInlineLeaveForm,
     openLeaveModal,
     submitLeaveApplication,
-    setCalViewMode,
-    changeCalMonth
+    changeCalMonth,
+    setCalViewMode
   };
 })();

@@ -30,39 +30,56 @@ window.NoticesModule = (function () {
         </button>
       </div>
 
-      <!-- 핵심 공지 분류 요약 스탯 카드 4열 Grid -->
-      <div class="stats-overview-grid mb-6">
-        <div class="stat-card" onclick="NoticesModule.filterCategory('ALL')" style="cursor: pointer;">
-          <div class="stat-icon bg-emerald-light text-emerald"><i class="fas fa-bullhorn"></i></div>
-          <div class="stat-info">
-            <span class="stat-label">전체 공지 & SOP</span>
-            <strong class="stat-value">${totalCount} <small>건</small></strong>
+      <!-- 📊 Lean-OPS KPI 4카드 -->
+      <div class="mb-4" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(135px,1fr)); gap:10px;">
+        <div class="kpi-summary-card p-3" style="border-radius:16px; border:1.5px solid #cbd5e1; background:#ffffff; display:flex; flex-direction:column; justify-content:space-between;" onclick="NoticesModule.filterCategory('ALL')" style="cursor:pointer;">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span style="font-size:12px; font-weight:800; color:#475569;">전체 공지</span>
+            <div style="width:24px;height:24px;border-radius:6px;background:#eff6ff;color:#2563eb;display:flex;align-items:center;justify-content:center;font-size:12px;"><i class="fas fa-bullhorn"></i></div>
           </div>
+          <div style="font-size:20px;font-weight:800;color:#0f172a;font-family:'Outfit',sans-serif;">${totalCount}<span style="font-size:12px;"> 건</span></div>
+          <div style="font-size:10.5px;color:#64748b;">전체 SOP 포함</div>
         </div>
-        <div class="stat-card" onclick="NoticesModule.filterCategory('긴급/근무')" style="cursor: pointer;">
-          <div class="stat-icon bg-amber-light text-amber"><i class="fas fa-exclamation-circle"></i></div>
-          <div class="stat-info">
-            <span class="stat-label">긴급 / 근무 지침</span>
-            <strong class="stat-value text-warning">${urgentCount} <small>건</small></strong>
+        <div class="kpi-summary-card p-3" style="border-radius:16px; border:1.5px solid #fde68a; background:#fffbeb; display:flex; flex-direction:column; justify-content:space-between;" onclick="NoticesModule.filterCategory('긴급/근무')" style="cursor:pointer;">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span style="font-size:12px; font-weight:800; color:#92400e;">긴급/근무</span>
+            <div style="width:24px;height:24px;border-radius:6px;background:#fef3c7;color:#d97706;display:flex;align-items:center;justify-content:center;font-size:12px;"><i class="fas fa-exclamation-circle"></i></div>
           </div>
+          <div style="font-size:20px;font-weight:800;color:#d97706;font-family:'Outfit',sans-serif;">${urgentCount}<span style="font-size:12px;"> 건</span></div>
+          <div style="font-size:10.5px;color:#b45309;">긴급 근무 지침</div>
         </div>
-        <div class="stat-card" onclick="NoticesModule.filterCategory('조제/투약')" style="cursor: pointer;">
-          <div class="stat-icon bg-blue-light text-blue"><i class="fas fa-pills"></i></div>
-          <div class="stat-info">
-            <span class="stat-label">조제 / 투약 수칙</span>
-            <strong class="stat-value text-primary">${dispensingCount} <small>건</small></strong>
+        <div class="kpi-summary-card p-3" style="border-radius:16px; border:1.5px solid #bfdbfe; background:#eff6ff; display:flex; flex-direction:column; justify-content:space-between;" onclick="NoticesModule.filterCategory('조제/투약')" style="cursor:pointer;">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span style="font-size:12px; font-weight:800; color:#1e40af;">조제/투약</span>
+            <div style="width:24px;height:24px;border-radius:6px;background:#dbeafe;color:#1d4ed8;display:flex;align-items:center;justify-content:center;font-size:12px;"><i class="fas fa-pills"></i></div>
           </div>
+          <div style="font-size:20px;font-weight:800;color:#1d4ed8;font-family:'Outfit',sans-serif;">${dispensingCount}<span style="font-size:12px;"> 건</span></div>
+          <div style="font-size:10.5px;color:#2563eb;">조제 수칙</div>
         </div>
-        <div class="stat-card" onclick="NoticesModule.filterCategory('인사/연차')" style="cursor: pointer;">
-          <div class="stat-icon bg-purple-light text-purple"><i class="fas fa-user-clock"></i></div>
-          <div class="stat-info">
-            <span class="stat-label">인사 / 연차 지침</span>
-            <strong class="stat-value text-purple">${hrCount} <small>건</small></strong>
+        <div class="kpi-summary-card p-3" style="border-radius:16px; border:1.5px solid #e9d5ff; background:#faf5ff; display:flex; flex-direction:column; justify-content:space-between;" onclick="NoticesModule.filterCategory('인사/연차')" style="cursor:pointer;">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span style="font-size:12px; font-weight:800; color:#6b21a8;">인사/연차</span>
+            <div style="width:24px;height:24px;border-radius:6px;background:#f3e8ff;color:#9333ea;display:flex;align-items:center;justify-content:center;font-size:12px;"><i class="fas fa-user-clock"></i></div>
           </div>
+          <div style="font-size:20px;font-weight:800;color:#9333ea;font-family:'Outfit',sans-serif;">${hrCount}<span style="font-size:12px;"> 건</span></div>
+          <div style="font-size:10.5px;color:#7c3aed;">인사/연차 지침</div>
         </div>
       </div>
 
-      <!-- 검색 & 카테고리 필터 바 -->
+      <!-- 🍩 카테고리별 공지 비율 Donut + 필터바 -->
+      <div class="row g-3 mb-4">
+        <div class="col-md-4">
+          <div class="card shadow-sm" style="border-radius:16px; border:1.5px solid #cbd5e1; overflow:hidden;">
+            <div class="card-header" style="background:#f8fafc; border-bottom:1.5px solid #e2e8f0; padding:12px 18px;">
+              <h4 style="font-size:13px; font-weight:800; color:#0f172a; margin:0;"><i class="fas fa-chart-pie text-primary me-2"></i>🍩 지침유형별 비율</h4>
+            </div>
+            <div style="position:relative; height:180px; width:100%; padding:10px;">
+              <canvas id="noticesDonutCanvas"></canvas>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-8">
+
       <div class="card-section mb-6">
         <div class="filter-bar-header mb-4">
           <div class="search-box w-100 mb-3">
@@ -83,8 +100,11 @@ window.NoticesModule = (function () {
           ${renderNoticesList(notices)}
         </div>
       </div>
+        </div> <!-- end col-md-8 -->
+      </div> <!-- end row -->
 
       <!-- 공지사항 작성/편집 모달 -->
+
       <div class="modal-overlay" id="notice-modal" style="display:none;">
         <div class="modal-card">
           <div class="modal-header">
@@ -132,6 +152,10 @@ window.NoticesModule = (function () {
     `;
 
     container.innerHTML = html;
+
+    setTimeout(() => {
+      initNoticesChart({ totalCount, urgentCount, dispensingCount, hrCount });
+    }, 50);
   }
 
   function renderNoticesList(notices) {
@@ -246,6 +270,22 @@ window.NoticesModule = (function () {
     data.notices = data.notices.filter(n => n.id !== id);
     window.SheetsSync.saveData(window.SheetsSync.STORAGE_KEYS.NOTICES, data.notices);
     render('module-content');
+  }
+
+  let noticeChartInst = {};
+  function initNoticesChart({ totalCount, urgentCount, dispensingCount, hrCount }) {
+    if (typeof Chart === 'undefined') return;
+    const ctx = document.getElementById('noticesDonutCanvas');
+    if (!ctx) return;
+    if (noticeChartInst.donut) noticeChartInst.donut.destroy();
+    noticeChartInst.donut = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: ['긴급/근무', '조제/투약', '인사/연차', '기타'],
+        datasets: [{ data: [urgentCount, dispensingCount, hrCount, Math.max(0, totalCount - urgentCount - dispensingCount - hrCount)], backgroundColor: ['#f59e0b','#3b82f6','#8b5cf6','#10b981'] }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { boxWidth: 10, font: { size: 10 } } } } }
+    });
   }
 
   return {

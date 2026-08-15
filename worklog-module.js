@@ -61,6 +61,15 @@ window.WorklogModule = (function () {
     });
 
     const monthPrefix = `${currentYear}-${String(currentMonth).padStart(2, '0')}`;
+    // Compute shift counts and percentages for the selected month
+    const monthLogs = logs.filter(l => (l.date || '').startsWith(monthPrefix));
+    const aCount = monthLogs.filter(l => l.shift && l.shift.includes('A조')).length;
+    const bCount = monthLogs.filter(l => l.shift && l.shift.includes('B조')).length;
+    const fullCount = monthLogs.filter(l => l.shift && l.shift.includes('FULL')).length;
+    const totalShift = aCount + bCount + fullCount;
+    const aPct = totalShift ? ((aCount / totalShift) * 100).toFixed(1) : 0;
+    const bPct = totalShift ? ((bCount / totalShift) * 100).toFixed(1) : 0;
+    const fullPct = totalShift ? ((fullCount / totalShift) * 100).toFixed(1) : 0;
 
     const html = `
       <div class="module-header d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
@@ -79,6 +88,74 @@ window.WorklogModule = (function () {
           <button class="btn btn-primary font-bold shadow-sm" onclick="WorklogModule.showCreateModal()" style="border-radius:12px; padding:10px 20px; font-size:15px;">
             <i class="fas fa-edit"></i> 📝 새 업무일지 작성하기
           </button>
+        </div>
+      </div>
+
+      <!-- 📊 Lean-OPS KPI 4카드 -->
+      <div class="mb-4" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(135px,1fr)); gap:10px;">
+        <div class="kpi-summary-card p-3" style="border-radius:16px; border:1.5px solid #cbd5e1; background:#ffffff; display:flex; flex-direction:column; justify-content:space-between;">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span style="font-size:12px; font-weight:800; color:#475569;">전체 일지</span>
+            <div style="width:24px; height:24px; border-radius:6px; background:#eff6ff; color:#2563eb; display:flex; align-items:center; justify-content:center; font-size:12px;"><i class="fas fa-book"></i></div>
+          </div>
+          <div style="font-size:20px; font-weight:800; color:#0f172a; font-family:'Outfit',sans-serif;">${logs.length}<span style="font-size:12px; font-weight:700;"> 건</span></div>
+          <div style="font-size:10.5px; color:#64748b;">A/B/FULL 전체 누적</div>
+        </div>
+        <div class="kpi-summary-card p-3" style="border-radius:16px; border:1.5px solid #bfdbfe; background:#eff6ff; display:flex; flex-direction:column; justify-content:space-between;">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span style="font-size:12px; font-weight:800; color:#1e40af;">금월 작성</span>
+            <div style="width:24px; height:24px; border-radius:6px; background:#dbeafe; color:#1d4ed8; display:flex; align-items:center; justify-content:center; font-size:12px;"><i class="fas fa-calendar"></i></div>
+          </div>
+          <div style="font-size:20px; font-weight:800; color:#1d4ed8; font-family:'Outfit',sans-serif;">${logs.filter(l => (l.date||'').startsWith(monthPrefix)).length}<span style="font-size:12px;"> 건</span></div>
+          <div style="font-size:10.5px; color:#2563eb;">${currentYear}년 ${currentMonth}월</div>
+        </div>
+        <div class="kpi-summary-card p-3" style="border-radius:16px; border:1.5px solid #bbf7d0; background:#f0fdf4; display:flex; flex-direction:column; justify-content:space-between;">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span style="font-size:12px; font-weight:800; color:#15803d;">A조 일지</span>
+            <div style="width:24px; height:24px; border-radius:6px; background:#dcfce7; color:#16a34a; display:flex; align-items:center; justify-content:center; font-size:12px;"><i class="fas fa-sun"></i></div>
+          </div>
+          <div style="font-size:20px; font-weight:800; color:#15803d; font-family:'Outfit',sans-serif;">${aCount}<span style="font-size:12px;"> 건 (${aPct}%)</span></div>
+          <div style="font-size:10.5px; color:#059669;">오프닝조</div>
+        </div>
+        <div class="kpi-summary-card p-3" style="border-radius:16px; border:1.5px solid #fde68a; background:#fffbeb; display:flex; flex-direction:column; justify-content:space-between;">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span style="font-size:12px; font-weight:800; color:#92400e;">B조 일지</span>
+            <div style="width:24px; height:24px; border-radius:6px; background:#fef3c7; color:#d97706; display:flex; align-items:center; justify-content:center; font-size:12px;"><i class="fas fa-moon"></i></div>
+          </div>
+          <div style="font-size:20px; font-weight:800; color:#d97706; font-family:'Outfit',sans-serif;">${bCount}<span style="font-size:12px;"> 건 (${bPct}%)</span></div>
+          <div style="font-size:10.5px; color:#b45309;">마감조</div>
+        </div>
+        <div class="kpi-summary-card p-3" style="border-radius:16px; border:1.5px solid #a5b4fc; background:#eef2ff; display:flex; flex-direction:column; justify-content:space-between;">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span style="font-size:12px; font-weight:800; color:#4338ca;">FULL 조</span>
+            <div style="width:24px; height:24px; border-radius:6px; background:#e0e7ff; color:#3730a3; display:flex; align-items:center; justify-content:center; font-size:12px;"><i class="fas fa-circle"></i></div>
+          </div>
+          <div style="font-size:20px; font-weight:800; color:#4338ca; font-family:'Outfit',sans-serif;">${fullCount}<span style="font-size:12px;"> 건 (${fullPct}%)</span></div>
+          <div style="font-size:10.5px; color:#4c51bf;">전체 교대</div>
+        </div>
+      </div>
+
+      <!-- 📊 Charts Row -->
+      <div class="row">
+        <div class="col-md-8">
+          <div class="card mb-4 shadow-sm" style="border-radius:16px; border:1.5px solid #cbd5e1; overflow:hidden;">
+            <div class="card-header d-flex justify-content-between align-items-center" style="background:#f8fafc; border-bottom:1.5px solid #e2e8f0; padding:12px 18px;">
+              <h4 style="font-size:14px; font-weight:800; color:#0f172a; margin:0;"><i class="fas fa-chart-bar text-primary me-2"></i>📊 월별 업무일지 작성 추세 (Bar)</h4>
+            </div>
+            <div style="position:relative; height:200px; width:100%; padding:12px;">
+              <canvas id="worklogTrendCanvas"></canvas>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card mb-4 shadow-sm" style="border-radius:16px; border:1.5px solid #cbd5e1; overflow:hidden;">
+            <div class="card-header d-flex justify-content-between align-items-center" style="background:#f8fafc; border-bottom:1.5px solid #e2e8f0; padding:12px 18px;">
+              <h4 style="font-size:14px; font-weight:800; color:#0f172a; margin:0;"><i class="fas fa-chart-pie text-primary me-2"></i>🔸 교대조 비중 (Donut)</h4>
+            </div>
+            <div style="position:relative; height:200px; width:100%; padding:12px;">
+              <canvas id="shiftDonutCanvas"></canvas>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -324,6 +401,8 @@ window.WorklogModule = (function () {
     `;
 
     container.innerHTML = html;
+
+    setTimeout(() => { initWorklogCharts(logs); initShiftDonutChart(logs); }, 50);
   }
 
   // 월간 달력 그리드 HTML 생성 함수 (PC & 모바일 7열 100% 한눈 핏 정돈)
@@ -583,6 +662,76 @@ window.WorklogModule = (function () {
     } else {
       alert('이미 확인 체크를 완료하셨습니다.');
     }
+  }
+
+  let wlChartInst = {};
+  function initWorklogCharts(logs) {
+    if (typeof Chart === 'undefined') return;
+    const ctx = document.getElementById('worklogTrendCanvas');
+    if (!ctx) return;
+    if (wlChartInst.bar) wlChartInst.bar.destroy();
+
+    // 최근 6개월 레이블 & 데이터 생성
+    const today = new Date();
+    const months = [];
+    const counts = [];
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
+      const prefix = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+      months.push(`${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}`);
+      counts.push(logs.filter(l => (l.date||'').startsWith(prefix)).length);
+    }
+
+    wlChartInst.bar = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: months,
+        datasets: [{
+          label: '업무일지 건수',
+          data: counts,
+          backgroundColor: 'rgba(37,99,235,0.82)',
+          borderRadius: 6
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+      }
+    });
+  }
+
+  // Donut chart for shift composition of current month
+  function initShiftDonutChart(logs) {
+    if (typeof Chart === 'undefined') return;
+    const ctx = document.getElementById('shiftDonutCanvas');
+    if (!ctx) return;
+    if (wlChartInst.donut) wlChartInst.donut.destroy();
+
+    const monthPrefix = `${currentYear}-${String(currentMonth).padStart(2, '0')}`;
+    const monthLogs = logs.filter(l => (l.date || '').startsWith(monthPrefix));
+    const a = monthLogs.filter(l => l.shift && l.shift.includes('A조')).length;
+    const b = monthLogs.filter(l => l.shift && l.shift.includes('B조')).length;
+    const f = monthLogs.filter(l => l.shift && l.shift.includes('FULL')).length;
+
+    wlChartInst.donut = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: ['A조', 'B조', 'FULL'],
+        datasets: [{
+          data: [a, b, f],
+          backgroundColor: ['#2563eb', '#d97706', '#6b21a8'],
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom' } },
+        cutout: '70%'
+      }
+    });
   }
 
   return {

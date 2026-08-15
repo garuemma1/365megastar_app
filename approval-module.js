@@ -45,6 +45,42 @@ window.ApprovalModule = (function () {
         </div>
       </div>
 
+      <!-- 📊 Lean-OPS KPI 4카드 -->
+      <div class="mb-4" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(135px,1fr)); gap:10px;">
+        <div class="kpi-summary-card p-3" style="border-radius:16px; border:1.5px solid #fde68a; background:#fffbeb; display:flex; flex-direction:column; justify-content:space-between;">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span style="font-size:12px; font-weight:800; color:#92400e;">결재 대기</span>
+            <div style="width:24px;height:24px;border-radius:6px;background:#fef3c7;color:#d97706;display:flex;align-items:center;justify-content:center;font-size:12px;"><i class="fas fa-hourglass-half"></i></div>
+          </div>
+          <div style="font-size:20px;font-weight:800;color:#d97706;font-family:'Outfit',sans-serif;">${pendingRequests.length}<span style="font-size:12px;"> 건</span></div>
+          <div style="font-size:10.5px;color:#b45309;">승인 대기 중</div>
+        </div>
+        <div class="kpi-summary-card p-3" style="border-radius:16px; border:1.5px solid #bbf7d0; background:#f0fdf4; display:flex; flex-direction:column; justify-content:space-between;">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span style="font-size:12px; font-weight:800; color:#15803d;">승인 완료</span>
+            <div style="width:24px;height:24px;border-radius:6px;background:#dcfce7;color:#16a34a;display:flex;align-items:center;justify-content:center;font-size:12px;"><i class="fas fa-check-circle"></i></div>
+          </div>
+          <div style="font-size:20px;font-weight:800;color:#15803d;font-family:'Outfit',sans-serif;">${leaveRequests.filter(r => r.status === 'APPROVED').length}<span style="font-size:12px;"> 건</span></div>
+          <div style="font-size:10.5px;color:#059669;">연차 승인</div>
+        </div>
+        <div class="kpi-summary-card p-3" style="border-radius:16px; border:1.5px solid #fca5a5; background:#fff5f5; display:flex; flex-direction:column; justify-content:space-between;">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span style="font-size:12px; font-weight:800; color:#991b1b;">반려/삭제</span>
+            <div style="width:24px;height:24px;border-radius:6px;background:#fee2e2;color:#dc2626;display:flex;align-items:center;justify-content:center;font-size:12px;"><i class="fas fa-times-circle"></i></div>
+          </div>
+          <div style="font-size:20px;font-weight:800;color:#b91c1c;font-family:'Outfit',sans-serif;">${leaveRequests.filter(r => r.status === 'REJECTED').length}<span style="font-size:12px;"> 건</span></div>
+          <div style="font-size:10.5px;color:#ef4444;">반려 처리</div>
+        </div>
+        <div class="kpi-summary-card p-3" style="border-radius:16px; border:1.5px solid #bfdbfe; background:#eff6ff; display:flex; flex-direction:column; justify-content:space-between;">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span style="font-size:12px; font-weight:800; color:#1e40af;">스케줄 결재</span>
+            <div style="width:24px;height:24px;border-radius:6px;background:#dbeafe;color:#1d4ed8;display:flex;align-items:center;justify-content:center;font-size:12px;"><i class="fas fa-calendar-check"></i></div>
+          </div>
+          <div style="font-size:20px;font-weight:800;color:#1d4ed8;font-family:'Outfit',sans-serif;">${((data.scheduleStatus||{})['2026-08']||{}).pharmacistStatus === 'APPROVED' ? '✅' : '⏳'}</div>
+          <div style="font-size:10.5px;color:#2563eb;">8월 스케줄</div>
+        </div>
+      </div>
+
       <!-- 0. 월간 근무스케줄 팀별 제출안 결재 섹션 -->
       <div class="card-section mb-6">
         <div class="section-title-bar mb-2">

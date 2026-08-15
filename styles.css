@@ -229,6 +229,7 @@ body {
 
 .sync-badge-short-text { display: none !important; }
 .sync-badge-full-text { display: inline !important; }
+.hide-on-mobile { display: inline-flex; }
 
 .module-content { padding: 28px; flex: 1; }
 
@@ -1164,17 +1165,23 @@ body[data-theme="dark"] .kpi-avatar-purple { background: rgba(147, 51, 234, 0.2)
   /* 상단 헤더 모바일 정돈 - 로고 및 클라우드 연동 뱃지 겹침 원천 차단 */
   .sync-badge-short-text { display: inline !important; }
   .sync-badge-full-text { display: none !important; }
+  .hide-on-mobile { display: none !important; }
 
   .top-header { padding: 0 8px !important; height: 54px !important; gap: 4px !important; justify-content: space-between !important; }
-  .header-left { gap: 6px !important; min-width: 0 !important; flex-shrink: 0 !important; }
+  .header-left { gap: 6px !important; min-width: 0 !important; flex-shrink: 1 !important; overflow: hidden !important; }
   .header-logo-img { height: 28px !important; width: 28px !important; flex-shrink: 0 !important; }
-  .header-module-info { display: none !important; } /* 상단 중복 제목 모바일 숨김 (본문 h2로만 깨끗하게 표시) */
+  .header-module-info { display: none !important; } /* 모바일 중복 제목 숨김 */
   
-  .header-right { gap: 4px !important; flex-shrink: 1 !important; min-width: 0 !important; justify-content: flex-end !important; }
+  .header-right { gap: 4px !important; flex-shrink: 0 !important; min-width: 0 !important; justify-content: flex-end !important; max-width: 60vw !important; }
   #cloud-sync-badge { flex-shrink: 0 !important; }
   #cloud-sync-badge .badge { font-size: 10.5px !important; padding: 4px 6px !important; border-radius: 8px !important; }
   .header-btn { padding: 4px 6px !important; font-size: 11px !important; }
   .header-btn span { display: none !important; } /* 모바일에서는 아이콘으로 컴팩트하게 노출 */
+
+  /* 프로필 배지 모바일 최소 폼 햤 */
+  #user-profile-badge .badge { font-size: 10.5px !important; padding: 4px 6px !important; border-radius: 10px !important; max-width: 90px !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; }
+  #user-profile-badge button { padding: 4px 6px !important; font-size: 10px !important; border-radius: 8px !important; }
+  #user-profile-badge button span { display: none !important; }
   
   .module-content { padding: 12px 10px; padding-bottom: 84px; }
   .hide-mobile { display: none !important; }
@@ -1291,10 +1298,15 @@ body[data-theme="dark"] .kpi-avatar-purple { background: rgba(147, 51, 234, 0.2)
   }
 
   /* 연차 대장 달력 모바일 7열(일~토) 100% 한눈 핏 최적화 */
+  .calendar-scroll-wrapper {
+    overflow-x: hidden !important;
+    border-radius: 12px !important;
+  }
+
   .leave-calendar-grid {
     min-width: 0 !important;
     width: 100% !important;
-    grid-template-columns: repeat(7, 1fr) !important;
+    grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
     gap: 1px !important;
   }
 

@@ -32,6 +32,42 @@ window.EmergencyContactsModule = (function () {
         </div>
       </div>
 
+      <!-- 📊 Lean-OPS KPI 4카드 -->
+      <div class="mb-4" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(135px,1fr)); gap:10px;">
+        <div class="kpi-summary-card p-3" style="border-radius:16px; border:1.5px solid #bbf7d0; background:#f0fdf4; display:flex; flex-direction:column; justify-content:space-between;">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span style="font-size:12px; font-weight:800; color:#15803d;">내부 인력</span>
+            <div style="width:24px;height:24px;border-radius:6px;background:#dcfce7;color:#16a34a;display:flex;align-items:center;justify-content:center;font-size:12px;"><i class="fas fa-users"></i></div>
+          </div>
+          <div style="font-size:20px;font-weight:800;color:#15803d;font-family:'Outfit',sans-serif;">${employees.length}<span style="font-size:12px;"> 명</span></div>
+          <div style="font-size:10.5px;color:#059669;">약국패밀리</div>
+        </div>
+        <div class="kpi-summary-card p-3" style="border-radius:16px; border:1.5px solid #bfdbfe; background:#eff6ff; display:flex; flex-direction:column; justify-content:space-between;">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span style="font-size:12px; font-weight:800; color:#1e40af;">의약품 공급</span>
+            <div style="width:24px;height:24px;border-radius:6px;background:#dbeafe;color:#1d4ed8;display:flex;align-items:center;justify-content:center;font-size:12px;"><i class="fas fa-pills"></i></div>
+          </div>
+          <div style="font-size:20px;font-weight:800;color:#1d4ed8;font-family:'Outfit',sans-serif;">${pharmaData.length}<span style="font-size:12px;"> 개사</span></div>
+          <div style="font-size:10.5px;color:#2563eb;">도매/제약사</div>
+        </div>
+        <div class="kpi-summary-card p-3" style="border-radius:16px; border:1.5px solid #e9d5ff; background:#faf5ff; display:flex; flex-direction:column; justify-content:space-between;">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span style="font-size:12px; font-weight:800; color:#6b21a8;">전산·장비</span>
+            <div style="width:24px;height:24px;border-radius:6px;background:#f3e8ff;color:#9333ea;display:flex;align-items:center;justify-content:center;font-size:12px;"><i class="fas fa-laptop-medical"></i></div>
+          </div>
+          <div style="font-size:20px;font-weight:800;color:#9333ea;font-family:'Outfit',sans-serif;">${equipmentData.length}<span style="font-size:12px;"> 개처</span></div>
+          <div style="font-size:10.5px;color:#7c3aed;">조제장비</div>
+        </div>
+        <div class="kpi-summary-card p-3" style="border-radius:16px; border:1.5px solid #fde68a; background:#fffbeb; display:flex; flex-direction:column; justify-content:space-between;">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span style="font-size:12px; font-weight:800; color:#92400e;">시설 관리</span>
+            <div style="width:24px;height:24px;border-radius:6px;background:#fef3c7;color:#d97706;display:flex;align-items:center;justify-content:center;font-size:12px;"><i class="fas fa-building"></i></div>
+          </div>
+          <div style="font-size:20px;font-weight:800;color:#d97706;font-family:'Outfit',sans-serif;">${facilitiesData.length}<span style="font-size:12px;"> 개처</span></div>
+          <div style="font-size:10.5px;color:#b45309;">소모품/시설</div>
+        </div>
+      </div>
+
       <!-- 상단 4대 카테고리 전용 탭 네비게이션 바 -->
       <div class="emergency-tabs-bar mb-4" style="display:flex; gap:8px; border-bottom:2px solid #e2e8f0; padding-bottom:12px; flex-wrap:wrap;">
         <button type="button" class="tab-nav-btn ${activeTab === 'family' ? 'active' : ''}" onclick="EmergencyContactsModule.setActiveTab('family')" style="${getTabBtnStyle(activeTab === 'family', 'family')}">

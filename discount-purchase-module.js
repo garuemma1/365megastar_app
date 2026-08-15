@@ -6,6 +6,8 @@ window.DiscountPurchaseModule = (function () {
 
   let currentTab = 'monthly'; // 기본 탭: 'monthly': 월별 합계, 'individual': 개별 기록, 'daily': 일자별 합계, 'staff': 개인별 합계
   let searchQuery = '';
+  let discountBarChartInstance = null;
+  let discountDonutChartInstance = null;
 
   function render(containerId) {
     const container = document.getElementById(containerId || 'module-content');
@@ -15,8 +17,15 @@ window.DiscountPurchaseModule = (function () {
     const purchases = data.discountPurchases || [];
     const employees = data.employees || [];
 
-    // 월별 통계 집계 (August 2026 기준 & 전체 통계)
-    const stats = calculatePurchaseStats(purchases);
+    // 현재 연/월 동적 계산
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth() + 1;
+
+    // 월별 통계 집계
+    const stats = calculatePurchaseStats(purchases, currentYear, currentMonth);
+
+    const monthLabel = `${currentYear}년 ${String(currentMonth).padStart(2,'0')}월`;
 
     const html = `
       <div class="module-header flex justify-between items-center mb-4">
@@ -29,13 +38,13 @@ window.DiscountPurchaseModule = (function () {
         </button>
       </div>
 
-      <!-- 상단 핵심 4대 KPI 요약 통계 대시보드 (가시성 및 정돈 디자인 강화) -->
+      <!-- 상단 핵심 4대 KPI 요약 통계 대시보드 -->
       <div class="kpi-grid my-4" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; clear: both;">
         
         <!-- 1. 당월 총 구매 건수 -->
         <div class="kpi-card" style="background:#ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px 20px; box-shadow: 0 2px 6px rgba(0,0,0,0.03); display: flex; flex-direction: column; justify-content: space-between;">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
-            <span style="font-size: 13px; font-weight: 700; color: #64748b; letter-spacing: -0.3px;">당월(8월) 총 구매 건수</span>
+            <span style="font-size: 13px; font-weight: 700; color: #64748b; letter-spacing: -0.3px;">당월(${monthLabel}) 총 구매 건수</span>
             <div style="width: 32px; height: 32px; border-radius: 8px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center; font-size: 14px;">
               <i class="fas fa-shopping-bag"></i>
             </div>
@@ -43,12 +52,13 @@ window.DiscountPurchaseModule = (function () {
           <div style="font-size: 26px; font-weight: 800; color: #0f172a; letter-spacing: -0.5px;">
             ${stats.currentMonthCount} <span style="font-size: 14px; font-weight: 600; color: #64748b;">건</span>
           </div>
+          <div style="margin-top:8px; font-size:12px; color:#94a3b8;">전월 대비 <span style="color:${stats.momDiff >= 0 ? '#16a34a' : '#dc2626'}; font-weight:700;">${stats.momDiff >= 0 ? '+' : ''}${stats.momDiff}건</span></div>
         </div>
 
         <!-- 2. 당월 총 결제 금액 (연두색 하이라이트) -->
         <div class="kpi-card" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border: 1.5px solid #86efac; border-radius: 12px; padding: 18px 20px; box-shadow: 0 4px 12px rgba(34,197,94,0.08); display: flex; flex-direction: column; justify-content: space-between;">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
-            <span style="font-size: 13px; font-weight: 700; color: #15803d; letter-spacing: -0.3px;">당월(8월) 총 결제 금액</span>
+            <span style="font-size: 13px; font-weight: 700; color: #15803d; letter-spacing: -0.3px;">당월(${monthLabel}) 총 결제 금액</span>
             <div style="width: 32px; height: 32px; border-radius: 8px; background: #22c55e; color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 14px; box-shadow: 0 2px 4px rgba(34,197,94,0.3);">
               <i class="fas fa-wallet"></i>
             </div>
@@ -56,6 +66,7 @@ window.DiscountPurchaseModule = (function () {
           <div style="font-size: 26px; font-weight: 800; color: #15803d; letter-spacing: -0.5px;">
             ${stats.currentMonthTotal.toLocaleString()} <span style="font-size: 14px; font-weight: 600; color: #166534;">원</span>
           </div>
+          <div style="margin-top:8px; font-size:12px; color:#4ade80;">전월 대비 <span style="font-weight:700;">${stats.momAmountDiff >= 0 ? '+' : ''}${stats.momAmountDiff.toLocaleString()}원</span></div>
         </div>
 
         <!-- 3. 구매 참여 직원 수 -->
@@ -69,6 +80,7 @@ window.DiscountPurchaseModule = (function () {
           <div style="font-size: 26px; font-weight: 800; color: #0f172a; letter-spacing: -0.5px;">
             ${stats.uniqueStaffCount} <span style="font-size: 14px; font-weight: 600; color: #64748b;">명</span>
           </div>
+          <div style="margin-top:8px; font-size:12px; color:#94a3b8;">누적 구매 직원 ${stats.totalUniqueStaff}명</div>
         </div>
 
         <!-- 4. 건당 평균 구매액 -->
@@ -82,8 +94,35 @@ window.DiscountPurchaseModule = (function () {
           <div style="font-size: 26px; font-weight: 800; color: #0f172a; letter-spacing: -0.5px;">
             ${stats.avgAmount.toLocaleString()} <span style="font-size: 14px; font-weight: 600; color: #64748b;">원</span>
           </div>
+          <div style="margin-top:8px; font-size:12px; color:#94a3b8;">최고 단건 <span style="color:#ea580c; font-weight:700;">${stats.maxAmount.toLocaleString()}원</span></div>
         </div>
 
+      </div>
+
+      <!-- 📊 Chart.js: 월별 구매금액 Bar + 직원별 비중 Donut -->
+      <div class="row g-3 mb-4">
+        <div class="col-md-7">
+          <div class="card shadow-sm" style="border-radius:16px; border:1.5px solid #cbd5e1; overflow:hidden;">
+            <div class="card-header d-flex justify-content-between align-items-center" style="background:#f8fafc; border-bottom:1.5px solid #e2e8f0; padding:12px 18px;">
+              <h4 style="font-size:14px; font-weight:800; color:#0f172a; margin:0;"><i class="fas fa-chart-bar text-primary me-2"></i>📊 월별 할인 구매금액 추세</h4>
+              <span class="badge bg-primary" style="font-size:11px; padding:4px 9px; border-radius:7px;">최근 6개월</span>
+            </div>
+            <div style="position:relative; height:200px; width:100%; padding:12px;">
+              <canvas id="discountBarCanvas"></canvas>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-5">
+          <div class="card shadow-sm" style="border-radius:16px; border:1.5px solid #cbd5e1; overflow:hidden;">
+            <div class="card-header d-flex justify-content-between align-items-center" style="background:#f8fafc; border-bottom:1.5px solid #e2e8f0; padding:12px 18px;">
+              <h4 style="font-size:14px; font-weight:800; color:#0f172a; margin:0;"><i class="fas fa-chart-pie text-success me-2"></i>🍩 직원별 구매비중</h4>
+              <span class="badge bg-success" style="font-size:11px; padding:4px 9px; border-radius:7px;">Donut</span>
+            </div>
+            <div style="position:relative; height:200px; width:100%; padding:12px;">
+              <canvas id="discountDonutCanvas"></canvas>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- 전체 구매 기록 카드리스트 박스 -->
@@ -122,16 +161,46 @@ window.DiscountPurchaseModule = (function () {
     `;
 
     container.innerHTML = html;
+
+    // 차트 초기화 (DOM 렌더링 후)
+    setTimeout(() => {
+      initDiscountBarChart(purchases);
+      initDiscountDonutChart(purchases);
+    }, 100);
   }
 
-  function calculatePurchaseStats(purchases) {
-    const augustPurchases = purchases.filter(p => (p.dateStr || '').includes('2026. 08') || (p.dateStr || '').includes('2026-08'));
-    const currentMonthCount = augustPurchases.length;
-    const currentMonthTotal = augustPurchases.reduce((sum, p) => sum + (p.totalPrice || 0), 0);
-    const uniqueStaffCount = new Set(augustPurchases.map(p => p.empName)).size;
-    const avgAmount = currentMonthCount > 0 ? Math.round(currentMonthTotal / currentMonthCount) : 0;
+  function calculatePurchaseStats(purchases, year, month) {
+    const yearStr = String(year);
+    const monthStr = String(month).padStart(2, '0');
 
-    return { currentMonthCount, currentMonthTotal, uniqueStaffCount, avgAmount };
+    // 당월 필터
+    const currentMonthPurchases = purchases.filter(p => {
+      const d = p.dateStr || '';
+      return (d.includes(`${yearStr}. ${monthStr}`) || d.includes(`${yearStr}-${monthStr}`));
+    });
+
+    // 전월 필터
+    const prevDate = new Date(year, month - 2, 1);
+    const prevYear = String(prevDate.getFullYear());
+    const prevMonth = String(prevDate.getMonth() + 1).padStart(2, '0');
+    const prevMonthPurchases = purchases.filter(p => {
+      const d = p.dateStr || '';
+      return (d.includes(`${prevYear}. ${prevMonth}`) || d.includes(`${prevYear}-${prevMonth}`));
+    });
+
+    const currentMonthCount = currentMonthPurchases.length;
+    const currentMonthTotal = currentMonthPurchases.reduce((sum, p) => sum + (p.totalPrice || 0), 0);
+    const prevMonthCount = prevMonthPurchases.length;
+    const prevMonthTotal = prevMonthPurchases.reduce((sum, p) => sum + (p.totalPrice || 0), 0);
+
+    const uniqueStaffCount = new Set(currentMonthPurchases.map(p => p.empName)).size;
+    const totalUniqueStaff = new Set(purchases.map(p => p.empName)).size;
+    const avgAmount = currentMonthCount > 0 ? Math.round(currentMonthTotal / currentMonthCount) : 0;
+    const maxAmount = currentMonthPurchases.length > 0 ? Math.max(...currentMonthPurchases.map(p => p.totalPrice || 0)) : 0;
+    const momDiff = currentMonthCount - prevMonthCount;
+    const momAmountDiff = currentMonthTotal - prevMonthTotal;
+
+    return { currentMonthCount, currentMonthTotal, uniqueStaffCount, totalUniqueStaff, avgAmount, maxAmount, momDiff, momAmountDiff };
   }
 
   function renderTabContent(purchases, employees) {
@@ -467,7 +536,7 @@ window.DiscountPurchaseModule = (function () {
       });
     }
 
-    window.SheetsSync.saveData(window.SheetsSync.STORAGE_KEYS.DISCOUNT_PURCHASES || '365_discount_purchases', purchases);
+    window.SheetsSync.saveDiscountPurchases(purchases);
     closeModal();
     render('module-content');
     alert('할인 구매 내역이 저장되었습니다.');
@@ -478,8 +547,183 @@ window.DiscountPurchaseModule = (function () {
     const data = window.SheetsSync.getData();
     let purchases = data.discountPurchases || [];
     purchases = purchases.filter(p => p.id !== id);
-    window.SheetsSync.saveData(window.SheetsSync.STORAGE_KEYS.DISCOUNT_PURCHASES || '365_discount_purchases', purchases);
+    window.SheetsSync.saveDiscountPurchases(purchases);
     render('module-content');
+  }
+
+  // ── Chart.js: 월별 구매금액 추세 Bar Chart ──
+  function initDiscountBarChart(purchases) {
+    const canvas = document.getElementById('discountBarCanvas');
+    if (!canvas) return;
+    if (typeof Chart === 'undefined') return;
+
+    if (discountBarChartInstance) {
+      discountBarChartInstance.destroy();
+      discountBarChartInstance = null;
+    }
+
+    // 최근 6개월 레이블 생성
+    const labels = [];
+    const totals = [];
+    const now = new Date();
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      labels.push(`${y}.${m}`);
+      const monthTotal = purchases
+        .filter(p => {
+          const ds = p.dateStr || '';
+          return ds.includes(`${y}. ${m}`) || ds.includes(`${y}-${m}`);
+        })
+        .reduce((sum, p) => sum + (p.totalPrice || 0), 0);
+      totals.push(monthTotal);
+    }
+
+    const ctx = canvas.getContext('2d');
+    discountBarChartInstance = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{
+          label: '구매 금액',
+          data: totals,
+          backgroundColor: totals.map((v, i) => i === 5 ? 'rgba(34,197,94,0.85)' : 'rgba(34,197,94,0.35)'),
+          borderColor: totals.map((v, i) => i === 5 ? '#16a34a' : '#86efac'),
+          borderWidth: 1.5,
+          borderRadius: 8,
+          borderSkipped: false
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: ctx => `  ${ctx.parsed.y.toLocaleString()}원`
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: { font: { size: 11, weight: '600' }, color: '#64748b' }
+          },
+          y: {
+            grid: { color: 'rgba(226,232,240,0.6)' },
+            ticks: {
+              font: { size: 10 }, color: '#94a3b8',
+              callback: v => v === 0 ? '0' : (v >= 10000 ? (v / 10000).toFixed(0) + '만' : v.toLocaleString())
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // ── Chart.js: 직원별 구매비중 Donut Chart ──
+  function initDiscountDonutChart(purchases) {
+    const canvas = document.getElementById('discountDonutCanvas');
+    if (!canvas) return;
+    if (typeof Chart === 'undefined') return;
+
+    if (discountDonutChartInstance) {
+      discountDonutChartInstance.destroy();
+      discountDonutChartInstance = null;
+    }
+
+    // 현재 월 기준 직원별 합계
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    const monthPurchases = purchases.filter(p => {
+      const ds = p.dateStr || '';
+      return ds.includes(`${y}. ${m}`) || ds.includes(`${y}-${m}`);
+    });
+
+    // 직원별 집계
+    const staffMap = {};
+    monthPurchases.forEach(p => {
+      const name = p.empName || '미상';
+      staffMap[name] = (staffMap[name] || 0) + (p.totalPrice || 0);
+    });
+
+    const entries = Object.entries(staffMap).sort((a, b) => b[1] - a[1]);
+    const totalAmount = entries.reduce((s, e) => s + e[1], 0);
+
+    if (entries.length === 0) {
+      // 데이터 없음 표시
+      const ctx = canvas.getContext('2d');
+      discountDonutChartInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['데이터 없음'],
+          datasets: [{ data: [1], backgroundColor: ['#e2e8f0'], borderWidth: 0 }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false } }
+        }
+      });
+      return;
+    }
+
+    const palette = [
+      '#22c55e','#3b82f6','#f59e0b','#ec4899','#8b5cf6',
+      '#06b6d4','#f97316','#14b8a6','#a855f7','#64748b'
+    ];
+
+    const labels = entries.map(([name, amt]) => {
+      const pct = totalAmount > 0 ? ((amt / totalAmount) * 100).toFixed(1) : 0;
+      return `${name} (${pct}%)`;
+    });
+    const data = entries.map(([, amt]) => amt);
+    const colors = entries.map((_, i) => palette[i % palette.length]);
+
+    const ctx = canvas.getContext('2d');
+    discountDonutChartInstance = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels,
+        datasets: [{
+          data,
+          backgroundColor: colors,
+          borderWidth: 2,
+          borderColor: '#ffffff',
+          hoverBorderWidth: 3,
+          hoverOffset: 6
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '62%',
+        plugins: {
+          legend: {
+            display: true,
+            position: 'bottom',
+            labels: {
+              font: { size: 11, weight: '600' },
+              color: '#475569',
+              padding: 10,
+              boxWidth: 12,
+              boxHeight: 12
+            }
+          },
+          tooltip: {
+            callbacks: {
+              label: ctx => {
+                const val = ctx.parsed;
+                const pct = totalAmount > 0 ? ((val / totalAmount) * 100).toFixed(1) : 0;
+                return `  ${val.toLocaleString()}원 (${pct}%)`;
+              }
+            }
+          }
+        }
+      }
+    });
   }
 
   return {

@@ -5,12 +5,37 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>365메가스타약국 HR/OPS 플랫폼 v5.0</title>
   <meta name="description" content="대한민국 365 연중무휴 약국 전문 HR/OPS 플랫폼 - 월간 근로시간 분리집계, 근로기준법 제60조 연차대장, 취업규칙, 직원 명부 및 직원할인구매대장">
+
+  <!-- 파비콘 & 홈화면 아이콘 (iOS/Android PWA 지원) -->
+  <link rel="icon" type="image/jpeg" href="logo.jpg">
+  <link rel="shortcut icon" type="image/jpeg" href="logo.jpg">
+  <link rel="apple-touch-icon" href="logo.jpg">
+  <link rel="apple-touch-icon" sizes="180x180" href="logo.jpg">
+  <link rel="apple-touch-icon" sizes="152x152" href="logo.jpg">
+  <link rel="apple-touch-icon" sizes="120x120" href="logo.jpg">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="365메가스타">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="application-name" content="365메가스타약국">
+  <meta name="theme-color" content="#059669">
   
-  <!-- 카카오톡 메세지 공유 미리보기 (OpenGraph) -->
+  <!-- 카카오톡 / SNS 공유 미리보기 (OpenGraph) - 절대 URL 필수 -->
   <meta property="og:type" content="website">
-  <meta property="og:title" content="365메가스타약국 HR/OPS 플랫폼 v5.0">
-  <meta property="og:description" content="365메가스타약국 월간 근무 스케줄, 연차대장, 약국장 결재 및 업무 SOP 플랫폼">
-  <meta property="og:image" content="logo.jpg">
+  <meta property="og:url" content="https://365megastar-app.vercel.app">
+  <meta property="og:site_name" content="365메가스타약국">
+  <meta property="og:locale" content="ko_KR">
+  <meta property="og:title" content="🏥 365메가스타약국 HR/OPS 플랫폼">
+  <meta property="og:description" content="365메가스타약국 전용 직원 플랫폼 · 월간 근무 스케줄 · 연차대장 · 약국장 결재 · 직원할인구매대장 · 취업규칙 SOP">
+  <meta property="og:image" content="https://365megastar-app.vercel.app/logo.jpg">
+  <meta property="og:image:width" content="512">
+  <meta property="og:image:height" content="512">
+  <meta property="og:image:alt" content="365메가스타약국 로고">
+  <!-- Twitter Card (카카오채널 등 추가 호환) -->
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="🏥 365메가스타약국 HR/OPS 플랫폼">
+  <meta name="twitter:description" content="365메가스타약국 전용 직원 플랫폼 · 근무표 · 연차대장 · 결재">
+  <meta name="twitter:image" content="https://365megastar-app.vercel.app/logo.jpg">
 
   <!-- 카카오톡 인앱 브라우저 호환성 및 크롬/사파리 자동 외부 연결 스크립트 -->
   <script>
@@ -32,6 +57,7 @@
     })();
   </script>
 
+  <link rel="manifest" href="manifest.json">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -128,7 +154,7 @@
             <!-- JS 동적 생성 (로그인 상태에 따라 로그인/계정선택 또는 프로필+로그아웃+비번변경 렌더링) -->
           </div>
 
-          <button class="header-btn" onclick="App.openSheetModal()" title="구글 스프레드시트 100% 양방향 실시간 동기화 설정" style="border-radius:20px; font-size:12px; font-weight:700; padding:6px 14px; background:#eff6ff; border:1.5px solid #3b82f6; color:#1d4ed8; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 6px rgba(37,99,235,0.15);">
+          <button class="header-btn hide-on-mobile" onclick="App.openSheetModal()" title="구글 스프레드시트 100% 양방향 실시간 동기화 설정" style="border-radius:20px; font-size:12px; font-weight:700; padding:6px 14px; background:#eff6ff; border:1.5px solid #3b82f6; color:#1d4ed8; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 6px rgba(37,99,235,0.15);">
             <i class="fas fa-table text-success" style="font-size:14px;"></i>
             <span>구글 시트 연동 설정</span>
           </button>

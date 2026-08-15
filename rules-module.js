@@ -23,6 +23,42 @@ window.RulesModule = (function () {
         </button>
       </div>
 
+      <!-- 📊 Lean-OPS KPI 4카드 -->
+      <div class="mb-4" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(135px,1fr)); gap:10px;">
+        <div class="kpi-summary-card p-3" style="border-radius:16px; border:1.5px solid #cbd5e1; background:#ffffff; display:flex; flex-direction:column; justify-content:space-between;">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span style="font-size:12px; font-weight:800; color:#475569;">총 장(章) 수</span>
+            <div style="width:24px;height:24px;border-radius:6px;background:#eff6ff;color:#2563eb;display:flex;align-items:center;justify-content:center;font-size:12px;"><i class="fas fa-book"></i></div>
+          </div>
+          <div style="font-size:20px;font-weight:800;color:#0f172a;font-family:'Outfit',sans-serif;">${rulesData.chapters.length}<span style="font-size:12px;"> 장</span></div>
+          <div style="font-size:10.5px;color:#64748b;">취업규칙 목차</div>
+        </div>
+        <div class="kpi-summary-card p-3" style="border-radius:16px; border:1.5px solid #bbf7d0; background:#f0fdf4; display:flex; flex-direction:column; justify-content:space-between;">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span style="font-size:12px; font-weight:800; color:#15803d;">총 조항 수</span>
+            <div style="width:24px;height:24px;border-radius:6px;background:#dcfce7;color:#16a34a;display:flex;align-items:center;justify-content:center;font-size:12px;"><i class="fas fa-list-ol"></i></div>
+          </div>
+          <div style="font-size:20px;font-weight:800;color:#15803d;font-family:'Outfit',sans-serif;">${rulesData.chapters.reduce((s,ch)=>s+(ch.articles?ch.articles.length:0),0)}<span style="font-size:12px;"> 조</span></div>
+          <div style="font-size:10.5px;color:#059669;">법정 규정</div>
+        </div>
+        <div class="kpi-summary-card p-3" style="border-radius:16px; border:1.5px solid #bfdbfe; background:#eff6ff; display:flex; flex-direction:column; justify-content:space-between;">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span style="font-size:12px; font-weight:800; color:#1e40af;">시행일</span>
+            <div style="width:24px;height:24px;border-radius:6px;background:#dbeafe;color:#1d4ed8;display:flex;align-items:center;justify-content:center;font-size:12px;"><i class="fas fa-calendar-alt"></i></div>
+          </div>
+          <div style="font-size:14px;font-weight:800;color:#1d4ed8;font-family:'Outfit',sans-serif;">${rulesData.effectiveDate || '2024-01-01'}</div>
+          <div style="font-size:10.5px;color:#2563eb;">최종 개정</div>
+        </div>
+        <div class="kpi-summary-card p-3" style="border-radius:16px; border:1.5px solid #fde68a; background:#fffbeb; display:flex; flex-direction:column; justify-content:space-between;">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span style="font-size:12px; font-weight:800; color:#92400e;">적용 인원</span>
+            <div style="width:24px;height:24px;border-radius:6px;background:#fef3c7;color:#d97706;display:flex;align-items:center;justify-content:center;font-size:12px;"><i class="fas fa-users"></i></div>
+          </div>
+          <div style="font-size:20px;font-weight:800;color:#d97706;font-family:'Outfit',sans-serif;">9<span style="font-size:12px;"> 인</span></div>
+          <div style="font-size:10.5px;color:#b45309;">전 직원 필수</div>
+        </div>
+      </div>
+
       <!-- 검색 & 본문 메인 레이아웃 -->
       <div class="rules-main-layout">
         <!-- 좌측 장별 목차 바로가기 -->
