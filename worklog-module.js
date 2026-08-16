@@ -1,596 +1,326 @@
 /**
- * 8. 약국 업무일지 & 교대 인수인계 모듈 컨트롤러 (Daily Duty Handover & Work Log)
- * 근무조 필터링, 상단 카드 타임라인, 하단 월간 달력, 글자 깨짐 방지 레이아웃 및 확인 뱃지 실시간 동기화 완료
+ * 8. 약국 업무일지 & 교대 인수인계 모듈 (카톡 대체형 완결판)
+ * 기능: 칸반형 업무 현황판, 이미지 자동 압축 첨부, 완료 시 달력 히스토리 보관
  */
 window.WorklogModule = (function () {
 
-  let activeShiftFilter = 'ALL';  // 'ALL', 'A조', 'B조', 'FULL'
-  let currentYear = 2026;
-  let currentMonth = 8;
-  let selectedDetailDate = null; 
-  let showCalendar = true; 
-
-  function toggleCalendar() {
-    showCalendar = !showCalendar;
-    render('module-content');
-  }
-
-  function getDayOfWeek(dateStr) {
-    if (!dateStr) return '';
-    const days = ['일', '월', '화', '수', '목', '금', '토'];
-    const d = new Date(dateStr);
-    if (isNaN(d.getTime())) return '';
-    return days[d.getDay()];
-  }
-
-  function getFormattedDateWithDay(dateStr) {
-    if (!dateStr) return '';
-    const dow = getDayOfWeek(dateStr);
-    return `${dateStr} (${dow}요일)`;
-  }
-
-  function prevMonth() {
-    currentMonth--;
-    if (currentMonth < 1) {
-      currentMonth = 12;
-      currentYear--;
-    }
-    render('module-content');
-  }
-
-  function nextMonth() {
-    currentMonth++;
-    if (currentMonth > 12) {
-      currentMonth = 1;
-      currentYear++;
-    }
-    render('module-content');
-  }
+  let currentYear = new Date().getFullYear();
+  let currentMonth = new Date().getMonth() + 1;
+  let showCalendar = true;
+  
+  // 구글 앱스 스크립트 웹 앱 URL (★ 1단계에서 배포한 URL로 반드시 변경해주세요!)
+  const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyVsOK5a0PVtW1-h8SlSZ1PGa4J-xx6T6i-tKAICePoP7D3aZ52coIFFYzRvRR0G8IVEw/exec'; 
 
   function render(containerId) {
     const container = document.getElementById(containerId || 'module-content');
     if (!container) return;
 
-    const currentUser = window.SheetsSync.getCurrentUser();
     const logs = window.SheetsSync.getWorklogs() || [];
 
-    // 근무조 필터링 적용
-    const filteredLogs = logs.filter(log => {
-      if (activeShiftFilter === 'ALL') return true;
-      return log.shift && log.shift.includes(activeShiftFilter);
-    });
-
+    // 1. 진행 중인 업무 (PENDING 상태) - 상단 게시판용
+    const pendingTasks = logs.filter(l => l.status === 'PENDING');
+    
+    // 2. 당월 달력용 데이터 (완료된 것 + 당일 등록된 것 모두 포함)
     const monthPrefix = `${currentYear}-${String(currentMonth).padStart(2, '0')}`;
     const monthLogs = logs.filter(l => (l.date || '').startsWith(monthPrefix));
-    const aCount = monthLogs.filter(l => l.shift && l.shift.includes('A조')).length;
-    const bCount = monthLogs.filter(l => l.shift && l.shift.includes('B조')).length;
-    const fullCount = monthLogs.filter(l => l.shift && l.shift.includes('FULL')).length;
-    const totalShift = aCount + bCount + fullCount;
-    const aPct = totalShift ? ((aCount / totalShift) * 100).toFixed(1) : 0;
-    const bPct = totalShift ? ((bCount / totalShift) * 100).toFixed(1) : 0;
 
     const html = `
       <div class="module-header d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
         <div>
           <h2 style="font-size:24px; font-weight:800; color:#0f172a; margin-bottom:4px; letter-spacing:-0.5px;">
-            📝 365메가스타약국 업무일지 & 인수인계
+            📝 실시간 약국 업무 & 인수인계 보드
           </h2>
           <p class="subtitle" style="color:#64748b; font-size:14px; margin:0;">
-            A/B/FULL 교대 근무자 간 특이 처방, 품절 의약품, 매장/전산 특이사항 및 상단 월간 달력 날짜별 원클릭 팝업
+            품절약, 주문 요청, 특이사항을 카톡 대신 올리고 완료 시 체크해 주세요.
           </p>
         </div>
-        <div class="d-flex align-items-center gap-2">
-          <button type="button" class="btn ${showCalendar ? 'btn-outline-primary' : 'btn-primary'} font-bold shadow-sm" onclick="WorklogModule.toggleCalendar()" style="border-radius:12px; padding:10px 16px; font-size:14px;">
-            <i class="fas ${showCalendar ? 'fa-chevron-up' : 'fa-calendar-alt'}"></i> ${showCalendar ? '📅 달력 접기' : '📅 월간 달력 펼치기'}
+        <!-- 교체할 고급 UI 영역 시작 -->
+        <div class="d-flex align-items-center gap-3 flex-wrap mt-2">
+          
+          <!-- 🔍 고급스러운 통합 검색창 (포커스 시 부드러운 파란색 테두리 효과) -->
+          <div style="display:flex; align-items:center; background:#f8fafc; border:1px solid #cbd5e1; border-radius:12px; padding:4px 6px; width:280px; transition:all 0.2s;" onfocusin="this.style.borderColor='#3b82f6'; this.style.background='#ffffff'; this.style.boxShadow='0 0 0 3px rgba(59,130,246,0.1)';" onfocusout="this.style.borderColor='#cbd5e1'; this.style.background='#f8fafc'; this.style.boxShadow='none';">
+            
+            <input type="text" id="wl-search-input" placeholder="약 이름, 품절약 검색..." onkeypress="if(event.key==='Enter') WorklogModule.executeSearch()" style="border:none; background:transparent; outline:none; padding:8px 12px; width:100%; font-size:14px; color:#1e293b; font-weight:600;">
+            
+            <button type="button" onclick="WorklogModule.executeSearch()" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; color:#2563eb; width:36px; height:36px; flex-shrink:0; display:flex; justify-content:center; align-items:center; cursor:pointer; box-shadow:0 1px 2px rgba(0,0,0,0.05); transition:background 0.2s;" onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background='#ffffff'">
+              <i class="fas fa-search"></i>
+            </button>
+            
+          </div>
+
+          <!-- 📝 정갈한 새 업무 등록 버튼 (에메랄드 그라데이션 & 마우스 오버 효과) -->
+          <button type="button" onclick="WorklogModule.showCreateModal()" style="display:flex; align-items:center; gap:8px; background:linear-gradient(135deg, #059669 0%, #047857 100%); color:#ffffff; border:none; border-radius:12px; padding:10px 20px; font-size:15px; font-weight:800; box-shadow:0 4px 12px rgba(5, 150, 105, 0.25); cursor:pointer; transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+            <i class="fas fa-plus-circle" style="font-size:16px;"></i> 새 업무 등록
           </button>
-          <button class="btn btn-primary font-bold shadow-sm" onclick="WorklogModule.showCreateModal()" style="border-radius:12px; padding:10px 20px; font-size:15px; box-shadow:0 4px 12px rgba(37,99,235,0.2);">
-            <i class="fas fa-edit me-1"></i> 📝 새 업무일지 작성하기
-          </button>
+          
+        </div>
+        <!-- 교체할 고급 UI 영역 끝 -->
+      </div>
+
+      <!-- 상단: 진행 중인 실시간 업무 보드 (To-Do List) -->
+      <div class="card shadow-sm mb-5" style="border-radius:16px; border:1px solid #e2e8f0; background:#ffffff; overflow:hidden;">
+        <div class="card-header d-flex justify-content-between align-items-center" style="background:#f8fafc; border-bottom:1px solid #e2e8f0; padding:16px 24px;">
+          <h3 style="font-size:16px; font-weight:800; margin:0; color:#1e40af;">
+            🚨 미해결 업무 및 품절 현황 <span class="badge bg-danger ms-2" style="border-radius:10px;">${pendingTasks.length}건</span>
+          </h3>
+          <span style="font-size:12px; color:#64748b;">처리가 완료되면 우측 체크박스를 눌러주세요.</span>
+        </div>
+        
+        <div class="table-responsive">
+          <table class="table mb-0" style="font-size:14px; vertical-align:middle;">
+            <thead style="background:#f1f5f9; color:#475569; font-size:13px;">
+              <tr>
+                <th style="padding:12px 24px; width:10%;">태그</th>
+                <th style="padding:12px 10px; width:50%;">내용 및 사진</th>
+                <th style="padding:12px 10px; width:15%;">등록일 (작성자)</th>
+                <th style="padding:12px 24px; width:20%; text-align:right;">완료 처리</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${pendingTasks.length === 0 ? `
+                <tr><td colspan="4" class="text-center py-5 text-muted" style="font-weight:600;"><i class="fas fa-check-circle fa-2x mb-2 text-success" style="opacity:0.5;"></i><br>현재 대기 중인 업무가 없습니다.</td></tr>
+              ` : pendingTasks.map(task => `
+                <tr style="border-bottom:1px solid #f1f5f9; transition:background 0.2s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='#fff'">
+                  <td style="padding:16px 24px;">${getTagBadge(task.tag)}</td>
+                  <td style="padding:16px 10px;">
+                    <div style="font-weight:700; color:#0f172a; margin-bottom:4px; white-space:pre-wrap; line-height:1.5;">${task.content}</div>
+                    ${task.imageUrl ? `
+  <div style="margin-top:10px;">
+    <a href="${task.imageUrl}" target="_blank" style="display:inline-flex; align-items:center; gap:6px; background:#ffffff; border:1px solid #cbd5e1; padding:6px 14px; border-radius:20px; font-size:13px; color:#475569; text-decoration:none; font-weight:700; box-shadow:0 2px 4px rgba(0,0,0,0.02); transition:all 0.2s;" onmouseover="this.style.background='#eff6ff'; this.style.borderColor='#bfdbfe'; this.style.color='#2563eb';" onmouseout="this.style.background='#ffffff'; this.style.borderColor='#cbd5e1'; this.style.color='#475569';">
+      <i class="far fa-image" style="color:#3b82f6; font-size:15px;"></i> 첨부사진 보기
+    </a>
+  </div>
+` : ''}
+                  </td>
+                  <td style="padding:16px 10px;">
+                    <div style="font-size:12px; color:#64748b;">${task.date.substring(5)}</div>
+                    <div style="font-size:13px; font-weight:700; color:#334155;">${task.authorName}</div>
+                  </td>
+                  <td style="padding:16px 24px; text-align:right;">
+                    <button class="btn btn-sm btn-outline-success font-bold" onclick="WorklogModule.completeTask('${task.id}')" style="border-radius:8px; padding:6px 12px;">
+                      <i class="fas fa-check me-1"></i> 완료 확인
+                    </button>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
         </div>
       </div>
 
-      <!-- 📊 KPI 4카드 -->
-      <div class="mb-4" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(135px,1fr)); gap:16px;">
-        <div class="kpi-summary-card p-3" style="border-radius:16px; border:1px solid #e2e8f0; background:#ffffff; box-shadow:0 2px 8px rgba(0,0,0,0.02); display:flex; flex-direction:column; justify-content:space-between;">
-          <div class="d-flex justify-content-between align-items-center mb-1">
-            <span style="font-size:12.5px; font-weight:700; color:#64748b;">전체 일지</span>
-            <div style="width:28px; height:28px; border-radius:8px; background:#f1f5f9; color:#475569; display:flex; align-items:center; justify-content:center; font-size:13px;"><i class="fas fa-book"></i></div>
-          </div>
-          <div style="font-size:24px; font-weight:800; color:#0f172a;">${logs.length}<span style="font-size:13px; font-weight:600; color:#94a3b8;"> 건</span></div>
-        </div>
-        <div class="kpi-summary-card p-3" style="border-radius:16px; border:1px solid #bfdbfe; background:#eff6ff; display:flex; flex-direction:column; justify-content:space-between;">
-          <div class="d-flex justify-content-between align-items-center mb-1">
-            <span style="font-size:12.5px; font-weight:700; color:#1e40af;">금월 작성</span>
-            <div style="width:28px; height:28px; border-radius:8px; background:#dbeafe; color:#2563eb; display:flex; align-items:center; justify-content:center; font-size:13px;"><i class="fas fa-calendar"></i></div>
-          </div>
-          <div style="font-size:24px; font-weight:800; color:#1d4ed8;">${monthLogs.length}<span style="font-size:13px; font-weight:600; color:#3b82f6;"> 건</span></div>
-        </div>
-        <div class="kpi-summary-card p-3" style="border-radius:16px; border:1px solid #bbf7d0; background:#f0fdf4; display:flex; flex-direction:column; justify-content:space-between;">
-          <div class="d-flex justify-content-between align-items-center mb-1">
-            <span style="font-size:12.5px; font-weight:700; color:#166534;">A조 일지</span>
-            <div style="width:28px; height:28px; border-radius:8px; background:#dcfce7; color:#16a34a; display:flex; align-items:center; justify-content:center; font-size:13px;"><i class="fas fa-sun"></i></div>
-          </div>
-          <div style="font-size:24px; font-weight:800; color:#15803d;">${aCount}<span style="font-size:13px; font-weight:600; color:#22c55e;"> 건</span></div>
-        </div>
-        <div class="kpi-summary-card p-3" style="border-radius:16px; border:1px solid #fde68a; background:#fffbeb; display:flex; flex-direction:column; justify-content:space-between;">
-          <div class="d-flex justify-content-between align-items-center mb-1">
-            <span style="font-size:12.5px; font-weight:700; color:#92400e;">B조 일지</span>
-            <div style="width:28px; height:28px; border-radius:8px; background:#fef3c7; color:#d97706; display:flex; align-items:center; justify-content:center; font-size:13px;"><i class="fas fa-moon"></i></div>
-          </div>
-          <div style="font-size:24px; font-weight:800; color:#d97706;">${bCount}<span style="font-size:13px; font-weight:600; color:#f59e0b;"> 건</span></div>
-        </div>
-      </div>
-
-      <!-- 📊 Charts Row -->
-      <div class="row mb-4">
-        <div class="col-md-12">
-          <div class="card shadow-sm" style="border-radius:16px; border:1px solid #e2e8f0; overflow:hidden;">
-            <div class="card-header d-flex justify-content-between align-items-center" style="background:#ffffff; border-bottom:1px solid #f1f5f9; padding:14px 20px;">
-              <h4 style="font-size:14.5px; font-weight:800; color:#0f172a; margin:0;"><i class="fas fa-chart-bar text-primary me-2"></i>월별 업무일지 작성 추세</h4>
-            </div>
-            <div style="position:relative; height:180px; width:100%; padding:12px;"><canvas id="worklogTrendCanvas"></canvas></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 1. 달력 섹션 -->
+      <!-- 하단: 일일 교대일지 달력 (히스토리 보관소) -->
       <div class="card shadow-sm mb-4" style="border-radius:20px; border:1px solid #cbd5e1; background:#ffffff; overflow:hidden;">
         <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-3" style="background:linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color:#ffffff; padding:18px 24px;">
           <div class="d-flex align-items-center gap-3">
             <div style="width:40px; height:40px; border-radius:12px; background:rgba(255,255,255,0.1); display:flex; justify-content:center; align-items:center;"><i class="fas fa-calendar-alt text-warning" style="font-size:20px;"></i></div>
             <div>
-              <h3 style="font-size:17px; font-weight:bold; margin:0; color:#ffffff;">📅 ${currentYear}년 ${currentMonth}월 업무일지 달력</h3>
-              <p style="font-size:12.5px; margin:0; color:#94a3b8; margin-top:2px;">날짜를 누르시면 당일 인수인계 내용이 팝업으로 상세히 나타납니다.</p>
+              <h3 style="font-size:17px; font-weight:bold; margin:0; color:#ffffff;">📅 ${currentYear}년 ${currentMonth}월 업무 달력 (완료 보관소)</h3>
+              <p style="font-size:12.5px; margin:0; color:#94a3b8; margin-top:2px;">날짜를 누르시면 완료된 내역과 당일 히스토리가 팝업으로 나타납니다.</p>
             </div>
           </div>
           <div class="d-flex align-items-center gap-2">
-            <button type="button" class="btn btn-sm btn-outline-light" style="border-radius:8px;" onclick="WorklogModule.prevMonth()"><i class="fas fa-chevron-left"></i></button>
-            <span class="badge bg-primary" style="font-size:14px; padding:8px 16px; border-radius:8px;">${currentYear}년 ${String(currentMonth).padStart(2, '0')}월</span>
-            <button type="button" class="btn btn-sm btn-outline-light" style="border-radius:8px;" onclick="WorklogModule.nextMonth()"><i class="fas fa-chevron-right"></i></button>
-            <button type="button" class="btn btn-sm btn-warning font-bold text-dark ms-2" onclick="WorklogModule.toggleCalendar()" style="border-radius:8px; padding:6px 12px;">
-              <i class="fas ${showCalendar ? 'fa-chevron-up' : 'fa-chevron-down'}"></i> ${showCalendar ? '접기' : '펼치기'}
-            </button>
+            <button class="btn btn-sm btn-outline-light" onclick="WorklogModule.changeMonth(-1)"><i class="fas fa-chevron-left"></i></button>
+            <span class="badge bg-primary" style="font-size:14px; padding:8px 16px;">${currentYear}년 ${String(currentMonth).padStart(2, '0')}월</span>
+            <button class="btn btn-sm btn-outline-light" onclick="WorklogModule.changeMonth(1)"><i class="fas fa-chevron-right"></i></button>
           </div>
         </div>
-
-        ${showCalendar ? `
-          <div class="card-body" style="padding:20px;">
-            ${renderMonthlyCalendar(logs, currentYear, currentMonth)}
-          </div>
-        ` : ''}
-      </div>
-
-      <!-- 2. 스마트 근무조 필터 카드 -->
-      <div class="card mb-4 shadow-sm" style="border-radius:16px; border:1px solid #e2e8f0; background:#ffffff;">
-        <div class="card-body" style="padding:16px 24px;">
-          <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
-            <div class="d-flex align-items-center gap-3">
-              <span style="font-size:14px; font-weight:800; color:#1e293b;"><i class="fas fa-filter text-primary me-1"></i> 근무조 조회 필터</span>
-              <div class="btn-group" role="group">
-                <button type="button" class="btn btn-sm ${activeShiftFilter === 'ALL' ? 'btn-primary font-bold' : 'btn-outline-secondary'}" onclick="WorklogModule.setShiftFilter('ALL')" style="font-size:13.5px; padding:6px 16px;">전체 조</button>
-                <button type="button" class="btn btn-sm ${activeShiftFilter === 'A조' ? 'btn-primary font-bold' : 'btn-outline-secondary'}" onclick="WorklogModule.setShiftFilter('A조')" style="font-size:13.5px; padding:6px 16px;">🟢 A조 (오프닝)</button>
-                <button type="button" class="btn btn-sm ${activeShiftFilter === 'B조' ? 'btn-warning text-dark font-bold' : 'btn-outline-secondary'}" onclick="WorklogModule.setShiftFilter('B조')" style="font-size:13.5px; padding:6px 16px;">🟡 B조 (마감)</button>
-              </div>
-            </div>
-          </div>
+        <div class="card-body" style="padding:20px;">
+          ${renderMonthlyCalendar(logs, currentYear, currentMonth)}
         </div>
       </div>
 
-      <!-- 3. 최근 업무일지 타임라인 구역 (★ 레이아웃 깨짐 방지 완벽 적용) -->
-      <div class="worklog-timeline-wrapper mb-5">
-        ${filteredLogs.length === 0 ? `
-          <div class="card p-5 text-center text-muted mb-4" style="border-radius:16px; border:2px dashed #cbd5e1; background:#f8fafc;">
-            <i class="fas fa-clipboard-list fa-3x mb-3 text-primary" style="opacity:0.4;"></i>
-            <h4 style="font-size:16px; font-weight:bold; color:#475569;">등록된 업무일지가 없습니다.</h4>
-            <p class="mb-0" style="font-size:13.5px;">상단 [새 업무일지 작성하기] 버튼을 누르거나 달력을 확인해 보세요.</p>
-          </div>
-        ` : filteredLogs.slice(0, 10).map(log => {
-          const isShiftA = log.shift && log.shift.includes('A조');
-          const isShiftB = log.shift && log.shift.includes('B조');
-          const dateWithDay = getFormattedDateWithDay(log.date);
-
-          return `
-            <div class="card mb-4 shadow-sm" style="border-radius:18px; border:1px solid #e2e8f0; overflow:hidden; background:#ffffff;">
-              <!-- 카드 헤더 -->
-              <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; background:linear-gradient(135deg,#f8fafc 0%,#f1f5f9 100%); padding:16px 24px; border-bottom:1px solid #e2e8f0;">
-                <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
-                  <span style="background:${isShiftA?'#eff6ff':isShiftB?'#fffbeb':'#f0fdf4'}; color:${isShiftA?'#2563eb':isShiftB?'#d97706':'#16a34a'}; border:1px solid ${isShiftA?'#bfdbfe':isShiftB?'#fde68a':'#bbf7d0'}; font-size:12.5px; font-weight:800; padding:6px 14px; border-radius:20px;">
-                    ${log.shift || '교대일지'}
-                  </span>
-                  <span style="font-size:16px; font-weight:800; color:#0f172a;">📅 ${dateWithDay}</span>
-                  <span style="font-size:13.5px; color:#64748b; font-weight:600;"><i class="fas fa-user-edit me-1"></i>${log.authorName}</span>
-                </div>
-                <button type="button" onclick="WorklogModule.openDayDetailModal('${log.date}')" class="btn btn-sm btn-white font-bold" style="border:1px solid #cbd5e1; border-radius:12px; color:#475569; padding:6px 14px; font-size:12.5px; background:#fff;">
-                  <i class="fas fa-expand-arrows-alt me-1"></i> 일일 상세 팝업 보기
-                </button>
-              </div>
-
-              <!-- ★ 레이아웃 깨짐 방지를 위해 CSS Grid 사용 및 최소 너비 설정 -->
-              <div style="padding:20px 24px; display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:16px;">
-
-                <!-- 섹션1: 특이처방 -->
-                <div style="border-radius:14px; border:1px solid #bfdbfe; background:#f8fbff; overflow:hidden;">
-                  <div style="padding:10px 16px; background:#eff6ff; border-bottom:1px solid #dbeafe;">
-                    <span style="font-size:13.5px; font-weight:800; color:#1e40af;"><i class="fas fa-pills me-1"></i> 1. 특이 처방 & 품절 약품</span>
-                  </div>
-                  <div style="padding:16px; font-size:14px; color:#1e293b; line-height:1.7; word-break:break-word;">
-                    ${log.contentRx ? log.contentRx.replace(/\n/g,'<br>') : '<span style="color:#94a3b8; font-style:italic;">특이사항 없음</span>'}
-                  </div>
-                </div>
-
-                <!-- 섹션2: POS/조제장비 -->
-                <div style="border-radius:14px; border:1px solid #bbf7d0; background:#f8fffe; overflow:hidden;">
-                  <div style="padding:10px 16px; background:#f0fdf4; border-bottom:1px solid #dcfce7;">
-                    <span style="font-size:13.5px; font-weight:800; color:#166534;"><i class="fas fa-desktop me-1"></i> 2. 매장 POS & 조제장비</span>
-                  </div>
-                  <div style="padding:16px; font-size:14px; color:#1e293b; line-height:1.7; word-break:break-word;">
-                    ${log.contentPos ? log.contentPos.replace(/\n/g,'<br>') : '<span style="color:#94a3b8; font-style:italic;">특이사항 없음</span>'}
-                  </div>
-                </div>
-
-                <!-- 섹션3: 도매상 입고 -->
-                <div style="border-radius:14px; border:1px solid #fde68a; background:#fffef8; overflow:hidden;">
-                  <div style="padding:10px 16px; background:#fffbeb; border-bottom:1px solid #fef3c7;">
-                    <span style="font-size:13.5px; font-weight:800; color:#92400e;"><i class="fas fa-truck me-1"></i> 3. 도매상 입고 검수 완료건</span>
-                  </div>
-                  <div style="padding:16px; font-size:14px; color:#1e293b; line-height:1.7; word-break:break-word;">
-                    ${log.contentDelivery ? log.contentDelivery.replace(/\n/g,'<br>') : '<span style="color:#94a3b8; font-style:italic;">특이사항 없음</span>'}
-                  </div>
-                </div>
-
-                <!-- 섹션4: 다음 교대조 전달사항 -->
-                <div style="border-radius:14px; border:1px solid #e9d5ff; background:#fdfaff; overflow:hidden;">
-                  <div style="padding:10px 16px; background:#faf5ff; border-bottom:1px solid #f3e8ff;">
-                    <span style="font-size:13.5px; font-weight:800; color:#6b21a8;"><i class="fas fa-bullhorn me-1"></i> 4. 다음 교대조 전달사항</span>
-                  </div>
-                  <div style="padding:16px; font-size:14px; color:#1e293b; line-height:1.7; font-weight:600; word-break:break-word;">
-                    ${log.note ? log.note.replace(/\n/g,'<br>') : '<span style="color:#94a3b8; font-style:italic; font-weight:normal;">전달사항 없음</span>'}
-                  </div>
-                </div>
-
-              </div>
-
-              <!-- ★ 하단 확인 바 (뱃지 동기화 완벽 복구) -->
-              <div style="padding:14px 24px; background:#f8fafc; border-top:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
-                <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-                  <span style="font-size:13px; font-weight:800; color:#475569;"><i class="fas fa-user-check text-success me-1"></i> 인수인계 확인완료:</span>
-                  ${(log.checkedBy && log.checkedBy.length > 0) ? log.checkedBy.map(name => `
-                    <span class="badge" style="background:#dcfce7; color:#16a34a; border:1px solid #bbf7d0; font-size:12px; padding:6px 12px; border-radius:20px; font-weight:700;">
-                      <i class="fas fa-check me-1"></i>${name}
-                    </span>
-                  `).join('') : '<span style="font-size:12.5px; color:#94a3b8; background:#f1f5f9; padding:4px 10px; border-radius:12px;">아직 확인한 직원이 없습니다.</span>'}
-                </div>
-                <!-- 바깥 리스트에서도 바로 확인 체크 가능하도록 추가 -->
-                <button type="button" class="btn btn-sm btn-success font-bold" onclick="WorklogModule.checkAckInList('${log.id}')" style="border-radius:10px; font-size:12.5px; padding:6px 14px;">
-                  <i class="fas fa-check-circle me-1"></i> 인수인계 확인 체크
-                </button>
-              </div>
-            </div>
-          `;
-        }).join('')}
-      </div>
-
-      <!-- 4. 팝업 모달 영역들 (기존과 동일하게 유지하되 디자인 살짝 다듬음) -->
-      <!-- 당일 업무일지 상세 팝업 모달 -->
-      <div class="modal-overlay" id="worklog-day-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.6); backdrop-filter:blur(4px); z-index:99999; justify-content:center; align-items:center;">
-        <div class="modal-card shadow-lg" style="background:#fff; border-radius:24px; max-width:800px; width:94%; max-height:85vh; overflow-y:auto; padding:32px; position:relative;">
-          <button type="button" class="close-btn" onclick="WorklogModule.closeDayDetailModal()" style="position:absolute; top:24px; right:24px; width:36px; height:36px; background:#f1f5f9; border-radius:50%; border:none; font-size:18px; color:#64748b; cursor:pointer;"><i class="fas fa-times"></i></button>
-          <div id="worklog-day-modal-content"></div>
-        </div>
-      </div>
-
-      <!-- 신규 인수인계 작성 모달 -->
-      <div class="modal-overlay" id="worklog-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.6); backdrop-filter:blur(4px); z-index:99999; justify-content:center; align-items:center;">
-        <div class="modal-card shadow-lg" style="background:#fff; border-radius:24px; max-width:680px; width:92%; max-height:90vh; overflow-y:auto; padding:32px; position:relative;">
-          <button type="button" class="close-btn" onclick="WorklogModule.closeModal()" style="position:absolute; top:24px; right:24px; width:36px; height:36px; background:#f1f5f9; border-radius:50%; border:none; font-size:18px; color:#64748b; cursor:pointer;"><i class="fas fa-times"></i></button>
+     <!-- 신규 업무 등록 모달 (사진 첨부 포함) -->
+      <div class="modal-overlay" id="worklog-create-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.7); backdrop-filter:blur(5px); z-index:99999; justify-content:center; align-items:center;">
+        <div class="modal-card shadow-lg" style="background:#fff; border-radius:24px; max-width:540px; width:92%; padding:36px; position:relative; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);">
+          
+          <button class="close-btn" onclick="WorklogModule.closeModal()" style="position:absolute; top:24px; right:24px; background:#f1f5f9; border:none; width:36px; height:36px; border-radius:50%; font-size:18px; color:#64748b; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background 0.2s;"><i class="fas fa-times"></i></button>
           
           <div class="d-flex align-items-center gap-3 mb-4 border-bottom pb-3">
             <div style="width:48px; height:48px; border-radius:14px; background:#eff6ff; color:#2563eb; display:flex; justify-content:center; align-items:center; font-size:20px;"><i class="fas fa-pen-fancy"></i></div>
             <div>
-              <h3 style="font-size:20px; font-weight:800; margin:0; color:#0f172a;">신규 업무일지 & 인수인계 작성</h3>
-              <p class="text-muted mb-0" style="font-size:13.5px; margin-top:4px;">다음 교대 근무자가 명확하게 확인할 수 있도록 정확히 기재해 주세요.</p>
+              <h3 style="font-size:20px; font-weight:800; margin:0; color:#0f172a;">새 업무/이슈 등록</h3>
+              <p class="text-muted mb-0" style="font-size:13.5px; margin-top:4px;">정확한 인수인계를 위해 내용을 상세히 적어주세요.</p>
             </div>
           </div>
 
-          <form onsubmit="WorklogModule.submitWorklog(event)">
-            <div class="row g-3 mb-4">
-              <div class="col-md-6">
-                <label class="form-label" style="font-size:13.5px; font-weight:800; color:#1e293b;">작성일자</label>
-                <input type="date" id="wl-date" class="form-control" style="background:#f8fafc; border-radius:10px;" value="${new Date().toISOString().split('T')[0]}" required>
+          <form onsubmit="WorklogModule.submitTask(event)">
+            <div class="mb-4">
+              <label class="form-label font-bold" style="font-size:14px; color:#334155; margin-bottom:8px;">구분 태그 <span class="text-danger">*</span></label>
+              <select id="wl-tag" class="form-select font-bold" style="border-radius:12px; background:#f8fafc; border:1px solid #cbd5e1; padding:12px 16px; font-size:15px; width:100%; box-shadow:inset 0 1px 2px rgba(0,0,0,0.02);" required>
+                <option value="품절">🔴 품절약 등록 (입고 요망)</option>
+                <option value="주문">🟡 주문 요청 (도매상/본사)</option>
+                <option value="고객">🔵 특정 환자/예약/선결제</option>
+                <option value="입고">🟢 입고 완료 / 지시사항 전달</option>
+                <option value="메모" selected>⚪ 일반 업무 / 기타 메모</option>
+              </select>
+            </div>
+
+            <div class="mb-4">
+              <label class="form-label font-bold" style="font-size:14px; color:#334155; margin-bottom:8px;">내용 작성 <span class="text-danger">*</span></label>
+              <textarea id="wl-content" class="form-control" rows="5" style="border-radius:12px; background:#f8fafc; border:1px solid #cbd5e1; padding:16px; font-size:15px; width:100%; resize:none; line-height:1.6; box-shadow:inset 0 1px 2px rgba(0,0,0,0.02);" placeholder="어떤 약이 품절인지, 누구에게 전달할 메모인지 구체적으로 작성해 주세요..." required></textarea>
+            </div>
+
+            <div class="mb-4">
+              <label class="form-label font-bold" style="font-size:14px; color:#334155; margin-bottom:8px;">사진 첨부 (선택)</label>
+              <input type="file" id="wl-image" class="form-control" accept="image/*" style="border-radius:12px; border:1px dashed #cbd5e1; padding:10px 16px; background:#f8fafc; width:100%; color:#64748b; cursor:pointer;" onchange="WorklogModule.previewImage(event)">
+              
+              <div id="wl-preview-container" style="display:none; margin-top:16px; text-align:center; background:#f1f5f9; padding:16px; border-radius:12px;">
+                <img id="wl-preview-img" style="max-height:180px; border-radius:8px; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);" />
+                <input type="hidden" id="wl-compressed-base64" />
               </div>
-              <div class="col-md-6">
-                <label class="form-label" style="font-size:13.5px; font-weight:800; color:#1e293b;">근무 교대조</label>
-                <select id="wl-shift" class="form-select font-bold" style="background:#f8fafc; border-radius:10px;" required>
-                  <option value="A조 오프닝 (09:00~17:30)">🟢 A조 오프닝 (09:00~17:30)</option>
-                  <option value="B조 마감 (13:30~22:00)">🟡 B조 마감 (13:30~22:00)</option>
-                </select>
-              </div>
             </div>
 
-            <div class="mb-4">
-              <label class="form-label" style="font-size:13.5px; font-weight:800; color:#1e40af;"><i class="fas fa-pills"></i> 1. 특이 처방 & 품절 의약품 현황</label>
-              <textarea id="wl-rx" class="form-control" rows="2" style="border-radius:12px; border-color:#bfdbfe; background:#f8fbff;" placeholder="품절 약품, 긴급 발주 내역, 주의 처방전 전달사항..."></textarea>
-            </div>
-
-            <div class="mb-4">
-              <label class="form-label" style="font-size:13.5px; font-weight:800; color:#166534;"><i class="fas fa-desktop"></i> 2. 매장 & POS 전산 / 조제장비 특이사항</label>
-              <textarea id="wl-pos" class="form-control" rows="2" style="border-radius:12px; border-color:#bbf7d0; background:#f0fdf4;" placeholder="POS 정산 차액, 자동조제기(ATC) 상태, 키오스크 점검..."></textarea>
-            </div>
-
-            <div class="mb-4">
-              <label class="form-label" style="font-size:13.5px; font-weight:800; color:#92400e;"><i class="fas fa-truck"></i> 3. 도매상 입고 검수 완료건</label>
-              <textarea id="wl-delivery" class="form-control" rows="2" style="border-radius:12px; border-color:#fde68a; background:#fffbeb;" placeholder="지오영, 백제 등 입고 수량 및 반품/유통기한 특이사항..."></textarea>
-            </div>
-
-            <div class="mb-5">
-              <label class="form-label" style="font-size:13.5px; font-weight:800; color:#6b21a8;"><i class="fas fa-bullhorn"></i> 4. 다음 교대조 전달사항</label>
-              <textarea id="wl-note" class="form-control" rows="2" style="border-radius:12px; border-color:#e9d5ff; background:#faf5ff;" placeholder="다음 인수 근무자에게 꼭 부탁드릴 내용..."></textarea>
-            </div>
-
-            <div class="d-flex justify-content-end gap-2">
-              <button type="button" class="btn btn-light px-4 font-bold" style="border-radius:10px;" onclick="WorklogModule.closeModal()">취소</button>
-              <button type="submit" class="btn btn-primary px-4 font-bold" style="border-radius:10px;"><i class="fas fa-paper-plane me-1"></i> 인수인계 등록 완료</button>
+            <div class="d-flex justify-content-end gap-2 mt-2">
+              <button type="button" class="btn btn-light font-bold" onclick="WorklogModule.closeModal()" style="border-radius:12px; padding:12px 24px; font-size:15px; background:#f1f5f9; color:#475569; border:none;">취소</button>
+              <button type="submit" id="wl-submit-btn" class="btn btn-primary font-bold" style="border-radius:12px; padding:12px 24px; font-size:15px; background:linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); border:none; box-shadow:0 4px 12px rgba(37,99,235,0.25);">
+                <i class="fas fa-paper-plane me-1"></i> 등록하기
+              </button>
             </div>
           </form>
+        </div>
+      </div>
+<!-- 🔍 검색 결과 팝업 모달 -->
+      <div class="modal-overlay" id="worklog-search-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.7); backdrop-filter:blur(5px); z-index:99999; justify-content:center; align-items:center;">
+        <div class="modal-card shadow-lg" style="background:#fff; border-radius:24px; max-width:650px; width:92%; max-height:85vh; overflow-y:auto; padding:32px; position:relative;">
+          <button class="close-btn" onclick="document.getElementById('worklog-search-modal').style.display='none'" style="position:absolute; top:20px; right:20px; background:#f1f5f9; border:none; width:36px; height:36px; border-radius:50%; font-size:18px; color:#64748b; cursor:pointer;"><i class="fas fa-times"></i></button>
+          <div id="worklog-search-modal-content"></div>
+        </div>
+      </div>
+      <!-- 당일 상세 팝업 모달 -->
+      <div class="modal-overlay" id="worklog-day-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.6); z-index:99999; justify-content:center; align-items:center;">
+        <div class="modal-card shadow-lg" style="background:#fff; border-radius:24px; max-width:600px; width:92%; max-height:85vh; overflow-y:auto; padding:32px; position:relative;">
+          <button class="close-btn" onclick="WorklogModule.closeDayModal()" style="position:absolute; top:20px; right:20px; background:none; border:none; font-size:20px; color:#64748b;">&times;</button>
+          <div id="worklog-day-modal-content"></div>
         </div>
       </div>
     `;
 
     container.innerHTML = html;
-    setTimeout(() => { initWorklogCharts(logs); }, 50);
   }
 
-  // 달력 렌더링 함수
+  // 헬퍼: 태그 배지 생성기
+  function getTagBadge(tag) {
+    if(tag === '품절') return '<span class="badge" style="background:#fee2e2; color:#ef4444; border:1px solid #fca5a5; padding:6px 12px;">🔴 품절</span>';
+    if(tag === '주문') return '<span class="badge" style="background:#fef3c7; color:#d97706; border:1px solid #fde68a; padding:6px 12px;">🟡 주문</span>';
+    if(tag === '고객') return '<span class="badge" style="background:#eff6ff; color:#2563eb; border:1px solid #bfdbfe; padding:6px 12px;">🔵 고객/예약</span>';
+    if(tag === '입고') return '<span class="badge" style="background:#dcfce7; color:#16a34a; border:1px solid #bbf7d0; padding:6px 12px;">🟢 입고/처리</span>';
+    return '<span class="badge" style="background:#f1f5f9; color:#475569; border:1px solid #cbd5e1; padding:6px 12px;">⚪ 일반/메모</span>';
+  }
+
+  // 달력 렌더링 (이전 달력 뷰 재활용)
   function renderMonthlyCalendar(logs, year, month) {
     const firstDay = new Date(year, month - 1, 1).getDay();
     const daysInMonth = new Date(year, month, 0).getDate();
+    const todayStr = new Date().toISOString().split('T')[0];
 
     let gridHtml = `
-      <div class="worklog-calendar-wrapper">
-        <div class="worklog-calendar-grid">
-          <div class="worklog-cal-header-cell" style="color:#e11d48; background:#fff1f2;">일</div>
-          <div class="worklog-cal-header-cell" style="color:#334155; background:#f8fafc;">월</div>
-          <div class="worklog-cal-header-cell" style="color:#334155; background:#f8fafc;">화</div>
-          <div class="worklog-cal-header-cell" style="color:#334155; background:#f8fafc;">수</div>
-          <div class="worklog-cal-header-cell" style="color:#334155; background:#f8fafc;">목</div>
-          <div class="worklog-cal-header-cell" style="color:#334155; background:#f8fafc;">금</div>
-          <div class="worklog-cal-header-cell" style="color:#2563eb; background:#eff6ff;">토</div>
+      <div style="display:grid; grid-template-columns:repeat(7, 1fr); gap:1px; background:#e2e8f0; border:1px solid #cbd5e1; border-radius:12px; overflow:hidden;">
+        <div style="background:#fff1f2; color:#e11d48; text-align:center; padding:10px; font-weight:800; font-size:13px;">일</div>
+        <div style="background:#f8fafc; color:#334155; text-align:center; padding:10px; font-weight:800; font-size:13px;">월</div>
+        <div style="background:#f8fafc; color:#334155; text-align:center; padding:10px; font-weight:800; font-size:13px;">화</div>
+        <div style="background:#f8fafc; color:#334155; text-align:center; padding:10px; font-weight:800; font-size:13px;">수</div>
+        <div style="background:#f8fafc; color:#334155; text-align:center; padding:10px; font-weight:800; font-size:13px;">목</div>
+        <div style="background:#f8fafc; color:#334155; text-align:center; padding:10px; font-weight:800; font-size:13px;">금</div>
+        <div style="background:#eff6ff; color:#2563eb; text-align:center; padding:10px; font-weight:800; font-size:13px;">토</div>
     `;
 
-    for (let i = 0; i < firstDay; i++) {
-      gridHtml += `<div class="worklog-cal-day-cell" style="background:#f8fafc; border-color:#f1f5f9; opacity:0.4; pointer-events:none;"></div>`;
-    }
+    for (let i = 0; i < firstDay; i++) { gridHtml += `<div style="background:#f8fafc; min-height:80px;"></div>`; }
 
     for (let d = 1; d <= daysInMonth; d++) {
       const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
       const dayLogs = logs.filter(l => l.date === dateStr);
-      const isToday = dateStr === new Date().toISOString().split('T')[0];
-
-      const dow = (firstDay + d - 1) % 7;
-      const dateColor = dow === 0 ? '#e11d48' : dow === 6 ? '#2563eb' : '#0f172a';
-      const bgStyle = isToday ? '#ecfdf5' : dayLogs.length > 0 ? '#f0fdf4' : '#ffffff';
-      const borderStyle = isToday ? '#10b981' : dayLogs.length > 0 ? '#bbf7d0' : '#e2e8f0';
+      const isToday = dateStr === todayStr;
 
       gridHtml += `
-        <div class="worklog-cal-day-cell" onclick="WorklogModule.openDayDetailModal('${dateStr}')" style="background:${bgStyle}; border-color:${borderStyle}; cursor:pointer; transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <span class="worklog-cal-day-num" style="color:${dateColor}; font-weight:800; font-size:14px;">
-              ${d} ${isToday ? '<small class="badge bg-success ms-1" style="font-size:9px; padding:3px 6px;">오늘</small>' : ''}
-            </span>
-            ${dayLogs.length > 0 ? `<span class="badge bg-primary" style="font-size:10px; padding:3px 6px; border-radius:10px;">${dayLogs.length}건</span>` : ''}
+        <div onclick="WorklogModule.openDayModal('${dateStr}')" style="background:#ffffff; min-height:80px; padding:8px; cursor:pointer; border-right:1px solid #f1f5f9; border-bottom:1px solid #f1f5f9;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='#ffffff'">
+          <div style="font-weight:800; font-size:13px; color:${(firstDay+d-1)%7===0?'#e11d48':(firstDay+d-1)%7===6?'#2563eb':'#0f172a'};">
+            ${d} ${isToday ? '<span class="badge bg-primary" style="font-size:9px;">오늘</span>' : ''}
           </div>
-
-          ${dayLogs.length === 0 ? `
-            <div class="worklog-empty-label" style="font-size:11px; color:#cbd5e1; margin-top:12px; text-align:center;">미작성</div>
-          ` : dayLogs.map(log => {
-            const isShiftA = log.shift && log.shift.includes('A조');
-            const isShiftB = log.shift && log.shift.includes('B조');
-            const badgeBg = isShiftA ? '#3b82f6' : isShiftB ? '#f59e0b' : '#10b981';
-
-            return `
-              <div class="worklog-cal-badge-pill" style="background:${badgeBg}; color:#fff; font-size:11px; font-weight:700; padding:4px 8px; border-radius:6px; margin-bottom:4px; text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">
-                ${log.shift ? log.shift.substring(0, 3) : '일지'} (${log.authorName})
+          <div style="margin-top:6px; display:flex; flex-direction:column; gap:2px;">
+            ${dayLogs.slice(0,3).map(l => `
+              <div style="font-size:10px; background:${l.status === 'PENDING' ? '#fee2e2' : '#f1f5f9'}; color:${l.status === 'PENDING' ? '#ef4444' : '#475569'}; padding:2px 4px; border-radius:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                ${l.status === 'PENDING' ? '🚨' : '✅'} ${l.content || '업무일지'}
               </div>
-            `;
-          }).join('')}
+            `).join('')}
+            ${dayLogs.length > 3 ? `<div style="font-size:10px; color:#94a3b8; text-align:center;">+${dayLogs.length - 3}건 더보기</div>` : ''}
+          </div>
         </div>
       `;
     }
-
-    gridHtml += `</div></div>`;
+    gridHtml += `</div>`;
     return gridHtml;
   }
 
-  function setShiftFilter(filter) {
-    activeShiftFilter = filter;
-    render('module-content');
+  // --- 이미지 자동 압축 엔진 (HTML5 Canvas 사용) ---
+  function previewImage(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (e) => {
+      const img = new Image();
+      img.src = e.target.result;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX_WIDTH = 800; // 가로 최대 800px로 압축
+        const scaleSize = MAX_WIDTH / img.width;
+        canvas.width = MAX_WIDTH;
+        canvas.height = img.height * scaleSize;
+        
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        
+        // JPEG 포맷으로 품질 70% 압축 (원래 용량의 약 1/10)
+        const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+        
+        document.getElementById('wl-preview-img').src = compressedBase64;
+        document.getElementById('wl-compressed-base64').value = compressedBase64;
+        document.getElementById('wl-preview-container').style.display = 'block';
+      }
+    };
   }
 
-  function openDayDetailModal(dateStr) {
-    selectedDetailDate = dateStr;
-    const modal = document.getElementById('worklog-day-modal');
-    const content = document.getElementById('worklog-day-modal-content');
-    if (!modal || !content) return;
-
-    const logs = window.SheetsSync.getWorklogs() || [];
-    const dayLogs = logs.filter(l => l.date === dateStr);
-    const dateWithDay = getFormattedDateWithDay(dateStr);
-
-    let html = `
-      <div class="d-flex align-items-center gap-3 mb-4 border-bottom pb-3">
-        <div style="width:48px; height:48px; border-radius:14px; background:#eff6ff; color:#2563eb; display:flex; justify-content:center; align-items:center; font-size:20px;">
-          <i class="fas fa-calendar-check"></i>
-        </div>
-        <div>
-          <h3 style="font-size:20px; font-weight:800; margin:0; color:#0f172a;">📅 ${dateWithDay} 상세 인수인계</h3>
-          <p style="font-size:13px; color:#64748b; margin:0; margin-top:4px;">해당 날짜에 작성된 총 ${dayLogs.length}건의 인수인계 내역입니다.</p>
-        </div>
-      </div>
-    `;
-
-    if (dayLogs.length === 0) {
-      html += `
-        <div class="text-center py-5 text-muted">
-          <i class="fas fa-folder-open fa-3x mb-3 text-secondary" style="opacity:0.3;"></i>
-          <h4 style="font-size:16px; font-weight:bold; color:#475569;">해당 날짜(${dateStr})에 등록된 일지가 없습니다.</h4>
-          <p style="font-size:13.5px;">[새 업무일지 작성하기] 버튼을 통해 당일 인수인계를 추가해 보세요!</p>
-          <button type="button" class="btn btn-primary mt-3 font-bold" style="border-radius:10px; padding:10px 20px;" onclick="WorklogModule.closeDayDetailModal(); WorklogModule.showCreateModal();">
-            <i class="fas fa-edit me-1"></i> 이 날짜에 인수인계 작성하기
-          </button>
-        </div>
-      `;
-    } else {
-      // 팝업 내부 카드도 Grid 레이아웃으로 변경 (깨짐 방지)
-      html += dayLogs.map(log => {
-        const isShiftA = log.shift && log.shift.includes('A조');
-        const isShiftB = log.shift && log.shift.includes('B조');
-        const badgeBg = isShiftA ? '#eff6ff' : isShiftB ? '#fffbeb' : '#f0fdf4';
-        const badgeColor = isShiftA ? '#2563eb' : isShiftB ? '#d97706' : '#16a34a';
-        const badgeBorder = isShiftA ? '#bfdbfe' : isShiftB ? '#fde68a' : '#bbf7d0';
-
-        return `
-          <div class="card mb-4 shadow-sm" style="border-radius:18px; border:1px solid #cbd5e1; overflow:hidden; background:#ffffff;">
-            <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2" style="background:#f8fafc; padding:16px 24px; border-bottom:1px solid #e2e8f0;">
-              <div class="d-flex align-items-center gap-3 flex-wrap">
-                <span style="background:${badgeBg}; color:${badgeColor}; border:1px solid ${badgeBorder}; font-size:13px; font-weight:800; padding:6px 14px; border-radius:20px;">
-                  ${log.shift || '교대일지'}
-                </span>
-                <strong style="font-size:16px; color:#0f172a;"><i class="fas fa-user-edit me-1"></i> ${log.authorName} (${log.authorRole || '직원'})</strong>
-              </div>
-              <span class="text-muted font-bold" style="font-size:12.5px;"><i class="far fa-clock"></i> ${log.createdAt || ''}</span>
-            </div>
-
-            <div class="card-body" style="padding:24px;">
-              <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap:16px; margin-bottom:20px;">
-                <div class="p-3 h-100" style="background:#f8fbff; border:1px solid #bfdbfe; border-radius:14px;">
-                  <h5 style="font-size:13.5px; font-weight:800; color:#1e40af; margin-bottom:8px;"><i class="fas fa-pills me-1"></i> 1. 특이 처방 & 품절</h5>
-                  <div style="font-size:14px; color:#1e293b; line-height:1.7; white-space:pre-wrap; word-break:break-word;">${log.contentRx ? log.contentRx : '<span style="color:#94a3b8; font-style:italic;">특이사항 없음</span>'}</div>
-                </div>
-
-                <div class="p-3 h-100" style="background:#f8fffe; border:1px solid #bbf7d0; border-radius:14px;">
-                  <h5 style="font-size:13.5px; font-weight:800; color:#166534; margin-bottom:8px;"><i class="fas fa-desktop me-1"></i> 2. 매장 POS & 조제장비</h5>
-                  <div style="font-size:14px; color:#1e293b; line-height:1.7; white-space:pre-wrap; word-break:break-word;">${log.contentPos ? log.contentPos : '<span style="color:#94a3b8; font-style:italic;">특이사항 없음</span>'}</div>
-                </div>
-
-                <div class="p-3 h-100" style="background:#fffef8; border:1px solid #fde68a; border-radius:14px;">
-                  <h5 style="font-size:13.5px; font-weight:800; color:#92400e; margin-bottom:8px;"><i class="fas fa-truck me-1"></i> 3. 도매상 입고 검수</h5>
-                  <div style="font-size:14px; color:#1e293b; line-height:1.7; white-space:pre-wrap; word-break:break-word;">${log.contentDelivery ? log.contentDelivery : '<span style="color:#94a3b8; font-style:italic;">특이사항 없음</span>'}</div>
-                </div>
-
-                <div class="p-3 h-100" style="background:#fdfaff; border:1px solid #e9d5ff; border-radius:14px;">
-                  <h5 style="font-size:13.5px; font-weight:800; color:#6b21a8; margin-bottom:8px;"><i class="fas fa-bullhorn me-1"></i> 4. 전달사항</h5>
-                  <div style="font-size:14px; color:#1e293b; line-height:1.7; white-space:pre-wrap; font-weight:600; word-break:break-word;">${log.note ? log.note : '<span style="color:#94a3b8; font-style:italic; font-weight:normal;">전달사항 없음</span>'}</div>
-                </div>
-              </div>
-
-              <!-- 팝업 내 하단 확인 바 -->
-              <div class="pt-3 border-top d-flex justify-content-between align-items-center flex-wrap gap-3">
-                <div class="d-flex align-items-center gap-2 flex-wrap">
-                  <span style="font-size:13px; font-weight:800; color:#475569;">
-                    <i class="fas fa-user-check text-success me-1"></i> 확인완료 직원:
-                  </span>
-                  ${(log.checkedBy && log.checkedBy.length > 0) ? log.checkedBy.map(name => `
-                    <span class="badge" style="background:#dcfce7; color:#16a34a; border:1px solid #bbf7d0; font-size:12px; padding:6px 12px; border-radius:20px; font-weight:700;">
-                      <i class="fas fa-check me-1"></i>${name}
-                    </span>
-                  `).join('') : '<span style="font-size:12.5px; color:#94a3b8; background:#f1f5f9; padding:4px 10px; border-radius:12px;">아직 확인한 직원이 없습니다.</span>'}
-                </div>
-                <button type="button" class="btn btn-success font-bold shadow-sm" onclick="WorklogModule.checkAckInModal('${log.id}', '${dateStr}')" style="border-radius:10px; padding:8px 16px; font-size:13.5px;">
-                  <i class="fas fa-check-circle me-1"></i> 본인 확인완료 체크
-                </button>
-              </div>
-            </div>
-          </div>
-        `;
-      }).join('');
-    }
-
-    content.innerHTML = html;
-    modal.style.display = 'flex';
-  }
-
-  function closeDayDetailModal() {
-    const modal = document.getElementById('worklog-day-modal');
-    if (modal) modal.style.display = 'none';
-  }
-
-  // ★ 팝업 및 리스트 외부 양쪽에서 모두 체크 가능하게 분리
-  function checkAckInModal(logId, dateStr) {
-    if(checkAckCore(logId)) {
-      openDayDetailModal(dateStr); // 팝업 재렌더링
-      render('module-content');    // 바깥쪽 리스트도 즉시 재렌더링하여 뱃지 동기화!
-    }
-  }
-
-  function checkAckInList(logId) {
-    if(checkAckCore(logId)) {
-      render('module-content'); // 바깥쪽 리스트 클릭 시 즉시 재렌더링!
-    }
-  }
-
-  // 코어 체크 함수
-  function checkAckCore(logId) {
-    const curr = window.SheetsSync.getCurrentUser();
-    if (!curr) {
-      alert("🚨 보안 안내: 최상단에서 '직원 로그인'을 먼저 진행해 주세요!");
-      return false;
-    }
-
-    const logs = window.SheetsSync.getWorklogs() || [];
-    const target = logs.find(l => l.id === logId);
-    if (!target) return false;
-
-    if (!target.checkedBy) target.checkedBy = [];
-    const myTag = curr.name; 
-    
-    // 이미 체크했는지 이름(myTag)으로 확인 (괄호 직책 제외하고 이름만 심플하게 표시)
-    if (!target.checkedBy.includes(myTag)) {
-      target.checkedBy.push(myTag);
-      window.SheetsSync.saveWorklogs(logs);
-      alert(`✅ [${curr.name}] 님의 인수인계 확인이 완료되었습니다!`);
-      return true; // 변경 성공
-    } else {
-      alert('⚠️ 이미 이 일지의 확인 체크를 완료하셨습니다.');
-      return false;
-    }
-  }
-
-  function showCreateModal() {
-    const curr = window.SheetsSync.getCurrentUser();
-    if (!curr) {
-      alert("🚨 작성 권한: 상단의 '직원 로그인'을 먼저 진행해 주세요!");
-      return;
-    }
-    const m = document.getElementById('worklog-modal');
-    if (m) m.style.display = 'flex';
-  }
-
-  function closeModal() {
-    const m = document.getElementById('worklog-modal');
-    if (m) m.style.display = 'none';
-  }
-
-  function submitWorklog(e) {
+  // 폼 제출 로직 (업무 등록)
+  async function submitTask(e) {
     e.preventDefault();
+    const btn = document.getElementById('wl-submit-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 저장 중...';
+
     const curr = window.SheetsSync.getCurrentUser();
-    const date = document.getElementById('wl-date').value;
-    const shift = document.getElementById('wl-shift').value;
-    const contentRx = document.getElementById('wl-rx').value;
-    const contentPos = document.getElementById('wl-pos').value;
-    const contentDelivery = document.getElementById('wl-delivery').value;
-    const note = document.getElementById('wl-note').value;
+    if (!curr) { alert("로그인이 필요합니다."); btn.disabled = false; btn.innerText = '등록하기'; return; }
+
+    const tag = document.getElementById('wl-tag').value;
+    const content = document.getElementById('wl-content').value;
+    const base64Data = document.getElementById('wl-compressed-base64').value;
+    let imageUrl = '';
+
+    // 사진이 첨부되었다면 구글 앱스 스크립트(GAS)로 업로드 요청
+    if (base64Data) {
+      try {
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 사진 업로드 중...';
+        // (주의: 실제 GAS 환경에 맞춰 fetch POST 요청이 필요합니다)
+        // 아래 코드는 GAS Web App과 JSON 통신을 하는 일반적인 예시입니다.
+        const response = await fetch(GAS_WEB_APP_URL, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'uploadImage', data: base64Data, filename: `업무사진_${Date.now()}.jpg` })
+        });
+        const result = await response.json();
+        imageUrl = result.url || '';
+      } catch (err) {
+        console.warn("이미지 업로드 실패(임시로 저장 진행):", err);
+      }
+    }
 
     const newLog = {
-      id: 'w_' + Date.now(),
-      date,
-      shift,
-      authorName: curr ? curr.name : '직원',
-      authorRole: curr ? curr.role : '직원',
-      contentRx,
-      contentPos,
-      contentDelivery,
-      note,
-      checkedBy: [curr ? curr.name : '직원'], // 작성자는 자동 체크됨 (이름만 깔끔하게 저장)
+      id: 'task_' + Date.now(),
+      date: new Date().toISOString().split('T')[0],
+      authorName: curr.name,
+      tag: tag,
+      content: content,
+      imageUrl: imageUrl,
+      status: 'PENDING', // 기본 상태: 미해결
       createdAt: new Date().toISOString().replace('T', ' ').substring(0, 16)
     };
 
@@ -599,55 +329,162 @@ window.WorklogModule = (function () {
     window.SheetsSync.saveWorklogs(logs);
 
     closeModal();
-    alert('📝 약국 업무일지가 성공적으로 등록되었습니다!');
+    alert('✅ 성공적으로 등록되었습니다.');
     render('module-content');
   }
 
-  // ── Chart.js Bar Chart Only (전체 너비) ──
-  let wlChartInst = {};
-  function initWorklogCharts(logs) {
-    if (typeof Chart === 'undefined') return;
-    const ctx = document.getElementById('worklogTrendCanvas');
-    if (!ctx) return;
-    if (wlChartInst.bar) wlChartInst.bar.destroy();
+  // 업무 완료 처리 (하단 달력으로 이동)
+  function completeTask(id) {
+    const curr = window.SheetsSync.getCurrentUser();
+    if (!curr) { alert("로그인이 필요합니다."); return; }
 
-    const today = new Date();
-    const months = [];
-    const counts = [];
-    for (let i = 5; i >= 0; i--) {
-      const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
-      const prefix = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
-      months.push(`${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}`);
-      counts.push(logs.filter(l => (l.date||'').startsWith(prefix)).length);
+    if (!confirm('이 업무를 완료(확인) 처리하시겠습니까?\n처리 후 달력 기록으로 이동됩니다.')) return;
+
+    const logs = window.SheetsSync.getWorklogs() || [];
+    const target = logs.find(l => l.id === id);
+    if (target) {
+      target.status = 'COMPLETED';
+      target.completedBy = curr.name;
+      target.completedAt = new Date().toISOString().replace('T', ' ').substring(0, 16);
+      window.SheetsSync.saveWorklogs(logs);
+      render('module-content');
     }
-
-    wlChartInst.bar = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: months,
-        datasets: [{
-          label: '작성 건수',
-          data: counts,
-          backgroundColor: 'rgba(59,130,246,0.85)',
-          borderRadius: 8
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
-        scales: {
-          x: { grid: { display: false } },
-          y: { beginAtZero: true, ticks: { stepSize: 1 } }
-        }
-      }
-    });
   }
 
-  return {
-    render, prevMonth, nextMonth, toggleCalendar, setShiftFilter,
-    openDayDetailModal, closeDayDetailModal,
-    checkAckInModal, checkAckInList, // 둘 다 오픈
-    showCreateModal, closeModal, submitWorklog
-  };
+  // 모달 제어 함수
+  function showCreateModal() { document.getElementById('worklog-create-modal').style.display = 'flex'; }
+  function closeModal() { document.getElementById('worklog-create-modal').style.display = 'none'; }
+  function changeMonth(delta) {
+    currentMonth += delta;
+    if (currentMonth > 12) { currentMonth = 1; currentYear++; }
+    else if (currentMonth < 1) { currentMonth = 12; currentYear--; }
+    render('module-content');
+  }
+// 🔍 통합 검색 실행 함수
+  function executeSearch() {
+    const keyword = document.getElementById('wl-search-input').value.trim();
+    if (!keyword) { alert('검색어를 입력해 주세요.'); return; }
+
+    const logs = window.SheetsSync.getWorklogs() || [];
+    const lowerKeyword = keyword.toLowerCase();
+    
+    // 내용, 작성자, 태그에서 검색어 찾기
+    const results = logs.filter(l => {
+      const text = (l.content || '') + (l.authorName || '') + (l.tag || '');
+      return text.toLowerCase().includes(lowerKeyword);
+    });
+
+    const content = document.getElementById('worklog-search-modal-content');
+    let html = `
+      <div class="d-flex align-items-center gap-3 mb-4 border-bottom pb-3">
+        <div style="width:48px; height:48px; border-radius:14px; background:#f0fdf4; color:#16a34a; display:flex; justify-content:center; align-items:center; font-size:22px;"><i class="fas fa-search"></i></div>
+        <div>
+          <h3 style="font-size:20px; font-weight:800; margin:0; color:#0f172a;">'${keyword}' 검색 결과</h3>
+          <p class="text-muted mb-0" style="font-size:13.5px; margin-top:4px;">총 ${results.length}건의 기록이 발견되었습니다.</p>
+        </div>
+      </div>
+    `;
+
+    if (results.length === 0) {
+      html += `<div class="text-center py-5"><i class="fas fa-search-minus fa-3x mb-3 text-secondary" style="opacity:0.3;"></i><h4 style="font-size:16px; color:#475569;">일치하는 내역이 없습니다.</h4></div>`;
+    } else {
+      html += `<div style="display:flex; flex-direction:column; gap:16px;">`;
+      html += results.map(l => {
+        const isCompleted = l.status === 'COMPLETED';
+        const contentText = l.content || l.contentRx || l.note || '내용 없음';
+        // 검색어 노란색 형광펜 하이라이트 효과
+        const highlightedText = contentText.replace(new RegExp(keyword, 'gi'), match => `<mark style="background:#fef08a; padding:0 2px; border-radius:4px; font-weight:bold;">${match}</mark>`);
+
+        return `
+        <div class="p-4" style="background:${isCompleted ? '#f8fafc' : '#ffffff'}; border:1px solid ${isCompleted ? '#e2e8f0' : '#cbd5e1'}; border-radius:16px;">
+          <div class="d-flex justify-content-between align-items-start mb-3 flex-wrap gap-2">
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+              <span style="font-size:12px; color:#64748b; background:#f1f5f9; padding:4px 8px; border-radius:6px;"><i class="far fa-calendar-alt me-1"></i>${l.date}</span>
+              ${l.tag ? getTagBadge(l.tag) : ''}
+              <span style="font-size:14px; font-weight:800; color:#1e293b;">${l.authorName}</span>
+            </div>
+            <div style="font-size:12px; font-weight:700; padding:4px 10px; border-radius:6px; background:${isCompleted ? '#dcfce7' : '#fee2e2'}; color:${isCompleted ? '#16a34a' : '#ef4444'};">
+              ${isCompleted ? `✅ ${l.completedBy} 완료` : '🚨 진행 중'}
+            </div>
+          </div>
+          <div style="font-size:15px; color:#334155; line-height:1.6; background:#f1f5f9; padding:16px; border-radius:12px;">${highlightedText}</div>
+          ${l.imageUrl ? `
+            <div style="margin-top:12px; text-align:center; background:#f8fafc; border:1px dashed #cbd5e1; padding:12px; border-radius:12px;">
+              <a href="${l.imageUrl}" target="_blank"><img src="${l.imageUrl}" style="max-height:180px; border-radius:8px;" alt="첨부사진" /></a>
+            </div>
+          ` : ''}
+        </div>
+      `}).join('');
+      html += `</div>`;
+    }
+    
+    content.innerHTML = html;
+    document.getElementById('worklog-search-modal').style.display = 'flex';
+  }
+ // 달력 특정 날짜 팝업 열기 (세련되고 정갈한 레이아웃 적용)
+  function openDayModal(dateStr) {
+    const logs = window.SheetsSync.getWorklogs() || [];
+    const dayLogs = logs.filter(l => l.date === dateStr);
+    const content = document.getElementById('worklog-day-modal-content');
+    
+    let html = `
+      <div class="d-flex align-items-center gap-3 mb-4 border-bottom pb-3">
+        <div style="width:48px; height:48px; border-radius:14px; background:#fff1f2; color:#e11d48; display:flex; justify-content:center; align-items:center; font-size:22px;">
+          <i class="fas fa-calendar-day"></i>
+        </div>
+        <div>
+          <h3 style="font-size:20px; font-weight:800; margin:0; color:#0f172a;">${dateStr} 업무 히스토리</h3>
+          <p class="text-muted mb-0" style="font-size:13.5px; margin-top:4px;">해당 날짜에 등록되거나 처리된 총 ${dayLogs.length}건의 업무입니다.</p>
+        </div>
+      </div>
+    `;
+    
+    if (dayLogs.length === 0) {
+      html += `
+        <div class="text-center py-5">
+          <i class="fas fa-inbox fa-3x mb-3 text-secondary" style="opacity:0.3;"></i>
+          <h4 style="font-size:16px; font-weight:bold; color:#475569;">이 날짜에 기록된 내역이 없습니다.</h4>
+        </div>
+      `;
+    } else {
+      html += `<div style="display:flex; flex-direction:column; gap:16px;">`;
+      html += dayLogs.map(l => {
+        // 이전 버전 데이터(구 일지)와 호환 처리
+        const contentText = l.content || l.contentRx || l.note || '<span style="color:#94a3b8; font-style:italic;">내용 없음</span>';
+        const isCompleted = l.status === 'COMPLETED';
+
+        return `
+        <div class="p-4" style="background:${isCompleted ? '#f8fafc' : '#ffffff'}; border:1px solid ${isCompleted ? '#e2e8f0' : '#cbd5e1'}; border-radius:16px; box-shadow:0 2px 8px rgba(0,0,0,0.02);">
+          
+          <div class="d-flex justify-content-between align-items-start mb-3 flex-wrap gap-2">
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+              ${l.tag ? getTagBadge(l.tag) : '<span class="badge" style="background:#f1f5f9; color:#475569; border:1px solid #cbd5e1; padding:6px 12px; border-radius:8px;">⚪ 구 일지</span>'}
+              <span style="font-size:15px; font-weight:800; color:#1e293b;"><i class="fas fa-user-edit me-1" style="color:#94a3b8;"></i>${l.authorName}</span>
+            </div>
+            <div style="font-size:13px; font-weight:700; padding:6px 12px; border-radius:8px; background:${isCompleted ? '#dcfce7' : '#fee2e2'}; color:${isCompleted ? '#16a34a' : '#ef4444'}; display:inline-flex; align-items:center;">
+              ${isCompleted ? `<i class="fas fa-check-circle me-1"></i>${l.completedBy} 완료` : '🚨 진행 중'}
+            </div>
+          </div>
+          
+          <div style="font-size:15px; color:#334155; line-height:1.7; white-space:pre-wrap; word-break:break-word; background:#f1f5f9; padding:16px; border-radius:12px;">${contentText}</div>
+          
+          ${l.imageUrl ? `
+            <div style="margin-top:12px; text-align:center; background:#f8fafc; border:1px dashed #cbd5e1; padding:12px; border-radius:12px;">
+              <a href="${l.imageUrl}" target="_blank">
+                <img src="${l.imageUrl}" style="max-height:200px; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.1);" alt="첨부사진" />
+              </a>
+            </div>
+          ` : ''}
+        </div>
+      `}).join('');
+      html += `</div>`;
+    }
+    
+    content.innerHTML = html;
+    document.getElementById('worklog-day-modal').style.display = 'flex';
+  }
+  function closeDayModal() { document.getElementById('worklog-day-modal').style.display = 'none'; }
+
+  // 맨 마지막 줄을 아래처럼 수정하세요. (executeSearch 추가)
+  return { render, showCreateModal, closeModal, previewImage, submitTask, completeTask, changeMonth, openDayModal, closeDayModal, executeSearch };
 })();
