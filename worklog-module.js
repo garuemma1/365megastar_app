@@ -468,10 +468,11 @@ window.WorklogModule = (function () {
           
           <div style="font-size:15px; color:#334155; line-height:1.7; white-space:pre-wrap; word-break:break-word; background:#f1f5f9; padding:16px; border-radius:12px;">${contentText}</div>
           
+        
           ${l.imageUrl ? `
-            <div style="margin-top:12px; text-align:center; background:#f8fafc; border:1px dashed #cbd5e1; padding:12px; border-radius:12px;">
-              <a href="${l.imageUrl}" target="_blank">
-                <img src="${l.imageUrl}" style="max-height:200px; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.1);" alt="첨부사진" />
+            <div style="margin-top:12px; text-align:center; background:#f8fafc; border:1px dashed #cbd5e1; padding:16px; border-radius:12px;">
+              <a href="${l.imageUrl}" target="_blank" style="display:inline-flex; align-items:center; gap:8px; background:#ffffff; border:1px solid #cbd5e1; padding:8px 18px; border-radius:24px; font-size:14px; color:#475569; text-decoration:none; font-weight:700; box-shadow:0 2px 6px rgba(0,0,0,0.04); transition:all 0.2s;" onmouseover="this.style.background='#eff6ff'; this.style.borderColor='#bfdbfe'; this.style.color='#2563eb';" onmouseout="this.style.background='#ffffff'; this.style.borderColor='#cbd5e1'; this.style.color='#475569';">
+                <i class="far fa-image" style="color:#3b82f6; font-size:16px;"></i> 첨부사진 열기
               </a>
             </div>
           ` : ''}
