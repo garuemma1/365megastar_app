@@ -166,86 +166,109 @@ window.ScheduleModule = (function () {
         `;
       })()}
 
-      <!-- 📦 1번 통합 박스: 근무스케줄 자율 제출 & 약국장 최종 결재 승인 센터 -->
+<!-- 📦 1번 통합 박스: 개인 자율 제출 & 통합 마스터 승인 센터 -->
       <div class="schedule-control-card mb-4" style="background:#ffffff; border:1.5px solid #cbd5e1; border-radius:18px; padding:22px; box-shadow:0 4px 18px rgba(15,23,42,0.05);">
-        <!-- 카드 상단 통합 타이틀 -->
-        <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom flex-wrap gap-2">
-          <div class="d-flex align-items-center gap-3">
-            <div style="width:40px; height:40px; border-radius:12px; background:#ecfdf5; border:1px solid #a7f3d0; color:#059669; display:flex; justify-content:center; align-items:center; font-size:18px; flex-shrink:0;">
-              <i class="fas fa-calendar-check"></i>
-            </div>
-            <div>
-              <h3 style="font-size:17px; font-weight:800; color:#0f172a; margin:0;">
-                ${currentMonth}월 팀별 근무스케줄 자율 제출 현황 및 약국장 최종 결재
-              </h3>
-              <p style="font-size:12.5px; color:#64748b; margin:2px 0 0 0;">근무약사팀과 일반직원팀의 제출 현황을 검토하신 후, 1클릭으로 승인하거나 조율을 진행하세요.</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- 2개 팀 제출 서브 카드 50/50 밸런스 그리드 -->
-        <div class="team-schedule-approval-box mb-3">
-          <!-- 약사팀 자율 스케줄 서브 카드 -->
-          <div class="tsa-card ${statusObj.pharmacistStatus === 'APPROVED' ? 'tsa-approved' : (statusObj.pharmacistStatus === 'SUBMITTED' ? 'tsa-submitted' : 'tsa-draft')}">
-            <div class="tsa-header">
-              <span class="tsa-title"><strong>👨‍⚕️ 근무약사팀 (약사 4인)</strong></span>
-              <span class="tsa-badge">${getStatusBadgeHtml(statusObj.pharmacistStatus || 'SUBMITTED')}</span>
-            </div>
-            <div class="tsa-body">
-              <p class="tsa-desc">${statusObj.pharmacistStatus === 'APPROVED' ? '🟢 약국장 최종 승인 및 근무표 확정 완료' : (statusObj.pharmacistStatus === 'SUBMITTED' ? `📤 약사팀 작성 제출 완료 (약국장 결재 대기 중)` : `✏️ 약사 4인 (권명주, 양윤지, 김동완, 유호종) 스케줄 자율 조정 중`)}</p>
-              ${statusObj.directorComment && statusObj.pharmacistStatus === 'DRAFT' ? `
-                <div style="font-size:12px; background:#fff7ed; color:#c2410c; border:1px solid #ffedd5; padding:6px 10px; border-radius:8px; margin-top:6px; font-weight:700;">
-                  <i class="fas fa-comment-alt me-1"></i> 조율 사유: ${statusObj.directorComment}
+        ${(() => {
+          // 상태값 가져오기 (개인별 상태 추적)
+          const myStatus = statusObj[currUser ? currUser.id : ''] || 'DRAFT';
+          
+          if (currUser && currUser.role !== '약국장') {
+            // ==========================================
+            // 👤 1-1. 일반 직원/근무약사 접속 시 화면 (My Schedule)
+            // ==========================================
+            return `
+              <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div class="d-flex align-items-center gap-3">
+                  <div style="width:48px; height:48px; border-radius:14px; background:#eff6ff; border:1px solid #bfdbfe; color:#2563eb; display:flex; justify-content:center; align-items:center; font-size:20px;">
+                    <i class="fas fa-user-clock"></i>
+                  </div>
+                  <div>
+                    <h3 style="font-size:18px; font-weight:800; color:#0f172a; margin:0;">😎 ${currUser.name} 님의 ${currentMonth}월 스케줄 제출</h3>
+                    <p style="font-size:13px; color:#64748b; margin:2px 0 0 0;">내 스케줄(근무/오프)을 달력에 입력한 뒤 제출하기 버튼을 눌러주세요.</p>
+                  </div>
                 </div>
-              ` : ''}
-              ${statusObj.pharmacistStatus !== 'APPROVED' ? `
-                <button type="button" class="btn btn-sm btn-primary mt-2 font-bold w-100" onclick="ScheduleModule.submitTeamSchedule('pharmacist')" style="border-radius:10px; padding:8px 0; font-size:13.5px;">
-                  📤 약사팀 ${currentMonth}월 스케줄 제출하기
-                </button>
-              ` : ''}
-            </div>
-          </div>
-
-          <!-- 직원팀 자율 스케줄 서브 카드 -->
-          <div class="tsa-card ${statusObj.staffStatus === 'APPROVED' ? 'tsa-approved' : (statusObj.staffStatus === 'SUBMITTED' ? 'tsa-submitted' : 'tsa-draft')}">
-            <div class="tsa-header">
-              <span class="tsa-title"><strong>👨‍💼 일반직원팀 (직원 4인)</strong></span>
-              <span class="tsa-badge">${getStatusBadgeHtml(statusObj.staffStatus || 'SUBMITTED')}</span>
-            </div>
-            <div class="tsa-body">
-              <p class="tsa-desc">${statusObj.staffStatus === 'APPROVED' ? '🟢 약국장 최종 승인 및 근무표 확정 완료' : (statusObj.staffStatus === 'SUBMITTED' ? `📤 일반직원팀 작성 제출 완료 (약국장 결재 대기 중)` : `✏️ 일반직원 4인 (이승학, 김제희, 윤세라, 김배영) 스케줄 자율 조정 중`)}</p>
-              ${statusObj.directorComment && statusObj.staffStatus === 'DRAFT' ? `
-                <div style="font-size:12px; background:#fff7ed; color:#c2410c; border:1px solid #ffedd5; padding:6px 10px; border-radius:8px; margin-top:6px; font-weight:700;">
-                  <i class="fas fa-comment-alt me-1"></i> 조율 사유: ${statusObj.directorComment}
+                <div class="text-end">
+                  <div class="mb-2">
+                    ${myStatus === 'APPROVED' ? '<span class="badge bg-success py-2 px-3" style="font-size:14px;">✅ 약국장 최종 확정</span>' : 
+                      (myStatus === 'SUBMITTED' ? '<span class="badge bg-info text-white py-2 px-3" style="font-size:14px;">⏳ 약국장 결재 대기중</span>' : 
+                      '<span class="badge bg-warning text-dark py-2 px-3" style="font-size:14px;">📝 작성 및 조율 중</span>')}
+                  </div>
+                  ${myStatus !== 'APPROVED' ? `
+                    <button type="button" class="btn btn-primary font-bold shadow-sm" onclick="ScheduleModule.submitMySchedule()" style="border-radius:12px; padding:10px 24px;">
+                      📤 내 스케줄 최종 제출하기
+                    </button>
+                  ` : ''}
                 </div>
-              ` : ''}
-              ${statusObj.staffStatus !== 'APPROVED' ? `
-                <button type="button" class="btn btn-sm btn-info mt-2 text-white font-bold w-100" onclick="ScheduleModule.submitTeamSchedule('staff')" style="border-radius:10px; padding:8px 0; font-size:13.5px;">
-                  📤 직원팀 ${currentMonth}월 스케줄 제출하기
-                </button>
-              ` : ''}
-            </div>
-          </div>
-        </div>
-
-        <!-- 약국장 접속 시 하단 묵직하고 균형 잡힌 다크 슬레이트 최종 결재 컨트롤러 Bar -->
-        ${(currUser && currUser.role === '약국장') ? `
-          <div class="d-flex justify-content-between align-items-center flex-wrap gap-3" style="background:#0f172a; padding:16px 20px; border-radius:14px; color:#ffffff; box-shadow:0 4px 14px rgba(15,23,42,0.15); margin-top:14px;">
-            <div class="d-flex align-items-center gap-2">
-              <span class="badge bg-warning text-dark font-bold" style="padding:6px 12px; font-size:12.5px; border-radius:8px;">🔐 약국장 최종 결재</span>
-              <span style="font-size:13.5px; font-weight:700; color:#cbd5e1;">팀별 제출 근무표 최종 결정을 진행하세요:</span>
-            </div>
-            <div class="d-flex gap-2 flex-wrap ms-auto">
-              <button type="button" class="btn btn-sm text-white font-bold" onclick="ScheduleModule.approveTeamSchedule('all')" style="background:linear-gradient(135deg, #10b981 0%, #059669 100%); border:none; box-shadow:0 4px 12px rgba(16,185,129,0.3); font-size:13.5px; padding:9px 22px; border-radius:10px;">
-                <i class="fas fa-check-circle me-1"></i> 🏆 ${currentMonth}월 전체 스케줄 최종 승인 확정
-              </button>
-              <button type="button" class="btn btn-sm text-white font-bold" onclick="ScheduleModule.rejectTeamSchedule()" style="background:linear-gradient(135deg, #ea580c 0%, #c2410c 100%); border:none; box-shadow:0 4px 12px rgba(234,88,12,0.3); font-size:13.5px; padding:9px 22px; border-radius:10px;">
-                <i class="fas fa-undo me-1"></i> ↩️ 스케쥴 수정 요청 (재조율)
-              </button>
-            </div>
-          </div>
-        ` : ''}
+              </div>
+            `;
+          } else {
+            // ==========================================
+            // 👑 1-2. 약국장 접속 시 화면 (Master Board)
+            // ==========================================
+            const submitCount = employees.filter(e => statusObj[e.id] === 'SUBMITTED' || statusObj[e.id] === 'APPROVED').length;
+            const totalCount = employees.length;
+            const progressPercent = Math.round((submitCount / totalCount) * 100) || 0;
+            
+            return `
+              <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom flex-wrap gap-2">
+                <div class="d-flex align-items-center gap-3">
+                  <div style="width:48px; height:48px; border-radius:14px; background:#fef2f2; border:1px solid #fecaca; color:#dc2626; display:flex; justify-content:center; align-items:center; font-size:20px;">
+                    <i class="fas fa-chess-king"></i>
+                  </div>
+                  <div>
+                    <h3 style="font-size:18px; font-weight:800; color:#0f172a; margin:0;">👑 ${currentMonth}월 마스터 스케줄 결재 현황</h3>
+                    <p style="font-size:13px; color:#64748b; margin:2px 0 0 0;">직원들의 개별 제출 현황을 파악하고 빈틈없는 달력을 완성하세요.</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="mb-4">
+                <div class="d-flex justify-content-between mb-1" style="font-size:14px; font-weight:700;">
+                  <span>전체 직원 제출 진행률</span>
+                  <span class="text-primary">${submitCount}명 / ${totalCount}명 제출 (${progressPercent}%)</span>
+                </div>
+                <div class="progress" style="height: 12px; border-radius: 6px; background:#f1f5f9;">
+                  <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary" role="progressbar" style="width: ${progressPercent}%"></div>
+                </div>
+              </div>
+              
+              <div class="d-flex justify-content-between align-items-center flex-wrap gap-3" style="background:#0f172a; padding:16px 20px; border-radius:14px; color:#ffffff; box-shadow:0 4px 14px rgba(15,23,42,0.15);">
+                <div class="d-flex align-items-center gap-2">
+                  <span class="badge bg-warning text-dark font-bold" style="padding:6px 12px; font-size:12.5px; border-radius:8px;">🔐 약국장 최종 결재</span>
+                  <span style="font-size:13.5px; font-weight:700; color:#cbd5e1;">하단 달력에서 인원 겹침/부족(🚨)을 조율한 뒤 확정하세요.</span>
+                </div>
+                <div class="d-flex gap-2 flex-wrap ms-auto">
+                  <button type="button" class="btn btn-sm text-white font-bold" onclick="ScheduleModule.approveMasterSchedule()" style="background:linear-gradient(135deg, #10b981 0%, #059669 100%); border:none; box-shadow:0 4px 12px rgba(16,185,129,0.3); font-size:13.5px; padding:9px 22px; border-radius:10px;">
+                    <i class="fas fa-check-circle me-1"></i> 🏆 전체 스케줄 최종 승인 확정
+                  </button>
+                  <button type="button" class="btn btn-sm text-white font-bold" onclick="ScheduleModule.rejectMasterSchedule()" style="background:linear-gradient(135deg, #ea580c 0%, #c2410c 100%); border:none; box-shadow:0 4px 12px rgba(234,88,12,0.3); font-size:13.5px; padding:9px 22px; border-radius:10px;">
+                    <i class="fas fa-undo me-1"></i> ↩️ 개별 스케줄 재수정 요청
+                  </button>
+                </div>
+              </div>
+            `;
+          }
+        })()}
       </div>
+<!-- 📅 🚨[위치 변경됨] 월간 근무스케줄 달력 영역 (결재 현황 바로 아래) -->
+      ${showCalendar ? `
+        <div class="card-section mb-4" style="background:#ffffff; border:1.5px solid #cbd5e1; border-radius:24px; padding:24px; box-shadow:0 12px 35px rgba(15,23,42,0.08);">
+          <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
+            <h3 style="font-size:18px; font-weight:800; color:#0f172a; margin:0;">
+              <i class="fas fa-calendar-alt text-success me-2"></i> ${currentMonth}월 전체 팀원 근무 스케줄 현황
+            </h3>
+            <span class="badge bg-light text-dark font-bold" style="padding:6px 14px; border-radius:12px; border:1px solid #e2e8f0; font-size:12.5px;">
+              <i class="fas fa-mobile-alt text-primary me-1"></i> 날짜 터치 시 수정
+            </span>
+          </div>
+          
+          <div class="calendar-scroll-wrapper" style="border-radius:16px; overflow:hidden; border:1.5px solid #e2e8f0;">
+            ${renderImage1StyleCalendar(currentYear, currentMonth, employees, scheduleRecords)}
+          </div>
+        </div>
+      ` : ''}
+      <!-- 📋 약국장 전용: 전 직원 신청 근무 스케줄 상세 내역 (날짜·요일·신청시간·실근무시수) -->
+      ${(currUser && currUser.role === '약국장') ? renderDirectorSubmittedDetailsCard(currentYear, currentMonth, employees, scheduleRecords) : ''}
 
       <!-- 📦 2번 통합 박스: 약국장 전용 세무사 제출용 집계표 & 세후 통합명세서 교부 센터 -->
       ${(currUser && currUser.role === '약국장') ? `
@@ -275,31 +298,12 @@ window.ScheduleModule = (function () {
         </div>
       ` : ''}
 
-      <!-- 📋 약국장 전용: 전 직원 신청 근무 스케줄 상세 내역 (날짜·요일·신청시간·실근무시수) -->
-      ${(currUser && currUser.role === '약국장') ? renderDirectorSubmittedDetailsCard(currentYear, currentMonth, employees, scheduleRecords) : ''}
-
       <!-- 💡 팝업창 차단 원천 해결: 인라인 작업 카드 패널 (화면에 직접 바로 펼쳐지는 인라인 작업창) -->
       ${renderInlineWorkPanel(currUser, employees)}
 <!-- 💰 [순서 변경 1] 급여 정산표 영역: 스크롤 최소화를 위해 달력 위로 배치 (고급형 UI) -->
       ${(currUser && currUser.role === '약국장') ? renderSettlementDashboard(employees, scheduleRecords) : renderStaffPersonalPaystubSection(currUser)}
 
-      <!-- 📅 [순서 변경 2] 월간 근무스케줄 달력 영역: 화면 최하단으로 이동 -->
-      ${showCalendar ? `
-        <div class="card-section mb-6" style="background:#ffffff; border:1.5px solid #cbd5e1; border-radius:24px; padding:24px; box-shadow:0 12px 35px rgba(15,23,42,0.08); margin-top:32px;">
-          <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
-            <h3 style="font-size:18px; font-weight:800; color:#0f172a; margin:0;">
-              <i class="fas fa-calendar-alt text-success me-2"></i> ${currentMonth}월 전체 팀원 근무 스케줄 현황
-            </h3>
-            <span class="badge bg-light text-dark font-bold" style="padding:6px 14px; border-radius:12px; border:1px solid #e2e8f0; font-size:12.5px;">
-              <i class="fas fa-mobile-alt text-primary me-1"></i> 날짜 터치 시 수정
-            </span>
-          </div>
-          
-          <div class="calendar-scroll-wrapper" style="border-radius:16px; overflow:hidden; border:1.5px solid #e2e8f0;">
-            ${renderImage1StyleCalendar(currentYear, currentMonth, employees, scheduleRecords)}
-          </div>
-        </div>
-      ` : ''}
+    
      
       <!-- 자율 출퇴근 시간 및 OFF(휴무) 설정 모달 -->
       <div class="modal-overlay" id="shift-modal" style="display:none;">
@@ -380,14 +384,21 @@ window.ScheduleModule = (function () {
     container.innerHTML = html;
   }
 
-  // 달력형 뷰 (사진 1 스타일) 렌더링
+// 달력형 뷰 (개인 맞춤화 + 결원 자동 경고 마스터 보드)
   function renderImage1StyleCalendar(year, month, employees, scheduleRecords) {
+    const currUser = window.SheetsSync.getCurrentUser();
+    const isDirector = currUser && currUser.role === '약국장';
+
     const daysInMonth = new Date(year, month, 0).getDate();
     const firstDayIndex = new Date(year, month - 1, 1).getDay();
 
+    // 핵심: 약국장이면 전체 직원 표시, 직원이면 본인 스케줄만 표시
     let filteredEmployees = employees;
-    if (roleFilter === 'pharmacist') {
-      filteredEmployees = employees.filter(e => e.role.includes('약사') || e.role.includes('약국장'));
+    if (!isDirector) {
+      // (오류 방지 안전망 추가) 로그인 유저가 존재할 때만 필터링 진행
+      filteredEmployees = currUser ? employees.filter(e => e.id === currUser.id) : [];
+    } else if (roleFilter === 'pharmacist') {
+      filteredEmployees = employees.filter(e => e.role.includes('약사') || e.role === '약국장');
     }
 
     let gridHtml = '<div class="roster-image1-calendar">';
@@ -413,11 +424,33 @@ window.ScheduleModule = (function () {
         holidayLabel = multInfo.label.replace('공휴일 (', '').replace(')', '');
       }
 
+      // 🚨 결원 체크 로직 (약국장에게만 작동)
+      let isWarning = false;
+      let workingPharmacistCount = 0;
+      
+      if (isDirector) {
+        employees.forEach(emp => {
+          if (emp.role.includes('약사')) {
+            const rec = scheduleRecords.find(r => r.empId === emp.id && r.date === dateStr);
+            if (rec && rec.shift && rec.shift !== 'OFF') {
+              workingPharmacistCount++;
+            }
+          }
+        });
+        // 일요일이 아닌데 약사가 1명 이하면 경고
+        if (!isSun && workingPharmacistCount <= 1) {
+          isWarning = true;
+        }
+      }
+
       gridHtml += `
-        <div class="img1-cal-cell ${multInfo.isHoliday ? 'is-holiday-cell' : ''}">
+        <div class="img1-cal-cell ${multInfo.isHoliday ? 'is-holiday-cell' : ''}" style="${isWarning ? 'background-color: #fef2f2; border: 1.5px solid #fca5a5;' : ''}">
           <div class="img1-day-top">
-            <span class="img1-day-num ${isSun || multInfo.isHoliday ? 'text-danger' : (isSat ? 'text-primary' : '')}">${day}</span>
-            ${holidayLabel ? `<span class="img1-holiday-tag">${holidayLabel}</span>` : ''}
+            <div>
+              <span class="img1-day-num ${isSun || multInfo.isHoliday ? 'text-danger' : (isSat ? 'text-primary' : '')}">${day}</span>
+              ${holidayLabel ? `<span class="img1-holiday-tag">${holidayLabel}</span>` : ''}
+            </div>
+            ${isWarning ? `<span class="badge bg-danger" style="font-size:10px; animation: blink 1.5s infinite;">🚨 인원 부족</span>` : ''}
           </div>
 
           <div class="img1-staff-badge-stack">
@@ -425,7 +458,6 @@ window.ScheduleModule = (function () {
               const rec = scheduleRecords.find(r => r.empId === emp.id && r.date === dateStr);
               const shift = rec ? rec.shift : 'OFF';
 
-              // 0시간인 OFF 직원은 이름 안 뜨게 100% 숨김 처리 (근무자로 지정된 경우에만 표시)
               if (shift === 'OFF' || !shift) {
                 if (!showOffStaff) return '';
                 return `
@@ -453,15 +485,19 @@ window.ScheduleModule = (function () {
             }).join('')}
           </div>
 
-          <div class="img1-add-btn" onclick="ScheduleModule.openShiftModal('${dateStr}', '', '', 'A')" title="근무자 시간 및 OFF 설정">+ 근무/휴무 설정</div>
+          <div class="img1-add-btn" onclick="ScheduleModule.openShiftModal('${dateStr}', '${isDirector ? '' : (currUser ? currUser.id : '')}', '', 'A')" title="스케줄 설정">+ 스케줄 기입</div>
         </div>
       `;
     }
 
     gridHtml += '</div>';
+    
+    if (!document.getElementById('warning-blink-style')) {
+      gridHtml += `<style id="warning-blink-style">@keyframes blink { 50% { opacity: 0.5; } }</style>`;
+    }
+    
     return gridHtml;
   }
-
   function renderDirectorSubmittedDetailsCard(year, month, employees, scheduleRecords) {
     if (!showSubmittedDetails) {
       return `
@@ -895,7 +931,7 @@ window.ScheduleModule = (function () {
     const monthAdj = (window.SheetsSync.getOvertimeAdjustments ? window.SheetsSync.getOvertimeAdjustments() : {})[monthKey] || {};
     const pRatesMap = window.SheetsSync.getPharmacistRates ? window.SheetsSync.getPharmacistRates() : {};
 
-    return `
+    let html = `
       <!-- 1. 근무약사 급여 정산표 -->
       <div class="card-section mb-6">
         <div class="section-title-bar">
@@ -975,7 +1011,7 @@ window.ScheduleModule = (function () {
                     </td>
                     <td style="text-align:right; padding:10px 10px; white-space:nowrap;">
                       ${isDirector ? `
-                        <input type="number" class="form-control form-control-sm font-bold text-success text-end" style="width:100px; border-radius:8px; border:1.5px solid #86efac; padding:4px 6px; font-size:13px; font-family:'Outfit', sans-serif; display:inline-block;" value="${mealAlw}" onchange="ScheduleModule.updateAdjustment('${p.id}', 'mealAllowance', this.value)" title="약국장 직접 입력: 비과세 식대">
+                        <input type="text" class="form-control form-control-sm font-bold text-success text-end" style="width:100px; border-radius:8px; border:1.5px solid #86efac; padding:4px 6px; font-size:13px; font-family:'Outfit', sans-serif; display:inline-block;" value="${mealAlw.toLocaleString()}" placeholder="0" oninput="let v = this.value.replace(/[^0-9-]/g, ''); this.value = v ? Number(v).toLocaleString() : '';" onchange="ScheduleModule.updateAdjustment('${p.id}', 'mealAllowance', this.value)" title="약국장 직접 입력: 비과세 식대">
                       ` : `
                         <strong style="color:#166534; font-size:13.5px; font-family:'Outfit', sans-serif;">${mealAlw.toLocaleString()}</strong>
                         <span style="font-size:12px; color:#166534; font-weight:600; margin-left:1px;">원</span>
@@ -983,7 +1019,7 @@ window.ScheduleModule = (function () {
                     </td>
                     <td style="text-align:right; padding:10px 10px; white-space:nowrap;">
                       ${isDirector ? `
-                        <input type="number" class="form-control form-control-sm font-bold text-primary text-end" style="width:90px; border-radius:8px; border:1.5px solid #93c5fd; padding:4px 6px; font-size:13px; font-family:'Outfit', sans-serif; display:inline-block;" value="${overtimePay}" placeholder="0" onchange="ScheduleModule.updateAdjustment('${p.id}', 'overtimePay', this.value)" title="약국장 직접 입력: 추가 수당">
+                        <input type="text" class="form-control form-control-sm font-bold text-primary text-end" style="width:90px; border-radius:8px; border:1.5px solid #93c5fd; padding:4px 6px; font-size:13px; font-family:'Outfit', sans-serif; display:inline-block;" value="${overtimePay === 0 ? '0' : overtimePay.toLocaleString()}" placeholder="0" oninput="let v = this.value.replace(/[^0-9-]/g, ''); this.value = v ? Number(v).toLocaleString() : '';" onchange="ScheduleModule.updateAdjustment('${p.id}', 'overtimePay', this.value)" title="약국장 직접 입력: 추가 수당">
                       ` : `
                         <span style="font-weight:700; color:${overtimePay > 0 ? '#15803d' : '#94a3b8'}; font-size:13.5px; font-family:'Outfit', sans-serif;">${overtimePay > 0 ? '+' + overtimePay.toLocaleString() : '0'}</span>
                         <span style="font-size:12px; color:${overtimePay > 0 ? '#15803d' : '#94a3b8'}; font-weight:600; margin-left:1px;">원</span>
@@ -991,7 +1027,7 @@ window.ScheduleModule = (function () {
                     </td>
                     <td style="text-align:right; padding:10px 10px; white-space:nowrap;">
                       ${isDirector ? `
-                        <input type="number" class="form-control form-control-sm font-bold text-danger text-end" style="width:90px; border-radius:8px; border:1.5px solid #fca5a5; padding:4px 6px; font-size:13px; font-family:'Outfit', sans-serif; display:inline-block;" value="${deductionPay}" placeholder="0" onchange="ScheduleModule.updateAdjustment('${p.id}', 'deductionPay', this.value)" title="약국장 직접 입력: 공제 삭감">
+                        <input type="text" class="form-control form-control-sm font-bold text-danger text-end" style="width:90px; border-radius:8px; border:1.5px solid #fca5a5; padding:4px 6px; font-size:13px; font-family:'Outfit', sans-serif; display:inline-block;" value="${deductionPay === 0 ? '0' : deductionPay.toLocaleString()}" placeholder="0" oninput="let v = this.value.replace(/[^0-9-]/g, ''); this.value = v ? Number(v).toLocaleString() : '';" onchange="ScheduleModule.updateAdjustment('${p.id}', 'deductionPay', this.value)" title="약국장 직접 입력: 공제 삭감">
                       ` : `
                         <span style="font-weight:700; color:${deductionPay > 0 ? '#dc2626' : '#94a3b8'}; font-size:13.5px; font-family:'Outfit', sans-serif;">${deductionPay > 0 ? '-' + deductionPay.toLocaleString() : '0'}</span>
                         <span style="font-size:12px; color:${deductionPay > 0 ? '#dc2626' : '#94a3b8'}; font-weight:600; margin-left:1px;">원</span>
@@ -1077,7 +1113,7 @@ window.ScheduleModule = (function () {
                     </td>
                     <td style="text-align:right; padding:10px 10px; white-space:nowrap;">
                       ${isDirector ? `
-                        <input type="number" class="form-control form-control-sm font-bold text-success text-end" style="width:100px; border-radius:8px; border:1.5px solid #86efac; padding:4px 6px; font-size:13px; font-family:'Outfit', sans-serif; display:inline-block;" value="${mealAlw}" onchange="ScheduleModule.updateAdjustment('${s.id}', 'mealAllowance', this.value)" title="약국장 직접 입력: 비과세 식대">
+                        <input type="text" class="form-control form-control-sm font-bold text-success text-end" style="width:100px; border-radius:8px; border:1.5px solid #86efac; padding:4px 6px; font-size:13px; font-family:'Outfit', sans-serif; display:inline-block;" value="${mealAlw.toLocaleString()}" placeholder="0" oninput="let v = this.value.replace(/[^0-9-]/g, ''); this.value = v ? Number(v).toLocaleString() : '';" onchange="ScheduleModule.updateAdjustment('${s.id}', 'mealAllowance', this.value)" title="약국장 직접 입력: 비과세 식대">
                       ` : `
                         <strong style="color:#166534; font-size:13.5px; font-family:'Outfit', sans-serif;">${mealAlw.toLocaleString()}</strong>
                         <span style="font-size:12px; color:#166534; font-weight:600; margin-left:1px;">원</span>
@@ -1085,7 +1121,7 @@ window.ScheduleModule = (function () {
                     </td>
                     <td style="text-align:right; padding:10px 10px; white-space:nowrap;">
                       ${isDirector ? `
-                        <input type="number" class="form-control form-control-sm font-bold text-primary text-end" style="width:90px; border-radius:8px; border:1.5px solid #93c5fd; padding:4px 6px; font-size:13px; font-family:'Outfit', sans-serif; display:inline-block;" value="${overtimePay}" placeholder="0" onchange="ScheduleModule.updateAdjustment('${s.id}', 'overtimePay', this.value)" title="약국장 직접 입력: 추가 수당">
+                        <input type="text" class="form-control form-control-sm font-bold text-primary text-end" style="width:90px; border-radius:8px; border:1.5px solid #93c5fd; padding:4px 6px; font-size:13px; font-family:'Outfit', sans-serif; display:inline-block;" value="${overtimePay === 0 ? '0' : overtimePay.toLocaleString()}" placeholder="0" oninput="let v = this.value.replace(/[^0-9-]/g, ''); this.value = v ? Number(v).toLocaleString() : '';" onchange="ScheduleModule.updateAdjustment('${s.id}', 'overtimePay', this.value)" title="약국장 직접 입력: 추가 수당">
                       ` : `
                         <span style="font-weight:700; color:${overtimePay > 0 ? '#15803d' : '#94a3b8'}; font-size:13.5px; font-family:'Outfit', sans-serif;">${overtimePay > 0 ? '+' + overtimePay.toLocaleString() : '0'}</span>
                         <span style="font-size:12px; color:${overtimePay > 0 ? '#15803d' : '#94a3b8'}; font-weight:600; margin-left:1px;">원</span>
@@ -1093,7 +1129,7 @@ window.ScheduleModule = (function () {
                     </td>
                     <td style="text-align:right; padding:10px 10px; white-space:nowrap;">
                       ${isDirector ? `
-                        <input type="number" class="form-control form-control-sm font-bold text-danger text-end" style="width:90px; border-radius:8px; border:1.5px solid #fca5a5; padding:4px 6px; font-size:13px; font-family:'Outfit', sans-serif; display:inline-block;" value="${deductionPay}" placeholder="0" onchange="ScheduleModule.updateAdjustment('${s.id}', 'deductionPay', this.value)" title="약국장 직접 입력: 공제 삭감">
+                        <input type="text" class="form-control form-control-sm font-bold text-danger text-end" style="width:90px; border-radius:8px; border:1.5px solid #fca5a5; padding:4px 6px; font-size:13px; font-family:'Outfit', sans-serif; display:inline-block;" value="${deductionPay === 0 ? '0' : deductionPay.toLocaleString()}" placeholder="0" oninput="let v = this.value.replace(/[^0-9-]/g, ''); this.value = v ? Number(v).toLocaleString() : '';" onchange="ScheduleModule.updateAdjustment('${s.id}', 'deductionPay', this.value)" title="약국장 직접 입력: 공제 삭감">
                       ` : `
                         <span style="font-weight:700; color:${deductionPay > 0 ? '#dc2626' : '#94a3b8'}; font-size:13.5px; font-family:'Outfit', sans-serif;">${deductionPay > 0 ? '-' + deductionPay.toLocaleString() : '0'}</span>
                         <span style="font-size:12px; color:${deductionPay > 0 ? '#dc2626' : '#94a3b8'}; font-weight:600; margin-left:1px;">원</span>
@@ -1131,6 +1167,7 @@ window.ScheduleModule = (function () {
     return html;
   }
 
+  // 1. 공제/수당 실시간 저장 함수 (콤마 제거 로직 추가)
   function updateAdjustment(empId, field, val) {
     const currUser = window.SheetsSync.getCurrentUser();
     if (!currUser || currUser.role !== '약국장') {
@@ -1148,11 +1185,13 @@ window.ScheduleModule = (function () {
       allAdjustments[monthKey][empId] = { mealAllowance: 200000, overtimePay: 0, deductionPay: 0 };
     }
 
-    allAdjustments[monthKey][empId][field] = Number(val) || 0;
+    // 💡 콤마(,)가 포함된 텍스트가 들어오면 콤마를 제거한 뒤 숫자로 저장합니다.
+    const cleanVal = String(val).replace(/,/g, '');
+    allAdjustments[monthKey][empId][field] = Number(cleanVal) || 0;
+    
     window.SheetsSync.saveOvertimeAdjustments(allAdjustments);
     render('module-content');
   }
-
   function toggleSettlement() {
     showSettlement = !showSettlement;
     render('module-content');
@@ -1531,42 +1570,85 @@ window.ScheduleModule = (function () {
     }
   }
 
-  function getStatusBadgeHtml(status) {
-    if (status === 'APPROVED') {
-      return '<span class="badge badge-success"><i class="fas fa-check-circle"></i> 🟢 약국장 승인 확정</span>';
-    } else if (status === 'SUBMITTED') {
-      return '<span class="badge badge-info"><i class="fas fa-paper-plane"></i> 📤 결재 대기 중</span>';
-    } else {
-      return '<span class="badge badge-warning"><i class="fas fa-edit"></i> ✏️ 팀 자율 작성 중</span>';
-    }
-  }
+ 
+// 1. 개인 자율 스케줄 제출 함수
+  function submitMySchedule() {
+    const currUser = window.SheetsSync.getCurrentUser();
+    if (!currUser) return;
 
-  function submitTeamSchedule(teamType) {
     const data = window.SheetsSync.getData();
     let scheduleStatus = data.scheduleStatus || {};
     const monthKey = currentYear + '-' + String(currentMonth).padStart(2, '0');
-    let statusObj = scheduleStatus[monthKey] || {
-      pharmacistStatus: 'DRAFT',
-      staffStatus: 'DRAFT',
-      directorApproved: false
-    };
-
-    const teamName = teamType === 'pharmacist' ? '근무약사팀' : '일반직원팀';
-    if (teamType === 'pharmacist') {
-      statusObj.pharmacistStatus = 'SUBMITTED';
-      statusObj.pharmacistSubmittedAt = new Date().toLocaleString();
-    } else {
-      statusObj.staffStatus = 'SUBMITTED';
-      statusObj.staffSubmittedAt = new Date().toLocaleString();
-    }
+    
+    let statusObj = scheduleStatus[monthKey] || {};
+    
+    // 내 상태를 '제출 완료(SUBMITTED)'로 변경
+    statusObj[currUser.id] = 'SUBMITTED';
 
     scheduleStatus[monthKey] = statusObj;
     window.SheetsSync.saveData(window.SheetsSync.STORAGE_KEYS.SCHEDULE_STATUS, scheduleStatus);
 
     render('module-content');
-    alert("📤 '" + teamName + "'의 " + currentMonth + "월 자율 근무스케줄이 약국장님께 제출되었습니다.\n약국장 승인 결재 후 최종 확정됩니다.");
+    alert("📤 " + currentMonth + "월 스케줄이 약국장님께 제출되었습니다.\n약국장 최종 조율 및 승인 후 확정됩니다.");
   }
 
+  // 2. 약국장 통합 마스터 승인 함수
+  function approveMasterSchedule() {
+    const data = window.SheetsSync.getData();
+    const employees = data.employees || [];
+    let scheduleStatus = data.scheduleStatus || {};
+    const monthKey = currentYear + '-' + String(currentMonth).padStart(2, '0');
+    
+    let statusObj = scheduleStatus[monthKey] || {};
+
+    // 제출된 모든 직원의 상태를 '확정(APPROVED)'으로 일괄 변경
+    employees.forEach(emp => {
+      if (statusObj[emp.id] === 'SUBMITTED') {
+        statusObj[emp.id] = 'APPROVED';
+      }
+    });
+    
+    statusObj.directorApproved = true;
+
+    scheduleStatus[monthKey] = statusObj;
+    window.SheetsSync.saveData(window.SheetsSync.STORAGE_KEYS.SCHEDULE_STATUS, scheduleStatus);
+    render('module-content');
+    alert('🏆 ' + currentYear + '년 ' + currentMonth + '월 전체 직원 근무 스케줄이 빈틈없이 훌륭하게 최종 확정되었습니다!');
+  }
+
+  // 3. 약국장 개별 스케줄 반려(재수정 요청) 함수
+  function rejectMasterSchedule() {
+    const data = window.SheetsSync.getData();
+    const employees = data.employees || [];
+    
+    // 직원 리스트 텍스트 생성
+    const empListText = employees.map((e, idx) => `[${idx + 1}] ${e.name}`).join(', ');
+    const targetIdx = prompt(`↩️ 누구의 스케줄을 재조율하시겠습니까? 번호를 입력하세요.\n${empListText}`);
+    
+    if (!targetIdx) return;
+    const targetEmp = employees[parseInt(targetIdx) - 1];
+    if (!targetEmp) {
+      alert("올바른 번호를 입력해 주세요.");
+      return;
+    }
+
+    const note = prompt(`'${targetEmp.name}' 님에게 전달할 수정 요청 사유를 기재해 주세요 (예: 15일 인원 부족으로 근무 변경 요망)`);
+    if (note === null) return;
+
+    let scheduleStatus = data.scheduleStatus || {};
+    const monthKey = currentYear + '-' + String(currentMonth).padStart(2, '0');
+    let statusObj = scheduleStatus[monthKey] || {};
+
+    // 해당 직원만 DRAFT로 돌리고 코멘트 남김
+    statusObj[targetEmp.id] = 'DRAFT';
+    statusObj.directorComment = `[${targetEmp.name}님 지정 피드백] ${note}`;
+    statusObj.directorApproved = false;
+
+    scheduleStatus[monthKey] = statusObj;
+    window.SheetsSync.saveData(window.SheetsSync.STORAGE_KEYS.SCHEDULE_STATUS, scheduleStatus);
+    render('module-content');
+    alert(`↩️ ${targetEmp.name} 님의 스케줄이 반려(재조율 요청) 처리되었습니다.`);
+  }
   function renderInlineWorkPanel(currUser, employees) {
     if (!activeInlinePanel) return '';
     if (!currUser) return '';
@@ -1629,18 +1711,23 @@ window.ScheduleModule = (function () {
     html += '      세무 신고 대상이 아닌 일일 알바 직원은 <strong>미포함(세무제외) 상태로 안전하게 자동 유지</strong>됩니다!';
     html += '    </div>';
 
-    html += '    <div class="card p-4 mb-4 text-center" style="background:#f8fafc; border:2px dashed #3b82f6; border-radius:20px; box-shadow:0 4px 15px rgba(0,0,0,0.02);">';
-    html += '      <div class="d-flex flex-column align-items-center justify-content-center gap-2 py-2">';
-    html += '        <div style="width:64px; height:64px; border-radius:50%; background:#eff6ff; color:#2563eb; display:flex; justify-content:center; align-items:center; font-size:30px; margin-bottom:6px;">';
+    html += '    <div class="card p-5 mb-4 text-center" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:24px; box-shadow:0 10px 30px rgba(15,23,42,0.04);">';
+    html += '      <div class="d-flex flex-column align-items-center justify-content-center gap-2">';
+    html += '        <div style="width:72px; height:72px; border-radius:20px; background:linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); color:#2563eb; display:flex; justify-content:center; align-items:center; font-size:32px; margin-bottom:8px; box-shadow:0 8px 16px rgba(37,99,235,0.12);">';
     html += '          <i class="fas fa-file-pdf"></i>';
     html += '        </div>';
-    html += '        <h3 style="font-size:18px; font-weight:800; color:#1e293b; margin:0 0 4px 0;">';
-    html += '          세무사 전달 PDF 통합 파일 선택 (다중 페이지)';
+    html += '        <h3 style="font-size:19px; font-weight:800; color:#0f172a; margin:0;">';
+    html += '          세무사 전달 PDF 통합 파일 업로드';
     html += '        </h3>';
-    html += '        <div class="my-2" style="width:100%; max-width:540px;">';
-    html += '          <input type="file" id="tax-pdf-file-selector" class="form-control form-control-lg font-bold text-center" style="border-radius:14px; border:1.5px solid #93c5fd; background:#ffffff; padding:12px 18px; font-size:14px;" accept=".pdf" onchange="ScheduleModule.processTaxPdfFile(this)">';
+    html += '        <p style="font-size:13.5px; color:#64748b; font-weight:600; margin:0 0 18px 0;">(파일 선택 즉시 직원별 1페이지 사진 자동 추출 및 실수령액 매칭이 진행됩니다)</p>';
+    html += '        <div style="width:100%; max-width:360px;">';
+    // 💡 1. 투박한 기본 file input은 화면에서 숨김 처리 (display:none)
+    html += '          <input type="file" id="tax-pdf-file-selector" accept=".pdf" style="display:none;" onchange="ScheduleModule.processTaxPdfFile(this)">';
+    // 💡 2. input을 대신 클릭해주는 고급스러운 라벨(Label) 버튼 제작
+    html += '          <label for="tax-pdf-file-selector" class="hover-shadow" style="display:flex; justify-content:center; align-items:center; gap:10px; width:100%; background:#1e293b; color:#ffffff; padding:15px 24px; border-radius:14px; font-size:15px; font-weight:700; cursor:pointer; box-shadow:0 6px 16px rgba(15,23,42,0.2); transition:transform 0.2s; margin:0;" onmouseover="this.style.transform=\'scale(1.02)\'" onmouseout="this.style.transform=\'scale(1)\'">';
+    html += '            <i class="fas fa-folder-open"></i> 내 PC에서 PDF 파일 선택하기';
+    html += '          </label>';
     html += '        </div>';
-    html += '        <span style="font-size:13px; color:#64748b; font-weight:600;">(파일 선택 즉시 직원별 1페이지 사진 자동 추출 & 실수령액 매칭)</span>';
     html += '      </div>';
     html += '    </div>';
 
@@ -1714,11 +1801,11 @@ window.ScheduleModule = (function () {
     html += '  <form onsubmit="ScheduleModule.saveDirectorPaystub(event, \'' + emp.id + '\')">';
     html += '    <div class="mb-3">';
     html += '      <label class="form-label font-bold" style="font-size:14px; color:#0f172a;">💰 세무사 확정 세후 실수령액 (원)</label>';
-    html += '      <input type="number" id="ps-net-salary" class="form-control form-control-lg font-bold" style="color:#059669; font-size:18px;" value="' + defaultNetSalary + '" required placeholder="예: 2680500">';
+    html += '      <input type="text" id="ps-net-salary" class="form-control form-control-lg font-bold" style="color:#059669; font-size:18px;" value="' + (defaultNetSalary ? defaultNetSalary.toLocaleString() : '0') + '" required placeholder="예: 2,680,500" oninput="let v = this.value.replace(/[^0-9-]/g, \'\'); this.value = v ? Number(v).toLocaleString() : \'\';">';
     html += '    </div>';
     html += '    <div class="mb-3">';
     html += '      <label class="form-label font-bold" style="font-size:13.5px; color:#0f172a;">🛡️ 4대보험 및 세금 공제 총액 (원)</label>';
-    html += '      <input type="number" id="ps-total-deduction" class="form-control" value="' + defaultDeduction + '" placeholder="예: 341000">';
+    html += '      <input type="text" id="ps-total-deduction" class="form-control" value="' + (defaultDeduction ? defaultDeduction.toLocaleString() : '0') + '" placeholder="예: 341,000" oninput="let v = this.value.replace(/[^0-9-]/g, \'\'); this.value = v ? Number(v).toLocaleString() : \'\';">';
     html += '    </div>';
 
     html += '    <div class="mb-3">';
@@ -1865,57 +1952,7 @@ window.ScheduleModule = (function () {
     render('module-content');
   }
 
-  function approveTeamSchedule(target) {
-    const data = window.SheetsSync.getData();
-    let scheduleStatus = data.scheduleStatus || {};
-    const monthKey = currentYear + '-' + String(currentMonth).padStart(2, '0');
-    let statusObj = scheduleStatus[monthKey] || {
-      pharmacistStatus: 'SUBMITTED',
-      staffStatus: 'SUBMITTED',
-      directorApproved: false
-    };
-
-    if (target === 'pharmacist') {
-      statusObj.pharmacistStatus = 'APPROVED';
-      alert('🟢 약사팀 ' + currentMonth + '월 근무스케줄이 약국장 승인 처리되었습니다.');
-    } else if (target === 'staff') {
-      statusObj.staffStatus = 'APPROVED';
-      alert('🟢 일반직원팀 ' + currentMonth + '월 근무스케줄이 약국장 승인 처리되었습니다.');
-    } else if (target === 'all') {
-      statusObj.pharmacistStatus = 'APPROVED';
-      statusObj.staffStatus = 'APPROVED';
-      statusObj.directorApproved = true;
-      alert('🏆 ' + currentYear + '년 ' + currentMonth + '월 전체 근무스케줄이 약국장에 의해 최종 승인 확정 고지되었습니다!');
-    }
-
-    scheduleStatus[monthKey] = statusObj;
-    window.SheetsSync.saveData(window.SheetsSync.STORAGE_KEYS.SCHEDULE_STATUS, scheduleStatus);
-    render('module-content');
-  }
-
-  function rejectTeamSchedule() {
-    const note = prompt('↩️ 근무스케줄 수정 요청 사유를 기재해 주세요 (예: 토요일 야간 약사 1명 부족, 재조율 요망):');
-    if (note === null) return;
-
-    const data = window.SheetsSync.getData();
-    let scheduleStatus = data.scheduleStatus || {};
-    const monthKey = currentYear + '-' + String(currentMonth).padStart(2, '0');
-    let statusObj = scheduleStatus[monthKey] || {
-      pharmacistStatus: 'SUBMITTED',
-      staffStatus: 'SUBMITTED',
-      directorApproved: false
-    };
-
-    statusObj.pharmacistStatus = 'DRAFT';
-    statusObj.staffStatus = 'DRAFT';
-    statusObj.directorApproved = false;
-    statusObj.directorComment = note;
-
-    scheduleStatus[monthKey] = statusObj;
-    window.SheetsSync.saveData(window.SheetsSync.STORAGE_KEYS.SCHEDULE_STATUS, scheduleStatus);
-    render('module-content');
-    alert("↩️ 스케줄이 반려(수정 요청) 처리되었습니다. 작성 팀원들에게 조율 알림이 전달됩니다.\n사유: " + note);
-  }
+  
 
   function updateStaffOvertimePay(empId, overtimeVal, deductionVal) {
     const monthKey = currentYear + '-' + String(currentMonth).padStart(2, '0');
@@ -1979,14 +2016,17 @@ window.ScheduleModule = (function () {
     }
   }
 
+  // 2. 급여명세서 최종 등록 함수 (콤마 제거 로직 추가)
   function saveDirectorPaystub(e, empId) {
     e.preventDefault();
     const monthKey = currentYear + '-' + String(currentMonth).padStart(2, '0');
     const allPaystubs = window.SheetsSync.getPaystubs ? window.SheetsSync.getPaystubs() : {};
     if (!allPaystubs[monthKey]) allPaystubs[monthKey] = {};
 
-    const netSalary = parseInt(document.getElementById('ps-net-salary').value) || 0;
-    const totalDeduction = parseInt(document.getElementById('ps-total-deduction').value) || 0;
+    // 💡 콤마(,) 제거 후 숫자로 변환
+    const netSalary = parseInt(document.getElementById('ps-net-salary').value.replace(/,/g, '')) || 0;
+    const totalDeduction = parseInt(document.getElementById('ps-total-deduction').value.replace(/,/g, '')) || 0;
+    
     const pdfUrl = document.getElementById('ps-file-url').value.trim();
     const fileData = document.getElementById('ps-file-data').value;
     const fileName = document.getElementById('ps-file-name').value;
@@ -2429,9 +2469,9 @@ window.ScheduleModule = (function () {
     setPresetTime,
     saveCustomShift,
     showPaystubModal,
-    submitTeamSchedule,
-    approveTeamSchedule,
-    rejectTeamSchedule,
+    submitMySchedule,
+    approveMasterSchedule,
+    rejectMasterSchedule,
     exportTaxAccountantReport
   };
 

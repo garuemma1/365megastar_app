@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 3. 연차대장 & 직원 관리 모듈 컨트롤러 (Annual Leave Ledger & Employee Management v5.0)
  * 약국장(문성도) 제외 근무약사 및 일반직원 8인 전용 법정 연차 대장 및 유급휴가 신청 센터
  */
@@ -400,7 +400,9 @@ window.AnnualLeaveModule = (function () {
     const emps = window.SheetsSync.getEmployees() || [];
     const target = emps.find(emp => emp.id === empId) || window.SheetsSync.getCurrentUser();
 
-    const daysCount = type === '연차' ? 1.0 : 0.5;
+   const diffTime = new Date(endDate).getTime() - new Date(startDate).getTime();
+    const diffDays = Math.round(diffTime / (1000 * 3600 * 24)) + 1;
+    const daysCount = type.includes('반차') ? 0.5 : (diffDays > 0 ? diffDays : 1.0);
 
     const data = window.SheetsSync.getData();
     const leaveRequests = data.leaveRequests || [];

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 4. 약국장 결재 모듈 컨트롤러 (Pharmacy Director Approval Hub)
  * 정돈되고 깔끔한 이그제큐티브 대시보드 레이아웃 (스케줄 팀별 승인 및 연차 결재 통합)
  */
@@ -81,53 +81,7 @@ window.ApprovalModule = (function () {
         </div>
       </div>
 
-      <!-- 0. 월간 근무스케줄 팀별 제출안 결재 섹션 -->
-      <div class="card-section mb-6">
-        <div class="section-title-bar mb-2">
-          <h3><i class="far fa-calendar-check text-primary"></i> 2026년 8월 근무스케줄 팀별 제출안 결재 (약사팀 / 일반직원팀)</h3>
-        </div>
-        <p class="text-xs text-muted mb-4">약사들과 일반직원들이 각각 자율 조율하여 제출한 월간 근무스케줄을 약국장이 최종 검토 및 1클릭 승인합니다.</p>
-        
-        <div class="team-approval-grid">
-          <div class="ta-card ta-pharm">
-            <div class="ta-header">
-              <span class="ta-title"><i class="fas fa-user-md text-primary"></i> <strong>👨‍⚕️ 근무약사팀 제출안</strong></span>
-              <span class="badge ${((data.scheduleStatus || {})['2026-08'] || {}).pharmacistStatus === 'APPROVED' ? 'badge-success' : 'badge-info'}">
-                ${((data.scheduleStatus || {})['2026-08'] || {}).pharmacistStatus === 'APPROVED' ? '🟢 승인 완료' : '📤 결재 대기'}
-              </span>
-            </div>
-            <p class="ta-desc">약사 4인 (권명주, 양윤지, 김동완, 유호종) 8월 자율 교대 스케줄 제출</p>
-            <button type="button" class="btn btn-sm btn-primary w-100 font-bold" onclick="ApprovalModule.approveScheduleTeam('pharmacist')">
-              <i class="fas fa-check"></i> 약사팀 8월 스케줄 승인
-            </button>
-          </div>
-
-          <div class="ta-card ta-staff">
-            <div class="ta-header">
-              <span class="ta-title"><i class="fas fa-users text-info"></i> <strong>👨‍💼 일반직원팀 제출안</strong></span>
-              <span class="badge ${((data.scheduleStatus || {})['2026-08'] || {}).staffStatus === 'APPROVED' ? 'badge-success' : 'badge-info'}">
-                ${((data.scheduleStatus || {})['2026-08'] || {}).staffStatus === 'APPROVED' ? '🟢 승인 완료' : '📤 결재 대기'}
-              </span>
-            </div>
-            <p class="ta-desc">일반직원 4인 (이승학, 김제희, 윤세라, 김배영) 8월 자율 교대 스케줄 제출</p>
-            <button type="button" class="btn btn-sm btn-info w-100 font-bold" onclick="ApprovalModule.approveScheduleTeam('staff')">
-              <i class="fas fa-check"></i> 일반직원팀 8월 스케줄 승인
-            </button>
-          </div>
-
-          <div class="ta-card ta-total">
-            <div class="ta-header">
-              <span class="ta-title"><i class="fas fa-trophy text-warning"></i> <strong>🏆 8월 전체 스케줄 확정</strong></span>
-              <span class="badge badge-success">최종 공지</span>
-            </div>
-            <p class="ta-desc">약사팀 & 일반직원팀 제출안 통합 검토 후 전체 확정 고지</p>
-            <button type="button" class="btn btn-sm btn-success w-100 font-bold" onclick="ApprovalModule.approveScheduleTeam('all')">
-              <i class="fas fa-check-circle"></i> 8월 전체 스케줄 최종 승인 & 확정 공지
-            </button>
-          </div>
-        </div>
-      </div>
-
+    
       <!-- 1. 결재 대기 연차 신청 목록 -->
       <div class="card-section mb-6">
         <div class="section-title-bar flex justify-between items-center flex-wrap-gap">
@@ -389,34 +343,7 @@ window.ApprovalModule = (function () {
     alert(`${idsToDelete.length}건의 항목이 삭제되었습니다.`);
   }
 
-  function approveScheduleTeam(target) {
-    const data = window.SheetsSync.getData();
-    let scheduleStatus = data.scheduleStatus || {};
-    const monthKey = '2026-08';
-    let statusObj = scheduleStatus[monthKey] || {
-      pharmacistStatus: 'SUBMITTED',
-      staffStatus: 'SUBMITTED',
-      directorApproved: false
-    };
-
-    if (target === 'pharmacist') {
-      statusObj.pharmacistStatus = 'APPROVED';
-      alert('🟢 약사팀 8월 근무스케줄이 약국장 승인 처리되었습니다.');
-    } else if (target === 'staff') {
-      statusObj.staffStatus = 'APPROVED';
-      alert('🟢 일반직원팀 8월 근무스케줄이 약국장 승인 처리되었습니다.');
-    } else if (target === 'all') {
-      statusObj.pharmacistStatus = 'APPROVED';
-      statusObj.staffStatus = 'APPROVED';
-      statusObj.directorApproved = true;
-      alert('🏆 2026년 8월 전체 근무스케줄이 약국장에 의해 최종 승인 확정되었습니다!');
-    }
-
-    scheduleStatus[monthKey] = statusObj;
-    window.SheetsSync.saveData(window.SheetsSync.STORAGE_KEYS.SCHEDULE_STATUS, scheduleStatus);
-    render('module-content');
-  }
-
+  
   return {
     render,
     verifyPassword,
@@ -427,6 +354,5 @@ window.ApprovalModule = (function () {
     rejectSingle,
     bulkApprove,
     bulkDelete,
-    approveScheduleTeam
   };
 })();
