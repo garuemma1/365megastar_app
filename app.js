@@ -103,8 +103,7 @@ function setupEventListeners() {
     }
   }
 
-
-  function renderSidebarNavigation() {
+function renderSidebarNavigation() {
     const nav = document.querySelector('.drawer-menu');
     if (!nav) return;
 
@@ -192,7 +191,18 @@ function setupEventListeners() {
     }
 
     nav.innerHTML = html;
+
+    // ★ 추가: 좌측 하단 구글 시트 연동 버튼 약국장 전용 보안 처리 ★
+    const footerBtn = document.querySelector('.drawer-footer');
+    if (footerBtn) {
+      if (isDirector) {
+        footerBtn.style.display = 'block'; // 약국장으로 로그인하면 보임
+      } else {
+        footerBtn.style.display = 'none';  // 로그아웃 상태이거나 일반 직원이면 흔적도 없이 숨김
+      }
+    }
   }
+ 
 
   function renderUserHeader() {
     const badge = document.getElementById('user-profile-badge');
