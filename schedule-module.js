@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 2. 월간 근무 스케줄 모듈 컨트롤러 (Monthly Roster & Labor Contract Payroll Engine)
  * 근무자 / OFF(휴무자) 명확 구분 체크 기능 및 근무자별 자율 출퇴근 시간 정밀 설정
  */
@@ -107,9 +107,7 @@ window.ScheduleModule = (function () {
             <button type="button" class="filter-btn ${!showOffStaff ? 'active' : ''}" onclick="ScheduleModule.setShowOffStaff(false)" title="실제 근무자만 표시">
               <i class="fas fa-user-check text-success"></i> 🟢 근무자만 보기
             </button>
-            <button type="button" class="filter-btn ${showOffStaff ? 'active' : ''}" onclick="ScheduleModule.setShowOffStaff(true)" title="휴무(OFF) 직원 포함 전체 표시">
-              <i class="fas fa-eye text-muted"></i> 👁️ OFF(휴무) 포함 전체
-            </button>
+            
           </div>
         </div>
       </div>
@@ -1341,7 +1339,7 @@ window.ScheduleModule = (function () {
   }
 
   function sendPaystubEmail(empEmail, name, role, netHours, rate, baseSalary, holidayAllowance, totalSalary, mealAllowance, type) {
-    const targetEmail = empEmail || (name === '문성도' ? 'director@365megastar.com' : 'kwon@365megastar.com');
+    const targetEmail = empEmail || (name === '문성도' ? 'director@shinsegae.com' : 'kwon@shinsegae.com');
     const subject = encodeURIComponent('[365메가스타약국] ' + currentYear + '년 ' + currentMonth + '월 ' + name + '님 월 급여명세서 전달');
     let bodyText = '안녕하세요, ' + name + ' ' + role + '님.\n365메가스타약국 ' + currentYear + '년 ' + currentMonth + '월 급여명세서 전달해 드립니다.\n\n';
     bodyText += '성명: ' + name + ' (' + role + ')\n';

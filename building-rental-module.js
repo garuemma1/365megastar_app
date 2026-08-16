@@ -1,7 +1,5 @@
 ﻿/**
- * 11. 삼남매아빠 부동산 임대업 대시보드 모듈 컨트롤러 (Building Rental Asset Engine v3.2)
- * 약국장 전용: 기여도 포트폴리오 좌우 나란히 배치 완벽 고정, 달력 네비게이션 위치 정상화,
- * 탭별 독립 컨트롤러(월별 탭 vs 연도별 선택 필터) 장착 및 쉼표 자동완성 완벽 유지
+ * 11. 삼남매아빠 부동산 임대업 대시보드 모듈 컨트롤러 (Building Rental Asset Engine v3.2 - 풀너비 반응형 완벽 고정)
  */
 window.BuildingRentalModule = (function () {
 
@@ -12,10 +10,8 @@ window.BuildingRentalModule = (function () {
   let monthlySettlementData = [];
   let rentalChartInstances = {};
 
-  // 금액 포맷팅 헬퍼
   const fmt = num => new Intl.NumberFormat('ko-KR').format(Math.round(num || 0));
 
-  // [입력용] 쉼표 자동 추가
   function formatInputCurrency(inputElem, idx, shareRate) {
     let value = inputElem.value.replace(/[^0-9]/g, '');
     if (value === '') inputElem.value = '0';
@@ -25,13 +21,11 @@ window.BuildingRentalModule = (function () {
     }
   }
 
-  // [저장용] 쉼표 제거 숫자 반환
   function getRawNumber(valueStr) {
     if (!valueStr) return 0;
     return parseInt(valueStr.toString().replace(/,/g, ''), 10) || 0;
   }
 
-  // 실시간 순수익 계산
   function calcRealTimeProfit(idx, shareRate) {
     const rInput = document.getElementById(`rent_input_${idx}`);
     const iInput = document.getElementById(`int_input_${idx}`);
@@ -47,7 +41,6 @@ window.BuildingRentalModule = (function () {
     }
   }
 
-  // 월 이동 네비게이션
   function moveMonth(offset) {
     let [year, month] = settlementMonth.split('-').map(Number);
     let date = new Date(year, month - 1 + offset, 1);
@@ -140,223 +133,230 @@ window.BuildingRentalModule = (function () {
     };
 
     // ==========================================
-    // HTML 렌더링 시작
+    // HTML 렌더링 시작 (직원할인대장 스타일 100% 풀너비 적용)
     // ==========================================
     let html = `
-      <div class="module-header d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
-        <div>
-          <h2 style="font-size:24px; font-weight:800; color:#0f172a; margin:0; letter-spacing:-0.5px;">
-            <i class="fas fa-building text-success me-2"></i> 삼남매아빠 부동산 임대업 Asset ERP
-          </h2>
-          <p class="subtitle" style="font-size:14px; color:#64748b; margin:4px 0 0 0;">연/월별 수익 흐름과 상가 자산을 한눈에 통제하는 대표님 전용 종합 대시보드</p>
+      <div style="width: 100%; margin: 0; padding: 0 10px; box-sizing: border-box;">
+        <div class="module-header d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+          <div>
+            <h2 style="font-size:24px; font-weight:800; color:#0f172a; margin:0; letter-spacing:-0.5px;">
+              <i class="fas fa-building text-success me-2"></i> 삼남매아빠 부동산 임대업 Asset ERP
+            </h2>
+            <p class="subtitle" style="font-size:14px; color:#64748b; margin:4px 0 0 0;">연/월별 수익 흐름과 상가 자산을 한눈에 통제하는 대표님 전용 종합 대시보드</p>
+          </div>
+          <div class="d-flex align-items-center gap-2">
+            <button type="button" class="btn btn-success font-bold shadow-sm" onclick="BuildingRentalModule.openAddModal()" style="border-radius:12px; padding:10px 18px; font-size:14px;">
+              <i class="fas fa-plus-circle me-1"></i> 신규 계약 마스터 등록
+            </button>
+          </div>
         </div>
-        <div class="d-flex align-items-center gap-2">
-          <button type="button" class="btn btn-success font-bold shadow-sm" onclick="BuildingRentalModule.openAddModal()" style="border-radius:12px; padding:10px 18px; font-size:14px;">
-            <i class="fas fa-plus-circle me-1"></i> 신규 계약 마스터 등록
-          </button>
-        </div>
-      </div>
 
-      <!-- 📊 미니 요약 카드 -->
-      <div class="mb-4" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:16px;">
-        <div class="p-4" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:18px;">
-          <div style="font-size:13px; font-weight:700; color:#64748b; margin-bottom:8px;">[${settlementMonth}] 예상 총 월세 (마스터 기준)</div>
-          <div style="font-size:24px; font-weight:800; color:#0f172a;">${fmt(totalTargetRent)} <span style="font-size:14px; font-weight:600; color:#94a3b8;">원</span></div>
+        <!-- 📊 미니 요약 카드 -->
+        <div class="mb-4" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:16px;">
+          <div class="p-4" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:18px;">
+            <div style="font-size:13px; font-weight:700; color:#64748b; margin-bottom:8px;">[${settlementMonth}] 예상 총 월세 (마스터 기준)</div>
+            <div style="font-size:24px; font-weight:800; color:#0f172a;">${fmt(totalTargetRent)} <span style="font-size:14px; font-weight:600; color:#94a3b8;">원</span></div>
+          </div>
+          <div class="p-4" style="background:linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border:1px solid #bfdbfe; border-radius:18px;">
+            <div style="font-size:13px; font-weight:800; color:#1e40af; margin-bottom:8px;">★ [${settlementMonth}] 실제 수납액 (정산 기준)</div>
+            <div style="font-size:24px; font-weight:800; color:#1d4ed8;">${fmt(actualTotalRent)} <span style="font-size:14px; font-weight:600; color:#3b82f6;">원</span></div>
+          </div>
+          <div class="p-4" style="background:linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border:1px solid #bbf7d0; border-radius:18px;">
+            <div style="font-size:13px; font-weight:800; color:#166534; margin-bottom:8px;">★ [${currentYearStr}년] 누적 내 지분 순수익</div>
+            <div style="font-size:24px; font-weight:800; color:#15803d;">${fmt(ytdMyNetProfit)} <span style="font-size:14px; font-weight:600; color:#22c55e;">원 (올해)</span></div>
+          </div>
         </div>
-        <div class="p-4" style="background:linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border:1px solid #bfdbfe; border-radius:18px;">
-          <div style="font-size:13px; font-weight:800; color:#1e40af; margin-bottom:8px;">★ [${settlementMonth}] 실제 수납액 (정산 기준)</div>
-          <div style="font-size:24px; font-weight:800; color:#1d4ed8;">${fmt(actualTotalRent)} <span style="font-size:14px; font-weight:600; color:#3b82f6;">원</span></div>
-        </div>
-        <div class="p-4" style="background:linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border:1px solid #bbf7d0; border-radius:18px;">
-          <div style="font-size:13px; font-weight:800; color:#166534; margin-bottom:8px;">★ [${currentYearStr}년] 누적 내 지분 순수익</div>
-          <div style="font-size:24px; font-weight:800; color:#15803d;">${fmt(ytdMyNetProfit)} <span style="font-size:14px; font-weight:600; color:#22c55e;">원 (올해)</span></div>
-        </div>
-      </div>
 
-      <!-- 📈 상단 밸런스 차트 구역 -->
-      <div class="row g-3 mb-5">
-        <!-- 좌측: 연간 Bar 차트 -->
-        <div class="col-lg-6">
-          <div class="card h-100 shadow-sm" style="border-radius:20px; border:1px solid #cbd5e1; overflow:hidden;">
-            <div class="card-header" style="background:#ffffff; border-bottom:1px solid #f1f5f9; padding:16px 20px;">
-              <h4 style="font-size:15px; font-weight:800; color:#0f172a; margin:0;"><i class="fas fa-chart-bar text-primary me-2"></i>${currentYearStr}년 월별 내 지분 순수익 흐름</h4>
+        <!-- 📈 상단 밸런스 차트 구역 -->
+        <div class="row mb-4">
+          <div class="col-12">
+            <div class="card shadow-sm" style="border-radius:20px; border:1px solid #cbd5e1; overflow:hidden;">
+              <div class="card-header" style="background:#ffffff; border-bottom:1px solid #f1f5f9; padding:16px 20px;">
+                <h4 style="font-size:15px; font-weight:800; color:#0f172a; margin:0;"><i class="fas fa-chart-bar text-primary me-2"></i>수익 흐름 비교 분석 (좌: ${currentYearStr}년 월별 흐름 / 우: 연도별 총합 비교)</h4>
+              </div>
+              <div class="card-body p-3" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+                
+                <div style="flex:1; min-width:280px; display:flex; flex-direction:column; align-items:center; justify-content:center; border-right:1px dashed #cbd5e1; padding-right:8px;">
+                  <span style="font-size:12px; font-weight:800; color:#2563eb; margin-bottom:6px; white-space:nowrap;">[ ${currentYearStr}년 ] 월별 내 지분 순수익 흐름</span>
+                  <div style="position:relative; height:220px; width:100%;"><canvas id="yearlyTrendCanvas"></canvas></div>
+                </div>
+
+                <div style="flex:1; min-width:280px; display:flex; flex-direction:column; align-items:center; justify-content:center; padding-left:8px;">
+                  <span style="font-size:12px; font-weight:800; color:#059669; margin-bottom:6px; white-space:nowrap;">[ 연도별 ] 내 지분 순수익 흐름 (총합 비교)</span>
+                  <div style="position:relative; height:220px; width:100%;"><canvas id="yearlyAggregateCanvas"></canvas></div>
+                </div>
+
+              </div>
             </div>
-            <div style="position:relative; height:240px; width:100%; padding:16px;"><canvas id="yearlyTrendCanvas"></canvas></div>
           </div>
         </div>
         
-      <!-- 우측: 도넛 차트 2개를 flex 레이아웃으로 무조건 좌우 나란히 배치 -->
-        <div class="col-lg-6">
-          <div class="card h-100 shadow-sm" style="border-radius:20px; border:1px solid #cbd5e1; overflow:hidden;">
-            <div class="card-header" style="background:#ffffff; border-bottom:1px solid #f1f5f9; padding:16px 20px;">
-              <h4 style="font-size:15px; font-weight:800; color:#0f172a; margin:0;"><i class="fas fa-chart-pie text-success me-2"></i>수익 기여도 포트폴리오 (좌: 이번달 / 우: 올해누적)</h4>
-            </div>
-            <div class="card-body p-3" style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
-              
-              <!-- 이번달 도넛 (좌측) -->
-              <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; border-right:1px dashed #cbd5e1; padding-right:8px;">
-                <span style="font-size:12px; font-weight:800; color:#15803d; margin-bottom:6px; white-space:nowrap;">[ ${settlementMonth} ] 이번달</span>
-                <div style="position:relative; height:180px; width:100%;"><canvas id="monthlyDonutCanvas"></canvas></div>
+        <!-- 도넛 차트 영역 -->
+        <div class="row mb-4">
+          <div class="col-12">
+            <div class="card shadow-sm" style="border-radius:20px; border:1px solid #cbd5e1; overflow:hidden;">
+              <div class="card-header" style="background:#ffffff; border-bottom:1px solid #f1f5f9; padding:16px 20px;">
+                <h4 style="font-size:15px; font-weight:800; color:#0f172a; margin:0;"><i class="fas fa-chart-pie text-success me-2"></i>수익 기여도 포트폴리오 (좌: 이번달 / 우: 올해누적)</h4>
               </div>
-              
-              <!-- 연간 도넛 (우측) -->
-              <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding-left:8px;">
-                <span style="font-size:12px; font-weight:800; color:#b45309; margin-bottom:6px; white-space:nowrap;">[ ${currentYearStr}년 ] 올해 누적</span>
-                <div style="position:relative; height:180px; width:100%;"><canvas id="yearlyDonutCanvas"></canvas></div>
-              </div>
+              <div class="card-body p-3" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+                
+                <div style="flex:1; min-width:280px; display:flex; flex-direction:column; align-items:center; justify-content:center; border-right:1px dashed #cbd5e1; padding-right:8px;">
+                  <span style="font-size:12px; font-weight:800; color:#15803d; margin-bottom:6px; white-space:nowrap;">[ ${settlementMonth} ] 이번달</span>
+                  <div style="position:relative; height:180px; width:100%;"><canvas id="monthlyDonutCanvas"></canvas></div>
+                </div>
+                
+                <div style="flex:1; min-width:280px; display:flex; flex-direction:column; align-items:center; justify-content:center; padding-left:8px;">
+                  <span style="font-size:12px; font-weight:800; color:#b45309; margin-bottom:6px; white-space:nowrap;">[ ${currentYearStr}년 ] 올해 누적</span>
+                  <div style="position:relative; height:180px; width:100%;"><canvas id="yearlyDonutCanvas"></canvas></div>
+                </div>
 
+              </div>
             </div>
           </div>
-        </div> 
-      </div>
+        </div>
 
-      <!-- 🗂️ 장부 이원화 탭 -->
-      <div class="d-flex gap-2 border-bottom pb-3 mb-4">
-        <button type="button" class="btn ${activeSubTab === 'monthly' ? 'btn-primary font-bold' : 'btn-outline-secondary font-bold'}" onclick="BuildingRentalModule.setSubTab('monthly')" style="border-radius:12px; padding:10px 24px; font-size:15px;">
-          <i class="fas fa-calendar-check me-1"></i> 1. 월별 상세 정산 장부
-        </button>
-        <button type="button" class="btn ${activeSubTab === 'yearly' ? 'btn-success font-bold' : 'btn-outline-secondary font-bold'}" onclick="BuildingRentalModule.setSubTab('yearly')" style="border-radius:12px; padding:10px 24px; font-size:15px;">
-          <i class="fas fa-coins me-1"></i> 2. 연도별 누적 수익 대장
-        </button>
-      </div>
+        <!-- 🗂️ 장부 이원화 탭 -->
+        <div class="d-flex gap-2 border-bottom pb-3 mb-4">
+          <button type="button" class="btn ${activeSubTab === 'monthly' ? 'btn-primary font-bold' : 'btn-outline-secondary font-bold'}" onclick="BuildingRentalModule.setSubTab('monthly')" style="border-radius:12px; padding:10px 24px; font-size:15px;">
+            <i class="fas fa-calendar-check me-1"></i> 1. 월별 상세 정산 장부
+          </button>
+          <button type="button" class="btn ${activeSubTab === 'yearly' ? 'btn-success font-bold' : 'btn-outline-secondary font-bold'}" onclick="BuildingRentalModule.setSubTab('yearly')" style="border-radius:12px; padding:10px 24px; font-size:15px;">
+            <i class="fas fa-coins me-1"></i> 2. 연도별 누적 수익 대장
+          </button>
+        </div>
     `;
 
     // =========================================================
-    // 📅 [탭 1] 월별 상세 정산 장부 (여기에만 월 선택 네비게이션 배치)
+    // 📅 [탭 1] 월별 상세 정산 장부 (직원할인대장 스타일 100% 풀너비 적용)
     // =========================================================
     if (activeSubTab === 'monthly') {
       let sumDeposit = 0, sumRent = 0, sumInterest = 0, sumNet = 0;
 
       html += `
-<!-- 📅 [최종 완성형] 깔끔하고 정돈된 월 이동 네비게이션 바 -->
-      <div class="card mb-4 shadow-sm" style="border-radius:16px; border:1px solid #cbd5e1; background:#ffffff;">
-        <div class="card-body p-3" style="display:flex; justify-content:between; align-items:center; flex-wrap:wrap; gap:12px;">
-          
-          <div style="display:flex; align-items:center; gap:10px;">
-            <div style="width:36px; height:36px; border-radius:10px; background:#eff6ff; color:#2563eb; display:flex; justify-content:center; align-items:center; font-size:15px;">
-              <i class="fas fa-calendar-alt"></i>
-            </div>
-            <div>
-              <div style="font-size:11px; font-weight:700; color:#64748b; text-transform:uppercase;">조회 기준 월</div>
-              <div style="font-size:19px; font-weight:800; color:#0f172a; font-family:'Outfit', sans-serif;">
-                ${settlementMonth.split('-')[0]}년 ${settlementMonth.split('-')[1]}월
+          <div class="card mb-4 shadow-sm" style="border-radius:16px; border:1px solid #cbd5e1; background:#ffffff; width: 100%;">
+            <div class="card-body p-3" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+              <div style="display:flex; align-items:center; gap:10px;">
+                <div style="width:36px; height:36px; border-radius:10px; background:#eff6ff; color:#2563eb; display:flex; justify-content:center; align-items:center; font-size:15px;">
+                  <i class="fas fa-calendar-alt"></i>
+                </div>
+                <div>
+                  <div style="font-size:11px; font-weight:700; color:#64748b; text-transform:uppercase;">조회 기준 월</div>
+                  <div style="font-size:19px; font-weight:800; color:#0f172a; font-family:'Outfit', sans-serif;">
+                    ${settlementMonth.split('-')[0]}년 ${settlementMonth.split('-')[1]}월
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-
-          <div style="display:flex; align-items:center; gap:6px;">
-            <button type="button" class="btn btn-outline-secondary font-bold shadow-sm" onclick="BuildingRentalModule.moveMonth(-1)" style="border-radius:8px; padding:6px 14px; font-size:12.5px; background:#f8fafc;">
-              <i class="fas fa-chevron-left me-1"></i> 이전 달
-            </button>
-            <button type="button" class="btn btn-primary font-bold shadow-sm" onclick="BuildingRentalModule.moveMonth(1)" style="border-radius:8px; padding:6px 14px; font-size:12.5px;">
-              다음 달 <i class="fas fa-chevron-right ms-1"></i>
-            </button>
-          </div>
-
-        </div>
-      </div>
-        <div class="card mb-5 shadow-sm" style="border-radius:20px; border:2px solid #bfdbfe; overflow:hidden;">
-          <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-3" style="background:#eff6ff; padding:16px 24px; border-bottom:1px solid #bfdbfe;">
-            <h3 style="font-size:16px; font-weight:800; margin:0; color:#1e40af;"><i class="fas fa-list-alt me-2"></i> ${settlementMonth} 상세 정산 내역</h3>
-            <div class="form-check form-switch" style="display:flex; align-items:center; gap:8px; margin:0;">
-              <input class="form-check-input" type="checkbox" id="bulkEditSwitch" style="width:44px; height:24px; cursor:pointer;" 
-                     ${isBulkEditMode ? 'checked' : ''} onchange="BuildingRentalModule.toggleBulkEditMode(this.checked)">
-              <label class="form-check-label font-bold" for="bulkEditSwitch" style="color:${isBulkEditMode ? '#dc2626' : '#64748b'}; cursor:pointer; font-size:14px; margin-top:2px;">
-                ${isBulkEditMode ? '⚡ 일괄 수정 모드 켜짐' : '일괄 수정 켜기'}
-              </label>
-            </div>
-          </div>
-
-          <div class="card-body p-0">
-            <div class="table-responsive" style="-webkit-overflow-scrolling:touch;">
-              <table class="table align-middle mb-0" style="font-size:13.5px; min-width:1100px;">
-                <thead style="background:#ffffff; color:#475569; border-bottom:2px solid #cbd5e1;">
-                  <tr>
-                    <th style="padding:14px 20px; font-weight:800; width:15%;">상호 / 호실</th>
-                    <th style="padding:14px 10px; font-weight:800; width:8%;">지분율</th>
-                    <th style="text-align:right; padding:14px 10px; font-weight:800; color:#0f172a; width:14%;">보증금</th>
-                    <th style="text-align:right; padding:14px 10px; font-weight:800; color:#1d4ed8; width:14%;">월세 수납</th>
-                    <th style="text-align:right; padding:14px 10px; font-weight:800; color:#dc2626; width:14%;">대출 이자</th>
-                    <th style="text-align:right; padding:14px 16px; font-weight:800; background:#ecfdf5; color:#065f46; width:15%;">★ 내지분 순수익</th>
-                    <th style="text-align:center; padding:14px 10px; font-weight:800; width:10%;">만료 D-Day</th>
-                    <th style="text-align:center; padding:14px 10px; font-weight:800; width:10%;">관리</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${monthlySettlementData.map((rec, idx) => {
-                    const dday = calculateDDay(rec.endDate);
-                    const net = rec.actualRent - rec.actualInterest;
-                    const myNet = Math.round(net * (rec.shareRate / 100));
-                    
-                    sumDeposit += rec.actualDeposit;
-                    sumRent += rec.actualRent;
-                    sumInterest += rec.actualInterest;
-                    sumNet += myNet;
-
-                    return `
-                      <tr style="border-bottom:1px solid #f1f5f9; background:${isBulkEditMode ? '#fffbfa' : '#ffffff'}; transition:background 0.2s;">
-                        <td style="padding:14px 20px;">
-                          <div style="font-size:14.5px; font-weight:800; color:#0f172a;">${rec.buildingName}</div>
-                          <div style="font-size:12px; color:#64748b; margin-top:2px;">${rec.unit}</div>
-                        </td>
-                        <td style="padding:14px 10px;">
-                          <span style="display:inline-block; background:${rec.shareRate===100?'#dcfce7':'#dbeafe'}; color:${rec.shareRate===100?'#166534':'#1e40af'}; font-size:11px; font-weight:800; padding:4px 8px; border-radius:6px;">${rec.ownerLabel}</span>
-                        </td>
-                        <td style="text-align:right; padding:14px 10px;">
-                          ${isBulkEditMode ? `<input type="text" class="form-control text-end font-bold" style="border-radius:8px;" id="dep_input_${idx}" value="${fmt(rec.actualDeposit)}" oninput="BuildingRentalModule.formatInputCurrency(this, ${idx}, ${rec.shareRate})">` : `<strong>${fmt(rec.actualDeposit)}</strong>`}
-                        </td>
-                        <td style="text-align:right; padding:14px 10px;">
-                          ${isBulkEditMode ? `<input type="text" class="form-control text-end font-bold text-primary" style="border-color:#93c5fd; border-radius:8px;" id="rent_input_${idx}" value="${fmt(rec.actualRent)}" oninput="BuildingRentalModule.formatInputCurrency(this, ${idx}, ${rec.shareRate})">` : `<strong style="color:#1d4ed8;">${fmt(rec.actualRent)}</strong>`}
-                        </td>
-                        <td style="text-align:right; padding:14px 10px;">
-                          ${isBulkEditMode ? `<input type="text" class="form-control text-end font-bold text-danger" style="border-color:#fca5a5; border-radius:8px;" id="int_input_${idx}" value="${fmt(rec.actualInterest)}" oninput="BuildingRentalModule.formatInputCurrency(this, ${idx}, ${rec.shareRate})">` : `<strong style="color:#dc2626;">${fmt(rec.actualInterest)}</strong>`}
-                        </td>
-                        <td style="text-align:right; padding:14px 16px; background:#f0fdf4;">
-                          <strong id="my_net_${idx}" style="font-size:16px; font-weight:900; color:${myNet>=0?'#059669':'#dc2626'}; font-family:'Outfit',sans-serif;">${fmt(myNet)} 원</strong>
-                        </td>
-                        <td style="text-align:center; padding:14px 10px;">
-                          <span class="badge ${dday.days<=90?'bg-danger':'bg-secondary'}" style="font-size:11px;">${dday.label}</span>
-                        </td>
-                        <td style="text-align:center; padding:14px 10px;">
-                          <button onclick="BuildingRentalModule.openEditModal('${rec.id}')" class="btn btn-sm btn-light font-bold" style="font-size:11px; border:1px solid #cbd5e1; border-radius:8px;">수정</button>
-                        </td>
-                      </tr>
-                    `;
-                  }).join('')}
-                </tbody>
-                <!-- ★ 총합계 Footer ★ -->
-                <tfoot style="background:linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color:#ffffff;">
-                  <tr>
-                    <td colspan="2" style="padding:16px 20px; font-weight:900; font-size:15px; letter-spacing:1px;">💰 [ ${settlementMonth} ] 총 합계</td>
-                    <td style="text-align:right; padding:16px 10px; font-weight:800; font-size:15px;">${fmt(sumDeposit)}</td>
-                    <td style="text-align:right; padding:16px 10px; font-weight:800; font-size:15px; color:#93c5fd;">${fmt(sumRent)}</td>
-                    <td style="text-align:right; padding:16px 10px; font-weight:800; font-size:15px; color:#fca5a5;">${fmt(sumInterest)}</td>
-                    <td style="text-align:right; padding:16px 16px; font-weight:900; font-size:18px; color:#6ee7b7;">${fmt(sumNet)} 원</td>
-                    <td colspan="2"></td>
-                  </tr>
-                </tfoot>
-              </table>
-            </div>
-            
-            ${isBulkEditMode ? `
-              <div class="p-4" style="background:#fef2f2; border-top:2px solid #fecaca; text-align:right;">
-                <span class="me-3 font-bold text-danger">※ 수정 후 반드시 저장 버튼을 눌러야 반영됩니다.</span>
-                <button type="button" class="btn btn-danger font-bold px-4 py-2" onclick="BuildingRentalModule.saveMonthlySettlement()" style="border-radius:12px; font-size:16px;">
-                  <i class="fas fa-save me-2"></i> [ ${settlementMonth} ] 장부 저장하기
+              <div style="display:flex; align-items:center; gap:6px;">
+                <button type="button" class="btn btn-outline-secondary font-bold shadow-sm" onclick="BuildingRentalModule.moveMonth(-1)" style="border-radius:8px; padding:6px 14px; font-size:12.5px; background:#f8fafc;">
+                  <i class="fas fa-chevron-left me-1"></i> 이전 달
+                </button>
+                <button type="button" class="btn btn-primary font-bold shadow-sm" onclick="BuildingRentalModule.moveMonth(1)" style="border-radius:8px; padding:6px 14px; font-size:12.5px;">
+                  다음 달 <i class="fas fa-chevron-right ms-1"></i>
                 </button>
               </div>
-            ` : ''}
+            </div>
           </div>
-        </div>
+
+          <div class="card mb-5 shadow-sm" style="border-radius:20px; border:2px solid #bfdbfe; overflow:hidden; width: 100%;">
+            <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-3" style="background:#eff6ff; padding:16px 24px; border-bottom:1px solid #bfdbfe;">
+              <h3 style="font-size:16px; font-weight:800; margin:0; color:#1e40af;"><i class="fas fa-list-alt me-2"></i> ${settlementMonth} 상세 정산 내역</h3>
+              <div class="form-check form-switch" style="display:flex; align-items:center; gap:8px; margin:0;">
+                <input class="form-check-input" type="checkbox" id="bulkEditSwitch" style="width:44px; height:24px; cursor:pointer;" 
+                       ${isBulkEditMode ? 'checked' : ''} onchange="BuildingRentalModule.toggleBulkEditMode(this.checked)">
+                <label class="form-check-label font-bold" for="bulkEditSwitch" style="color:${isBulkEditMode ? '#dc2626' : '#64748b'}; cursor:pointer; font-size:14px; margin-top:2px;">
+                  ${isBulkEditMode ? '⚡ 일괄 수정 모드 켜짐' : '일괄 수정 켜기'}
+                </label>
+              </div>
+            </div>
+
+            <div class="card-body p-0">
+              <div style="width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch;">
+                <table style="width:100%; min-width:950px; border-collapse:collapse; text-align:left; font-size:13.5px; white-space:nowrap;">
+                  <thead style="background:#ffffff; color:#475569; border-bottom:2px solid #cbd5e1;">
+                    <tr>
+                      <th style="padding:14px 20px; width:22%;">상호 / 호실</th>
+                      <th style="padding:14px 15px; width:10%;">지분율</th>
+                      <th style="text-align:right; padding:14px 20px; color:#0f172a; width:14%;">보증금</th>
+                      <th style="text-align:right; padding:14px 20px; color:#1d4ed8; width:14%;">월세 수납</th>
+                      <th style="text-align:right; padding:14px 20px; color:#dc2626; width:14%;">대출 이자</th>
+                      <th style="text-align:right; padding:14px 20px; background:#ecfdf5; color:#065f46; width:16%;">★ 내지분 순수익</th>
+                      <th style="text-align:center; padding:14px 10px; width:8%;">만료 D-Day</th>
+                      <th style="text-align:center; padding:14px 10px; width:6%;">관리</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${monthlySettlementData.map((rec, idx) => {
+                      const dday = calculateDDay(rec.endDate);
+                      const net = rec.actualRent - rec.actualInterest;
+                      const myNet = Math.round(net * (rec.shareRate / 100));
+                      
+                      sumDeposit += rec.actualDeposit;
+                      sumRent += rec.actualRent;
+                      sumInterest += rec.actualInterest;
+                      sumNet += myNet;
+
+                      return `
+                        <tr style="border-bottom:1px solid #f1f5f9; background:${isBulkEditMode ? '#fffbfa' : '#ffffff'}; transition:background 0.2s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
+                          <td style="padding:14px 20px;">
+                            <div style="font-size:14.5px; font-weight:800; color:#0f172a;">${rec.buildingName}</div>
+                            <div style="font-size:12px; color:#64748b; margin-top:2px;">${rec.unit}</div>
+                          </td>
+                          <td style="padding:14px 15px;">
+                            <span style="display:inline-block; background:${rec.shareRate===100?'#dcfce7':'#dbeafe'}; color:${rec.shareRate===100?'#166534':'#1e40af'}; font-size:11px; font-weight:800; padding:4px 8px; border-radius:6px;">${rec.ownerLabel}</span>
+                          </td>
+                          <td style="text-align:right; padding:14px 20px;">
+                            ${isBulkEditMode ? `<input type="text" class="form-control text-end font-bold" style="border-radius:8px;" id="dep_input_${idx}" value="${fmt(rec.actualDeposit)}" oninput="BuildingRentalModule.formatInputCurrency(this, ${idx}, ${rec.shareRate})">` : `<strong>${fmt(rec.actualDeposit)}</strong>`}
+                          </td>
+                          <td style="text-align:right; padding:14px 20px;">
+                            ${isBulkEditMode ? `<input type="text" class="form-control text-end font-bold text-primary" style="border-color:#93c5fd; border-radius:8px;" id="rent_input_${idx}" value="${fmt(rec.actualRent)}" oninput="BuildingRentalModule.formatInputCurrency(this, ${idx}, ${rec.shareRate})">` : `<strong style="color:#1d4ed8;">${fmt(rec.actualRent)}</strong>`}
+                          </td>
+                          <td style="text-align:right; padding:14px 20px;">
+                            ${isBulkEditMode ? `<input type="text" class="form-control text-end font-bold text-danger" style="border-color:#fca5a5; border-radius:8px;" id="int_input_${idx}" value="${fmt(rec.actualInterest)}" oninput="BuildingRentalModule.formatInputCurrency(this, ${idx}, ${rec.shareRate})">` : `<strong style="color:#dc2626;">${fmt(rec.actualInterest)}</strong>`}
+                          </td>
+                          <td style="text-align:right; padding:14px 20px; background:#f0fdf4;">
+                            <strong id="my_net_${idx}" style="font-size:16px; font-weight:900; color:${myNet>=0?'#059669':'#dc2626'}; font-family:'Outfit',sans-serif;">${fmt(myNet)} 원</strong>
+                          </td>
+                          <td style="text-align:center; padding:14px 10px;">
+                            <span class="badge ${dday.days<=90?'bg-danger':'bg-secondary'}" style="font-size:11px;">${dday.label}</span>
+                          </td>
+                          <td style="text-align:center; padding:14px 10px;">
+                            <button onclick="BuildingRentalModule.openEditModal('${rec.id}')" class="btn btn-sm btn-light font-bold" style="font-size:11px; border:1px solid #cbd5e1; border-radius:8px;">수정</button>
+                          </td>
+                        </tr>
+                      `;
+                    }).join('')}
+                  </tbody>
+                  <tfoot style="background:linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color:#ffffff;">
+                    <tr>
+                      <td colspan="2" style="padding:16px 20px; font-weight:900; font-size:15px; letter-spacing:1px;">💰 [ ${settlementMonth} ] 총 합계</td>
+                      <td style="text-align:right; padding:16px 20px; font-weight:800; font-size:15px;">${fmt(sumDeposit)}</td>
+                      <td style="text-align:right; padding:16px 20px; font-weight:800; font-size:15px; color:#93c5fd;">${fmt(sumRent)}</td>
+                      <td style="text-align:right; padding:16px 20px; font-weight:800; font-size:15px; color:#fca5a5;">${fmt(sumInterest)}</td>
+                      <td style="text-align:right; padding:16px 20px; font-weight:900; font-size:18px; color:#6ee7b7;">${fmt(sumNet)} 원</td>
+                      <td colspan="2"></td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+              
+              ${isBulkEditMode ? `
+                <div class="p-4" style="background:#fef2f2; border-top:2px solid #fecaca; text-align:right;">
+                  <span class="me-3 font-bold text-danger">※ 수정 후 반드시 저장 버튼을 눌러야 반영됩니다.</span>
+                  <button type="button" class="btn btn-danger font-bold px-4 py-2" onclick="BuildingRentalModule.saveMonthlySettlement()" style="border-radius:12px; font-size:16px;">
+                    <i class="fas fa-save me-2"></i> [ ${settlementMonth} ] 장부 저장하기
+                  </button>
+                </div>
+              ` : ''}
+            </div>
+          </div>
       `;
     } 
     // =========================================================
-    // 📊 [탭 2] 연도별 누적 수익 대장 (독립 연도 선택 필터 장착)
+    // 📊 [탭 2] 연도별 누적 수익 대장 (직원할인대장 스타일 100% 풀너비 적용)
     // =========================================================
     else if (activeSubTab === 'yearly') {
       let yearlyAgg = {};
       
-      // 선택된 연도(selectedYear) 기준으로 데이터 집계
       Object.keys(rData.monthlyRecords).forEach(key => {
         if (key.startsWith(selectedYear)) {
           rData.monthlyRecords[key].forEach(r => {
@@ -374,102 +374,97 @@ window.BuildingRentalModule = (function () {
       let totalYRent = 0, totalYInterest = 0, totalYNet = 0;
 
       html += `
-       <!-- 📅 [고급형] 프리미엄 연도 선택 카드 배너 -->
-        <div class="card mb-4 shadow-sm" style="border-radius:16px; border:1px solid #cbd5e1; background:#ffffff;">
-          <div class="card-body p-3" style="display:flex; justify-content:between; align-items:center; flex-wrap:wrap; gap:12px;">
-            
-            <div style="display:flex; align-items:center; gap:10px;">
-              <div style="width:36px; height:36px; border-radius:10px; background:#f0fdf4; color:#16a34a; display:flex; justify-content:center; align-items:center; font-size:15px;">
-                <i class="fas fa-calendar-check"></i>
-              </div>
-              <div>
-                <div style="font-size:11px; font-weight:700; color:#64748b; text-transform:uppercase;">조회 기준 연도</div>
-                <div style="font-size:19px; font-weight:800; color:#0f172a; font-family:'Outfit', sans-serif;">
-                  ${selectedYear}년 누적 장부
+          <div class="card mb-4 shadow-sm" style="border-radius:16px; border:1px solid #cbd5e1; background:#ffffff; width: 100%;">
+            <div class="card-body p-3" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+              <div style="display:flex; align-items:center; gap:10px;">
+                <div style="width:36px; height:36px; border-radius:10px; background:#f0fdf4; color:#16a34a; display:flex; justify-content:center; align-items:center; font-size:15px;">
+                  <i class="fas fa-calendar-check"></i>
+                </div>
+                <div>
+                  <div style="font-size:11px; font-weight:700; color:#64748b; text-transform:uppercase;">조회 기준 연도</div>
+                  <div style="font-size:19px; font-weight:800; color:#0f172a; font-family:'Outfit', sans-serif;">
+                    ${selectedYear}년 누적 장부
+                  </div>
                 </div>
               </div>
+              <div>
+                <select class="form-select font-bold shadow-sm" style="width:140px; border-radius:8px; border:1.5px solid #cbd5e1; font-size:13.5px; background:#f8fafc; cursor:pointer;" 
+                        onchange="BuildingRentalModule.changeYearFilter(this.value)">
+                  ${(() => {
+                    const currentY = new Date().getFullYear();
+                    let options = '';
+                    for (let y = currentY + 5; y >= currentY - 5; y--) {
+                      options += `<option value="${y}" ${String(selectedYear) === String(y) ? 'selected' : ''}>${y}년</option>`;
+                    }
+                    return options;
+                  })()}
+                </select>
+              </div>
             </div>
+          </div> 
 
-            <div>
-              <select class="form-select font-bold shadow-sm" style="width:140px; border-radius:8px; border:1.5px solid #cbd5e1; font-size:13.5px; background:#f8fafc; cursor:pointer;" 
-                      onchange="BuildingRentalModule.changeYearFilter(this.value)">
-                ${(() => {
-                  const currentY = new Date().getFullYear();
-                  let options = '';
-                  // 올해를 기준으로 과거 5년 ~ 미래 5년 자동 생성 (원하시면 범위 조절 가능합니다)
-                  for (let y = currentY + 5; y >= currentY - 5; y--) {
-                    options += `<option value="${y}" ${String(selectedYear) === String(y) ? 'selected' : ''}>${y}년</option>`;
-                  }
-                  return options;
-                })()}
-              </select>
+          <div class="card mb-5 shadow-sm" style="border-radius:20px; border:2px solid #bbf7d0; overflow:hidden; width: 100%;">
+            <div class="card-header" style="background:#f0fdf4; padding:16px 24px; border-bottom:1px solid #bbf7d0;">
+              <h3 style="font-size:16px; font-weight:800; margin:0; color:#15803d;"><i class="fas fa-coins me-2"></i> ${selectedYear}년 전체 누적 수익 대장 (1월~현재)</h3>
             </div>
-
-          </div>
-        </div> 
-
-        <div class="card mb-5 shadow-sm" style="border-radius:20px; border:2px solid #bbf7d0; overflow:hidden;">
-          <div class="card-header" style="background:#f0fdf4; padding:16px 24px; border-bottom:1px solid #bbf7d0;">
-            <h3 style="font-size:16px; font-weight:800; margin:0; color:#15803d;"><i class="fas fa-coins me-2"></i> ${selectedYear}년 전체 누적 수익 대장 (1월~현재)</h3>
-          </div>
-          <div class="card-body p-0">
-            <div class="table-responsive">
-              <table class="table align-middle mb-0" style="font-size:13.5px; min-width:900px;">
-                <thead style="background:#ffffff; color:#475569; border-bottom:2px solid #cbd5e1;">
-                  <tr>
-                    <th style="padding:14px 20px; font-weight:800; width:20%;">상호 / 호실</th>
-                    <th style="padding:14px 10px; font-weight:800; width:10%;">지분율</th>
-                    <th style="text-align:right; padding:14px 10px; font-weight:800; color:#1d4ed8;">올해 누적 수납 월세</th>
-                    <th style="text-align:right; padding:14px 10px; font-weight:800; color:#dc2626;">올해 누적 납부 이자</th>
-                    <th style="text-align:right; padding:14px 20px; font-weight:900; background:#ecfdf5; color:#065f46;">★ 올해 누적 내지분 수익</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${yearlyArray.map(rec => {
-                    totalYRent += rec.sumRent; totalYInterest += rec.sumInterest; totalYNet += rec.sumNet;
-                    return `
-                      <tr style="border-bottom:1px solid #f1f5f9; background:#ffffff;">
-                        <td style="padding:14px 20px;">
-                          <div style="font-size:14.5px; font-weight:800; color:#0f172a;">${rec.buildingName}</div>
-                          <div style="font-size:12px; color:#64748b; margin-top:2px;">${rec.unit}</div>
-                        </td>
-                        <td style="padding:14px 10px;">
-                          <span style="display:inline-block; background:${rec.shareRate===100?'#dcfce7':'#dbeafe'}; color:${rec.shareRate===100?'#166534':'#1e40af'}; font-size:11px; font-weight:800; padding:4px 8px; border-radius:6px;">${rec.ownerLabel}</span>
-                        </td>
-                        <td style="text-align:right; padding:14px 10px; font-weight:800; color:#1d4ed8; font-size:15px;">${fmt(rec.sumRent)}</td>
-                        <td style="text-align:right; padding:14px 10px; font-weight:800; color:#dc2626; font-size:15px;">${fmt(rec.sumInterest)}</td>
-                        <td style="text-align:right; padding:14px 20px; font-weight:900; font-size:16px; color:#059669; background:#f0fdf4;">${fmt(rec.sumNet)} 원</td>
-                      </tr>
-                    `;
-                  }).join('')}
-                  ${yearlyArray.length === 0 ? `<tr><td colspan="5" class="text-center p-5 text-muted">${selectedYear}년에 입력된 정산 데이터가 없습니다.</td></tr>` : ''}
-                </tbody>
-             <!-- ★ [하이엔드] 프리미엄 차콜 네이비 총합계 Footer ★ -->
-                <tfoot style="background:linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color:#ffffff; border-top:2px solid #334155;">
-                  <tr>
-                    <td colspan="2" style="padding:18px 20px; font-weight:800; font-size:15px; letter-spacing:-0.3px;">
-                      <i class="fas fa-trophy text-warning me-2"></i> [ ${selectedYear}년 ] 연간 총 누적 합계
-                    </td>
-                    <td style="text-align:right; padding:18px 12px; font-weight:800; font-size:16px; color:#93c5fd; font-family:'Outfit', sans-serif;">
-                      ${fmt(totalYRent)}
-                    </td>
-                    <td style="text-align:right; padding:18px 12px; font-weight:800; font-size:16px; color:#fca5a5; font-family:'Outfit', sans-serif;">
-                      ${fmt(totalYInterest)}
-                    </td>
-                    <td style="text-align:right; padding:18px 20px; font-weight:900; font-size:18px; color:#34d399; font-family:'Outfit', sans-serif; background:rgba(52,211,153,0.08);">
-                      ${fmt(totalYNet)} <span style="font-size:13px; font-weight:700;">원</span>
-                    </td>
-                  </tr>
-                </tfoot>
-              </table>
+            <div class="card-body p-0">
+              <div style="width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch;">
+                <table style="width:100%; min-width:850px; border-collapse:collapse; text-align:left; font-size:13.5px; white-space:nowrap;">
+                  <thead style="background:#ffffff; color:#475569; border-bottom:2px solid #cbd5e1;">
+                    <tr>
+                      <th style="padding:14px 20px; width:25%;">상호 / 호실</th>
+                      <th style="padding:14px 15px; width:12%;">지분율</th>
+                      <th style="text-align:right; padding:14px 20px; color:#1d4ed8; width:20%;">올해 누적 수납 월세</th>
+                      <th style="text-align:right; padding:14px 20px; color:#dc2626; width:20%;">올해 누적 납부 이자</th>
+                      <th style="text-align:right; padding:14px 20px; background:#ecfdf5; color:#065f46; width:23%;">★ 올해 누적 내지분 수익</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${yearlyArray.map(rec => {
+                      totalYRent += rec.sumRent; totalYInterest += rec.sumInterest; totalYNet += rec.sumNet;
+                      return `
+                        <tr style="border-bottom:1px solid #f1f5f9; background:#ffffff;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
+                          <td style="padding:14px 20px;">
+                            <div style="font-size:14.5px; font-weight:800; color:#0f172a;">${rec.buildingName}</div>
+                            <div style="font-size:12px; color:#64748b; margin-top:2px;">${rec.unit}</div>
+                          </td>
+                          <td style="padding:14px 15px;">
+                            <span style="display:inline-block; background:${rec.shareRate===100?'#dcfce7':'#dbeafe'}; color:${rec.shareRate===100?'#166534':'#1e40af'}; font-size:11px; font-weight:800; padding:4px 8px; border-radius:6px;">${rec.ownerLabel}</span>
+                          </td>
+                          <td style="text-align:right; padding:14px 20px; font-weight:800; color:#1d4ed8; font-size:15px;">${fmt(rec.sumRent)}</td>
+                          <td style="text-align:right; padding:14px 20px; font-weight:800; color:#dc2626; font-size:15px;">${fmt(rec.sumInterest)}</td>
+                          <td style="text-align:right; padding:14px 20px; font-weight:900; font-size:16px; color:#059669; background:#f0fdf4;">${fmt(rec.sumNet)} 원</td>
+                        </tr>
+                      `;
+                    }).join('')}
+                    ${yearlyArray.length === 0 ? `<tr><td colspan="5" class="text-center p-5 text-muted">${selectedYear}년에 입력된 정산 데이터가 없습니다.</td></tr>` : ''}
+                  </tbody>
+                  <tfoot style="background:linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color:#ffffff; border-top:2px solid #334155;">
+                    <tr>
+                      <td colspan="2" style="padding:18px 20px; font-weight:800; font-size:15px; letter-spacing:-0.3px;">
+                        <i class="fas fa-trophy text-warning me-2"></i> [ ${selectedYear}년 ] 연간 총 누적 합계
+                      </td>
+                      <td style="text-align:right; padding:18px 20px; font-weight:800; font-size:16px; color:#93c5fd; font-family:'Outfit', sans-serif;">
+                        ${fmt(totalYRent)}
+                      </td>
+                      <td style="text-align:right; padding:18px 20px; font-weight:800; font-size:16px; color:#fca5a5; font-family:'Outfit', sans-serif;">
+                        ${fmt(totalYInterest)}
+                      </td>
+                      <td style="text-align:right; padding:18px 20px; font-weight:900; font-size:18px; color:#34d399; font-family:'Outfit', sans-serif; background:rgba(52,211,153,0.08);">
+                        ${fmt(totalYNet)} <span style="font-size:13px; font-weight:700;">원</span>
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
             </div>
           </div>
-        </div>
       `;
     }
 
-    // CRUD 모달창
+    // 최상위 박스 닫기 및 CRUD 모달창
     html += `
+      </div>
       <div id="property-crud-modal" class="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.7); z-index:999999; justify-content:center; align-items:center;">
         <div id="property-modal-content"></div>
       </div>
@@ -483,16 +478,21 @@ window.BuildingRentalModule = (function () {
   }
 
   // =====================================================================
-  // ★ 차트 (Bar, Donut x 2)
+  // ★ 차트 (Bar x 2, Donut x 2) - 충돌 방지 및 완전 초기화 버전
   // =====================================================================
   function initRentalCharts(rData, currentMonthData, yearStr) {
     if (typeof Chart === 'undefined') return;
     const fmt2 = v => Math.round((v || 0) / 10000);
 
-    // 1. 연간 Bar 차트
+    Object.keys(rentalChartInstances).forEach(key => {
+      if (rentalChartInstances[key]) {
+        rentalChartInstances[key].destroy();
+        rentalChartInstances[key] = null;
+      }
+    });
+
     const yearlyTrendCtx = document.getElementById('yearlyTrendCanvas');
     if (yearlyTrendCtx) {
-      if (rentalChartInstances.yearlyTrend) rentalChartInstances.yearlyTrend.destroy();
       const labels = [], trendData = [];
       for (let i = 1; i <= 12; i++) {
         labels.push(`${i}월`);
@@ -505,15 +505,36 @@ window.BuildingRentalModule = (function () {
       }
       rentalChartInstances.yearlyTrend = new Chart(yearlyTrendCtx, {
         type: 'bar',
-        data: { labels, datasets: [{ label: '순수익(만원)', data: trendData, backgroundColor: '#3b82f6', borderRadius: 4 }] },
+        data: { labels, datasets: [{ label: '월별 순수익(만원)', data: trendData, backgroundColor: '#3b82f6', borderRadius: 4 }] },
         options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
       });
     }
 
-    // 2. 이번달 Donut (좌측)
+    const yearlyAggregateCtx = document.getElementById('yearlyAggregateCanvas');
+    if (yearlyAggregateCtx) {
+      const aggYears = ['2024년', '2025년', '2026년'];
+      const aggData = aggYears.map(yLabel => {
+        const yNum = yLabel.replace('년', '');
+        let ySum = 0;
+        Object.keys(rData.monthlyRecords).forEach(key => {
+          if (key.startsWith(yNum)) {
+            rData.monthlyRecords[key].forEach(r => {
+              ySum += Math.round((r.actualRent - r.actualInterest) * (r.shareRate / 100));
+            });
+          }
+        });
+        return fmt2(ySum);
+      });
+
+      rentalChartInstances.yearlyAggregate = new Chart(yearlyAggregateCtx, {
+        type: 'bar',
+        data: { labels: aggYears, datasets: [{ label: '연도별 순수익(만원)', data: aggData, backgroundColor: '#059669', borderRadius: 4 }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+      });
+    }
+
     const monthlyDonutCtx = document.getElementById('monthlyDonutCanvas');
     if (monthlyDonutCtx) {
-      if (rentalChartInstances.monthlyDonut) rentalChartInstances.monthlyDonut.destroy();
       const posUnits = currentMonthData.filter(u => (u.actualRent - u.actualInterest) > 0);
       rentalChartInstances.monthlyDonut = new Chart(monthlyDonutCtx, {
         type: 'doughnut',
@@ -525,10 +546,8 @@ window.BuildingRentalModule = (function () {
       });
     }
 
-    // 3. 연간 Donut (우측)
     const yearlyDonutCtx = document.getElementById('yearlyDonutCanvas');
     if (yearlyDonutCtx) {
-      if (rentalChartInstances.yearlyDonut) rentalChartInstances.yearlyDonut.destroy();
       const ytdMap = {};
       Object.keys(rData.monthlyRecords).forEach(key => {
         if (key.startsWith(yearStr)) {
@@ -550,9 +569,6 @@ window.BuildingRentalModule = (function () {
     }
   }
 
-  // =====================================================================
-  // ★ 저장, 추가, 수정, 삭제 로직 (CRUD 및 쉼표 자동완성 완벽 유지)
-  // =====================================================================
   function toggleBulkEditMode(isOn) { isBulkEditMode = isOn; render('module-content'); }
 
   function saveMonthlySettlement() {

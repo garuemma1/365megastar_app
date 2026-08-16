@@ -1,11 +1,11 @@
-/**
+﻿/**
  * 직원 명부 모듈 컨트롤러 (Staff Directory Module v5.0)
  * 약국장(문성도) 전용 직원 계정 관리, 신규 등록, 세부 정보 수정, 비밀번호 초기화, 급여유형 및 메뉴 탭 맞춤 권한 조정 센터
  */
 window.StaffDirectoryModule = (function () {
 
   let searchQuery = '';
-  let activeRoleFilter = 'ALL'; // 'ALL', '약국장', '근무약사', '일반직원'
+  let activeRoleFilter = 'ALL'; // 'ALL', '약국장', '근무약사', '일반직원', '예비인력'
   let showInlineRegistrationForm = false;
   let editingEmpId = null;
 
@@ -33,6 +33,7 @@ window.StaffDirectoryModule = (function () {
     const directorCount = employees.filter(e => e.role === '약국장').length;
     const pharmacistCount = employees.filter(e => e.role === '근무약사' || (e.role || '').includes('약사')).length;
     const staffCount = employees.filter(e => e.role === '일반직원').length;
+    const reserveCount = employees.filter(e => e.role === '예비인력').length;
 
     const todayStr = new Date().toISOString().split('T')[0];
 
@@ -71,6 +72,7 @@ window.StaffDirectoryModule = (function () {
                 <select id="new-emp-role-inline" class="form-select" required style="border-radius:10px; padding:10px;">
                   <option value="근무약사">💊 근무약사</option>
                   <option value="일반직원" selected>💻 일반직원</option>
+                  <option value="예비인력">⏳ 예비인력</option>
                 </select>
               </div>
             </div>
@@ -103,7 +105,7 @@ window.StaffDirectoryModule = (function () {
             <div class="row g-3 mb-3">
               <div class="col-md-6">
                 <label class="form-label font-bold" style="font-size:13px; color:#334155;">로그인 아이디 (이메일 계정)</label>
-                <input type="text" id="new-emp-email-inline" class="form-control" placeholder="예: hong@365megastar.com" required style="border-radius:10px; padding:10px;">
+                <input type="text" id="new-emp-email-inline" class="form-control" placeholder="예: hong@shinsegae.com" required style="border-radius:10px; padding:10px;">
               </div>
               <div class="col-md-6">
                 <label class="form-label font-bold" style="font-size:13px; color:#334155;">휴대폰 연락처</label>
@@ -202,8 +204,11 @@ window.StaffDirectoryModule = (function () {
                 <button type="button" class="btn btn-sm ${activeRoleFilter === '근무약사' ? 'btn-warning text-dark font-bold' : 'btn-outline-secondary'}" onclick="StaffDirectoryModule.setRoleFilter('근무약사')" style="font-size:13px; padding:6px 16px;">
                   💊 근무약사 (${pharmacistCount - directorCount})
                 </button>
-                <button type="button" class="btn btn-sm ${activeRoleFilter === '일반직원' ? 'btn-success' : 'btn-outline-secondary'}" onclick="StaffDirectoryModule.setRoleFilter('일반직원')" style="border-radius:0 20px 20px 0; font-size:13px; padding:6px 16px; font-weight:700;">
+                <button type="button" class="btn btn-sm ${activeRoleFilter === '일반직원' ? 'btn-success' : 'btn-outline-secondary'}" onclick="StaffDirectoryModule.setRoleFilter('일반직원')" style="font-size:13px; padding:6px 16px; font-weight:700;">
                   💻 일반직원 (${staffCount})
+                </button>
+                <button type="button" class="btn btn-sm ${activeRoleFilter === '예비인력' ? 'btn-secondary text-white font-bold' : 'btn-outline-secondary'}" onclick="StaffDirectoryModule.setRoleFilter('예비인력')" style="border-radius:0 20px 20px 0; font-size:13px; padding:6px 16px;" title="예비인력 필터">
+                  ⏳ 예비인력 (${reserveCount})
                 </button>
               </div>
             </div>
@@ -253,6 +258,7 @@ window.StaffDirectoryModule = (function () {
         if (activeRoleFilter === '약국장' && emp.role !== '약국장') return false;
         if (activeRoleFilter === '근무약사' && (emp.role !== '근무약사' && !emp.role.includes('약사'))) return false;
         if (activeRoleFilter === '일반직원' && emp.role !== '일반직원') return false;
+        if (activeRoleFilter === '예비인력' && emp.role !== '예비인력') return false;
       }
       // 검색어 필터
       if (!searchQuery) return true;
@@ -300,7 +306,8 @@ window.StaffDirectoryModule = (function () {
                   <label class="form-label mb-1 font-bold" style="color:#334155;">구분 / 직무</label>
                   <select id="edit-role-${emp.id}" class="form-select form-select-sm font-bold">
                     <option value="근무약사" ${isPharmacist ? 'selected' : ''}>💊 근무약사</option>
-                    <option value="일반직원" ${!isPharmacist && !isDirector ? 'selected' : ''}>💻 일반직원</option>
+                    <option value="일반직원" ${!isPharmacist && !isDirector && emp.role !== '예비인력' ? 'selected' : ''}>💻 일반직원</option>
+                    <option value="예비인력" ${emp.role === '예비인력' ? 'selected' : ''}>⏳ 예비인력</option>
                     ${isDirector ? `<option value="약국장" selected>👑 약국장</option>` : ''}
                   </select>
                 </div>
@@ -412,7 +419,7 @@ window.StaffDirectoryModule = (function () {
                 <span class="font-bold">${emp.joinDate}</span>
               </div>
 
-              <!-- 약정 급여 조건 구분 카드 (근무약사 vs 일반직원) -->
+              <!-- 약정 급여 조건 구분 카드 -->
               <div id="pay-box-${emp.id}">
                 ${isDirector ? `
                   <div class="p-3 my-2" style="background:#fef2f2; border-radius:12px; border:1px solid #fecaca;">
@@ -433,7 +440,7 @@ window.StaffDirectoryModule = (function () {
                       </div>
                     </div>
                     <div class="d-flex justify-content-between align-items-center pt-1">
-                      <span style="font-size:12.5px; font-weight:700; color:#c2410c;"><i class="fas fa-umbrella-beach text-warning"></i> 주말·공휴일·대체휴일 시급:</span>
+                      <span style="font-size:12.5px; font-weight:700; color:#c2410c;"><i class="fas fa-umbrella-beach text-warning"></i> 주말·공휴일 시급:</span>
                       <strong style="color:#c2410c; font-size:14px; font-family:'Outfit', sans-serif;">${pRateObj.holidayRate.toLocaleString()} 원/h</strong>
                     </div>
                   </div>
@@ -552,7 +559,7 @@ window.StaffDirectoryModule = (function () {
     window.SheetsSync.saveEmployees(emps);
     editingEmpId = null;
 
-    alert(`✅ [${newName}] 직원의 세부 정보(휴대폰 ${newPhone}, 입사일 ${newJoinDate}, 직책, 급여 등) 수정이 완벽히 저장되었습니다!`);
+    alert(`✅ [${newName}] 직원의 세부 정보 수정이 완벽히 저장되었습니다!`);
     render('module-content');
   }
 
@@ -566,10 +573,10 @@ window.StaffDirectoryModule = (function () {
       return;
     }
 
-    if (confirm(`⚠️ [${target.name} ${target.role}] 직원의 계정 및 명부를 삭제(퇴사 처리)하시겠습니까?\n\n※ 삭제 후에는 해당 직원의 계정으로 로그인할 수 없으며, 명부에서 즉시 차단/제거됩니다.`)) {
+    if (confirm(`⚠️ [${target.name} ${target.role}] 직원의 계정 및 명부를 삭제(퇴사 처리)하시겠습니까?`)) {
       const updatedEmps = emps.filter(e => e.id !== empId);
       window.SheetsSync.saveEmployees(updatedEmps);
-      alert(`🗑️ [${target.name}] 직원의 계정 및 명부가 성공적으로 삭제(퇴사 처리)되었습니다.`);
+      alert(`🗑️ [${target.name}] 직원의 계정 및 명부가 성공적으로 삭제되었습니다.`);
       render('module-content');
     }
   }
@@ -627,7 +634,7 @@ window.StaffDirectoryModule = (function () {
     if (!target) return;
     if (confirm(`${target.name} 직원의 비밀번호를 초기값 '1234'로 비상 리셋하시겠습니까?`)) {
       window.SheetsSync.resetPassword(empId);
-      alert(`✅ ${target.name} 직원의 비밀번호가 '1234'로 성공적으로 초기화되었습니다.`);
+      alert(`✅ ${target.name} 직원의 비밀번호가 '1234'로 초기화되었습니다.`);
       render('module-content');
     }
   }
@@ -655,53 +662,46 @@ window.StaffDirectoryModule = (function () {
 
     modal.style.display = 'flex';
   }
-function saveStaffPermissions(e) {
-  e.preventDefault();
-  const empId = document.getElementById('perm-emp-id').value;
-  const modal = document.getElementById('perm-modal');
-  if (!modal) return;
 
-  const tabCheckboxes = modal.querySelectorAll('.perm-tab-cb');
-  const newAllowed = [];
-  tabCheckboxes.forEach(cb => {
-    if (cb.checked) newAllowed.push(cb.value);
-  });
+  function saveStaffPermissions(e) {
+    e.preventDefault();
+    const empId = document.getElementById('perm-emp-id').value;
+    const modal = document.getElementById('perm-modal');
+    if (!modal) return;
 
-  if (!empId) {
-    alert('❌ 직원 ID를 찾을 수 없습니다. 모달을 다시 열어 시도해주세요.');
-    return;
+    const tabCheckboxes = modal.querySelectorAll('.perm-tab-cb');
+    const newAllowed = [];
+    tabCheckboxes.forEach(cb => {
+      if (cb.checked) newAllowed.push(cb.value);
+    });
+
+    if (!empId) {
+      alert('❌ 직원 ID를 찾을 수 없습니다.');
+      return;
+    }
+
+    const emps = window.SheetsSync.getEmployees() || [];
+    const targetIndex = emps.findIndex(emp => emp.id === empId);
+
+    if (targetIndex === -1) {
+      alert('❌ 직원 정보를 찾을 수 없습니다.');
+      return;
+    }
+
+    emps[targetIndex].allowedTabs = newAllowed;
+    window.SheetsSync.saveEmployees(emps);
+    modal.style.display = 'none';
+
+    if (window.App && typeof window.App.renderSidebarNavigation === 'function') {
+      window.App.renderSidebarNavigation();
+    }
+    if (window.App && typeof window.App.renderUserHeader === 'function') {
+      window.App.renderUserHeader();
+    }
+
+    render('module-content');
+    alert('✅ 탭 접근 권한이 저장되었습니다!');
   }
-
-  // --- 수정된 부분 시작: 데이터를 직접 찾아 덮어쓰기 ---
-  const emps = window.SheetsSync.getEmployees() || [];
-  const targetIndex = emps.findIndex(emp => emp.id === empId);
-
-  if (targetIndex === -1) {
-    alert('❌ 직원 정보를 찾을 수 없어 권한 저장에 실패했습니다.');
-    return;
-  }
-
-  // 1. 해당 직원의 allowedTabs 권한 배열을 새로 체크한 배열로 교체
-  emps[targetIndex].allowedTabs = newAllowed;
-
-  // 2. 전체 직원 데이터를 다시 저장 (가장 확실한 방법)
-  window.SheetsSync.saveEmployees(emps);
-  // --- 수정된 부분 끝 ---
-
-  modal.style.display = 'none';
-
-  // 사이드바 네비게이션 즉시 재렌더링 (현재 로그인 유저가 해당 직원이면 바로 반영)
-  if (window.App && typeof window.App.renderSidebarNavigation === 'function') {
-    window.App.renderSidebarNavigation();
-  }
-  if (window.App && typeof window.App.renderUserHeader === 'function') {
-    window.App.renderUserHeader();
-  }
-
-  render('module-content');
-  alert('✅ 탭 접근 권한이 저장되었습니다!');
-}
- 
 
   function editPayCondition(empId) {
     const emps = window.SheetsSync.getEmployees();
@@ -723,12 +723,12 @@ function saveStaffPermissions(e) {
             <input type="number" id="pay-input-weekday-${empId}" class="form-control form-control-sm font-bold text-end" value="${pRateObj.weekdayRate}" style="color:#1e40af;">
           </div>
           <div class="mb-3">
-            <label class="form-label mb-1 font-bold" style="font-size:12px; color:#c2410c;">🏖️ 주말·공휴일·대체휴일 시급 (원/h):</label>
+            <label class="form-label mb-1 font-bold" style="font-size:12px; color:#c2410c;">🏖️ 주말·공휴일 시급 (원/h):</label>
             <input type="number" id="pay-input-holiday-${empId}" class="form-control form-control-sm font-bold text-end" value="${pRateObj.holidayRate}" style="color:#c2410c;">
           </div>
           <div class="d-flex justify-content-end gap-1">
             <button type="button" class="btn btn-xs btn-secondary" onclick="StaffDirectoryModule.cancelMemo('${empId}')" style="font-size:11.5px; padding:3px 10px;">취소</button>
-            <button type="button" class="btn btn-xs btn-primary font-bold" onclick="StaffDirectoryModule.savePayCondition('${empId}')" style="font-size:11.5px; padding:3px 12px;"><i class="fas fa-check"></i> 시급 변경 저장</button>
+            <button type="button" class="btn btn-xs btn-primary font-bold" onclick="StaffDirectoryModule.savePayCondition('${empId}')" style="font-size:11.5px; padding:3px 12px;"><i class="fas fa-check"></i> 저장</button>
           </div>
         </div>
       `;
@@ -740,12 +740,12 @@ function saveStaffPermissions(e) {
             <input type="number" id="pay-input-salary-${empId}" class="form-control form-control-sm font-bold text-end" value="${target.baseMonthlySalary || 0}" style="color:#15803d;">
           </div>
           <div class="mb-3">
-            <label class="form-label mb-1 font-bold" style="font-size:12px; color:#0369a1;">⏱️ 초과/연장 책정시급 (원/h):</label>
+            <label class="form-label mb-1 font-bold" style="font-size:12px; color:#0369a1;">⏱️ 초과 책정시급 (원/h):</label>
             <input type="number" id="pay-input-hourly-${empId}" class="form-control form-control-sm font-bold text-end" value="${target.hourlyRate || 13000}" style="color:#0369a1;">
           </div>
           <div class="d-flex justify-content-end gap-1">
             <button type="button" class="btn btn-xs btn-secondary" onclick="StaffDirectoryModule.cancelMemo('${empId}')" style="font-size:11.5px; padding:3px 10px;">취소</button>
-            <button type="button" class="btn btn-xs btn-primary font-bold" onclick="StaffDirectoryModule.savePayCondition('${empId}')" style="font-size:11.5px; padding:3px 12px;"><i class="fas fa-check"></i> 급여 변경 저장</button>
+            <button type="button" class="btn btn-xs btn-primary font-bold" onclick="StaffDirectoryModule.savePayCondition('${empId}')" style="font-size:11.5px; padding:3px 12px;"><i class="fas fa-check"></i> 저장</button>
           </div>
         </div>
       `;
@@ -771,8 +771,7 @@ function saveStaffPermissions(e) {
 
       target.hourlyRate = weekdayRate;
       window.SheetsSync.saveEmployees(emps);
-
-      alert(`💰 [${target.name}] 약사님의 시급이 성공적으로 수정되어 정산표에 자동 연동되었습니다.\n(평일 ${weekdayRate.toLocaleString()}원 / 주말·공휴일 ${holidayRate.toLocaleString()}원)`);
+      alert(`💰 [${target.name}] 시급이 수정되었습니다.`);
     } else {
       const baseMonthlySalary = parseInt(document.getElementById(`pay-input-salary-${empId}`).value) || 2717000;
       const hourlyRate = parseInt(document.getElementById(`pay-input-hourly-${empId}`).value) || 13000;
@@ -780,8 +779,7 @@ function saveStaffPermissions(e) {
       target.baseMonthlySalary = baseMonthlySalary;
       target.hourlyRate = hourlyRate;
       window.SheetsSync.saveEmployees(emps);
-
-      alert(`💼 [${target.name}] 직원의 급여 조건이 성공적으로 수정되어 정산표에 자동 연동되었습니다.\n(기본월급 ${baseMonthlySalary.toLocaleString()}원 / 초과시급 ${hourlyRate.toLocaleString()}원)`);
+      alert(`💼 [${target.name}] 급여 조건이 수정되었습니다.`);
     }
 
     render('module-content');
@@ -826,6 +824,7 @@ function saveStaffPermissions(e) {
               <select id="new-emp-role" class="form-select" required style="border-radius:10px; padding:10px;">
                 <option value="근무약사">💊 근무약사</option>
                 <option value="일반직원" selected>💻 일반직원</option>
+                <option value="예비인력">⏳ 예비인력</option>
               </select>
             </div>
           </div>
@@ -858,7 +857,7 @@ function saveStaffPermissions(e) {
           <div class="row g-3 mb-3">
             <div class="col-md-6">
               <label class="form-label font-bold" style="font-size:13px; color:#334155;">로그인 아이디 (이메일 계정)</label>
-              <input type="text" id="new-emp-email" class="form-control" placeholder="예: hong@365megastar.com" required style="border-radius:10px; padding:10px;">
+              <input type="text" id="new-emp-email" class="form-control" placeholder="예: hong@shinsegae.com" required style="border-radius:10px; padding:10px;">
             </div>
             <div class="col-md-6">
               <label class="form-label font-bold" style="font-size:13px; color:#334155;">휴대폰 연락처</label>
@@ -933,7 +932,7 @@ function saveStaffPermissions(e) {
     const emps = window.SheetsSync.getEmployees() || [];
     
     if (emps.some(emp => emp.email === email || emp.username === email)) {
-      alert('⚠️ 이미 등록된 이메일 계정이 존재합니다. 다른 이메일을 사용하세요.');
+      alert('⚠️ 이미 등록된 이메일 계정이 존재합니다.');
       return;
     }
 
@@ -974,7 +973,7 @@ function saveStaffPermissions(e) {
     if (modal) modal.style.display = 'none';
     showInlineRegistrationForm = false;
 
-    alert(`🎉 신규 직원 [${name} ${role}] 님의 계정 및 명부 등록이 완료되었습니다!\n(초기 비밀번호: 1234)`);
+    alert(`🎉 신규 직원 [${name} ${role}] 님의 등록이 완료되었습니다!`);
     render('module-content');
   }
 
